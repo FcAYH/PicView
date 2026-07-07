@@ -1,0 +1,10 @@
+<Application
+    x:Class="PicView.Avalonia.Linux.App"
+    x:CompileBindings="True"
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <Application.Styles>
+        <StyleInclude Source="avares://PicView.Avalonia/PicViewTheme/AllControls.axaml" />
+    </Application.Styles>
+</Application>

@@ -9,5 +9,5 @@ public static class PreLoaderConfig
     public static int MaxCount => PositiveIterations + NegativeIterations; 
     
     /// Leave a few cores for the UI thread and other system processes to ensure responsiveness.
-    public static int MaxParallelism { get; } = Math.Max(1, Environment.ProcessorCount - 3);
+    public static int MaxParallelism { get; } = Environment.ProcessorCount - 1;
 }

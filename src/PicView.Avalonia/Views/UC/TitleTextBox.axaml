@@ -1,45 +1,6 @@
 <UserControl
     Background="{DynamicResource SecondaryBackgroundColor}"
     HorizontalAlignment="Stretch"
-    d:DesignHeight="450"
-    d:DesignWidth="800"
-    mc:Ignorable="d"
     x:Class="PicView.Avalonia.Views.UC.TitleTextBox"
-    x:DataType="viewModels:MainViewModel"
     xmlns="https://github.com/avaloniaui"
-    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    xmlns:viewModels="clr-namespace:PicView.Avalonia.ViewModels"
-    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
-    <Design.DataContext>
-        <viewModels:MainViewModel />
-    </Design.DataContext>
-
-    <Panel>
-        <TextBlock
-            FontFamily="avares://PicView.Avalonia/Assets/Fonts/Roboto-Medium.ttf#Roboto"
-            FontSize="13"
-            FontWeight="Medium"
-            Height="{CompiledBinding MainWindow.TitlebarHeight.Value,
-                                     Mode=OneWay}"
-            IsTabStop="False"
-            Padding="0,7,0,5"
-            Text="{CompiledBinding PicViewer.Title.Value,
-                                   Mode=OneWay}"
-            TextAlignment="Center"
-            TextTrimming="CharacterEllipsis"
-            ToolTip.Tip="{CompiledBinding PicViewer.TitleTooltip.Value,
-                                          Mode=OneWay}"
-            VerticalAlignment="Center" />
-        <TextBox
-            FontFamily="avares://PicView.Avalonia/Assets/Fonts/Roboto-Medium.ttf#Roboto"
-            FontSize="13"
-            FontWeight="Medium"
-            Height="{CompiledBinding MainWindow.TitlebarHeight.Value,
-                                     Mode=OneWay}"
-            IsTabStop="False"
-            IsVisible="False"
-            TextAlignment="Center"
-            VerticalAlignment="Center" />
-    </Panel>
-</UserControl>
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" />

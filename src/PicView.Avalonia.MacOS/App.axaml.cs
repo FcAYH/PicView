@@ -2,17 +2,15 @@
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
-using Avalonia.Media.Imaging;
 using Avalonia.Threading;
 using PicView.Avalonia.ColorManagement;
-using PicView.Avalonia.Interfaces;
+using PicView.Avalonia.ImageHandling;
 using PicView.Avalonia.MacOS.Views;
-using PicView.Avalonia.MacOS.WindowImpl;
-using PicView.Avalonia.Navigation;
+using PicView.Avalonia.SettingsManagement;
 using PicView.Avalonia.StartUp;
-using PicView.Avalonia.ViewModels;
 using PicView.Core.FileAssociations;
 using PicView.Core.FileSorting;
+using PicView.Core.IPlatform;
 using PicView.Core.Localization;
 using PicView.Core.MacOS;
 using PicView.Core.MacOS.Cursor;
@@ -20,88 +18,122 @@ using PicView.Core.MacOS.FileAssociation;
 using PicView.Core.MacOS.FileFunctions;
 using PicView.Core.MacOS.Wallpaper;
 using PicView.Core.ProcessHandling;
+using PicView.Core.ViewModels;
+using MainWindowViewModel = PicView.Core.ViewModels.MainWindowViewModel;
 
 #pragma warning disable CS0618 // Type or member is obsolete
 
 namespace PicView.Avalonia.MacOS;
 
-public class App : Application, IPlatformSpecificService, IPlatformWindowService
+public class App : Application, IPlatformSpecificService
 {
     private MacMainWindow? _mainWindow;
-    private static WindowInitializer? _windowInitializer;
-    private MainViewModel? _vm;
+    private static CoreViewModel? _coreViewModel;
+    private static MainWindowViewModel? _mainWindowViewModel;
+    
+    ///  Flag to track if we are processing the initial startup file
+    private bool _isInitialLoad;
 
     public override void Initialize()
     {
         AvaloniaXamlLoader.Load(this);
-        
+
 #if DEBUG
         this.AttachDeveloperTools();
 #endif
     }
 
+    // The startup procedure for macOS is a bit different than Windows.
     public override void OnFrameworkInitializationCompleted()
     {
-        try
-        {
-            base.OnFrameworkInitializationCompleted();
-            
-            string? startUpFilePath = null;
-            EventHandler<UrlOpenedEventArgs> handler = (_, e) => { startUpFilePath = e.Urls[0]; };
-            Current.UrlsOpened += handler;
+        string? startUpFilePath = null;
 
-            if (ApplicationLifetime is not IClassicDesktopStyleApplicationLifetime desktop)
+        if (this.TryGetFeature<IActivatableLifetime>() is { } activatableLifetime)
+        {
+            activatableLifetime.Activated += async (_, e) =>
             {
+                if (e is FileActivatedEventArgs fileArgs)
+                {
+                    if (fileArgs.Files.Count <= 0)
+                    {
+                        return;
+                    }
+
+                    startUpFilePath = fileArgs.Files[0].Path.AbsolutePath;
+                    await HandleInitialLoadOrConsecutive();
+                }
+                else if (e is ProtocolActivatedEventArgs protocolArgs)
+                {
+                    startUpFilePath = protocolArgs.Uri.AbsolutePath;
+                    await HandleInitialLoadOrConsecutive();
+                }
+
+            };
+        }
+        base.OnFrameworkInitializationCompleted();        
+
+        var settingsExists = LoadSettings();
+        TranslationManager.Init();
+
+        _coreViewModel = new CoreViewModel(this, GetImageModel.GetImageModelAsync);
+        DataContext = _coreViewModel;
+
+        ThemeManager.DetermineTheme(Current, settingsExists);
+
+        _mainWindow = new MacMainWindow();
+        _mainWindowViewModel = _mainWindow.DataContext as MainWindowViewModel;
+        _coreViewModel.MainWindows.MainWindows.Add(_mainWindowViewModel);
+        _coreViewModel.MainWindows.ActiveWindow.Value = _mainWindowViewModel;
+        
+        TranslationManager.Init();
+        SettingsUpdater.InitializeSettings(_mainWindowViewModel, settingsExists);
+        StartUpHelper.HandleWindowScalingMode(_coreViewModel, _mainWindow);
+        _mainWindow.Show();
+        
+        var arg = Environment.GetCommandLineArgs();
+        if (arg.Length > 1)
+        {
+            startUpFilePath = arg[1];
+        }
+        if (startUpFilePath is not null)
+        {
+            Task.Run(() => QuickLoad.QuickLoadAsync(_mainWindow, _coreViewModel, startUpFilePath, false));
+        }
+        else
+        {
+            StartUpHelper.StartUpMenuOrLastFile(_mainWindow, _coreViewModel);
+        }
+        
+        if (ApplicationLifetime is not IClassicDesktopStyleApplicationLifetime desktop)
+        {
+            return;
+        }
+        
+        StartUpHelper.HandlePostWindowUpdates(_coreViewModel, desktop, _mainWindow);
+        
+        return;
+
+        async ValueTask HandleInitialLoadOrConsecutive()
+        {
+            if (!_isInitialLoad)
+            {
+                _isInitialLoad = true;
+                await QuickLoad.QuickLoadAsync(_mainWindow, _coreViewModel, startUpFilePath, true, true).ConfigureAwait(false);
                 return;
             }
-
-            var settingsExists = LoadSettings();
-            _vm = new MainViewModel(this, this);
-        
-            TranslationManager.Init();
-
-            DataContext = _vm;
-            ThemeManager.DetermineTheme(Current, settingsExists);
-
-            _mainWindow = new MacMainWindow();
-            desktop.MainWindow = _mainWindow;
-
-            _mainWindow.DataContext = _vm;
-            if (string.IsNullOrWhiteSpace(startUpFilePath))
+            if (Settings.UIProperties.OpenInSameWindow)
             {
-                StartUpHelper.StartWithoutArguments(_vm, settingsExists, desktop, _mainWindow);
+                Dispatcher.UIThread.Invoke(() => { _mainWindow.Activate(); }, DispatcherPriority.Send);
+                await _coreViewModel.MainWindows.ActiveWindow.CurrentValue.WindowTabs.LoadFromStringAsync(startUpFilePath).ConfigureAwait(false);
             }
             else
             {
-                StartUpHelper.StartUpBlank(_vm, settingsExists, desktop, _mainWindow);
+                ProcessHelper.StartNewProcess(startUpFilePath);
             }
-            _windowInitializer = new WindowInitializer();
-            
-            // Register for macOS file opening
-            Current.UrlsOpened += async (_, e) =>
-            {
-                if (Settings.UIProperties.OpenInSameWindow)
-                {
-                    Dispatcher.UIThread.Invoke(() => 
-                    {
-                        _mainWindow.Activate();
-                    }, DispatcherPriority.Send);
-                    await NavigationManager.LoadPicFromStringAsync(e.Urls[0], _vm);
-                }
-                else
-                {
-                    ProcessHelper.StartNewProcess(e.Urls[0]);
-                }
-            };
-            Current.UrlsOpened -= handler;
-        }
-        catch (Exception)
-        {
-            //
         }
     }
 
-    #region Interface implementations
+   #region Interface implementations
     
     public void SetTaskbarProgress(ulong progress, ulong maximum)
     {
@@ -135,7 +167,7 @@ public class App : Application, IPlatformSpecificService, IPlatformWindowService
         {
             var openWithView = new OpenWithView(path)
             {
-                DataContext = _vm
+                DataContext = _mainWindowViewModel
             };
             openWithView.Show();
         }, DispatcherPriority.Input);
@@ -153,9 +185,9 @@ public class App : Application, IPlatformSpecificService, IPlatformWindowService
         // TODO: make interface async
     }
 
-    public void Print(string path)
+    public async ValueTask Print(string path)
     {
-        _windowInitializer?.ShowPrintPreviewWindow(_vm, path);
+        await _mainWindow.ShowPrintWindow(path);
     }
 
     public async Task SetAsWallpaper(string path, int wallpaperStyle)
@@ -167,28 +199,6 @@ public class App : Application, IPlatformSpecificService, IPlatformWindowService
     {
         // wallpaper and lockscreen are the same in macOS
         return false;
-    }
-    
-    public bool CopyFile(string path)
-    {
-        // TODO: Implement copying file to clipboard
-        return false;
-    }
-    
-    public bool CutFile(string path)
-    {
-        // TODO: Implement cutting file to clipboard
-        return false;
-    }
-
-    public Task CopyImageToClipboard(Bitmap bitmap)
-    {
-        return Task.CompletedTask;
-    }
-
-    public Task<Bitmap?> GetImageFromClipboard()
-    {
-        return null;
     }
 
     public Task<bool> ExtractWithLocalSoftwareAsync(string path, string tempDirectory)
@@ -227,56 +237,6 @@ public class App : Application, IPlatformSpecificService, IPlatformWindowService
         await Task.Run(() => File.Delete(path));
         return !File.Exists(path); 
     }
-    
-    #endregion
-    
-    #region Window interface implementations
-
-    public int CombinedTitleButtonsWidth { get; set; } = 165;
-    
-    public void ShowAboutWindow() =>
-        _windowInitializer?.ShowAboutWindow(_vm);
-
-    public async Task ShowImageInfoWindow() =>
-        await _windowInitializer?.ShowImageInfoWindow(_vm);
-
-    public async Task ShowKeybindingsWindow() =>
-        _windowInitializer?.ShowKeybindingsWindow(_vm);
-
-    public async Task ShowSettingsWindow() =>
-        await _windowInitializer?.ShowSettingsWindow(_vm);
-
-    public void ShowSingleImageResizeWindow() =>
-        _windowInitializer?.ShowSingleImageResizeWindow(_vm);
-
-    public async Task ShowBatchResizeWindow() =>
-        await _windowInitializer?.ShowBatchResizeWindow(_vm);
-
-    public void ShowEffectsWindow() =>
-        _windowInitializer?.ShowEffectsWindow(_vm);
-
-    public void ShowConvertWindow() =>
-        _windowInitializer?.ShowConvertWindow(_vm);
-
-    /// <inheritdoc />
-    public async Task Maximize(bool saveSetting = true) =>
-        await MacOSWindow.Maximize(_mainWindow, _vm, saveSetting);
-    
-    /// <inheritdoc />
-    public async Task MaximizeRestore(bool saveSetting = true) =>
-        await MacOSWindow.ToggleMaximize(_mainWindow, _vm, saveSetting);
-
-    /// <inheritdoc />
-    public async Task Fullscreen(bool saveSetting = true) =>
-        await MacOSWindow.Fullscreen(_mainWindow, _vm, saveSetting);
-    
-    /// <inheritdoc />
-    public async Task ToggleFullscreen(bool saveSetting = true) =>
-        await MacOSWindow.ToggleFullscreen(_mainWindow, _vm, saveSetting);
-    
-    /// <inheritdoc />
-    public async Task Restore() =>
-        await MacOSWindow.Restore(_mainWindow, _vm);
     
     #endregion
 }

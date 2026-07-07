@@ -1,27 +1,20 @@
 <Window
-    ExtendClientAreaChromeHints="SystemChrome"
     ExtendClientAreaTitleBarHeightHint="-1"
+    ExtendClientAreaToDecorationsHint="True"
     Height="385"
     MinHeight="320"
     MinWidth="400"
     Title="Loading..."
     Width="900"
     WindowStartupLocation="Manual"
-    mc:Ignorable="d"
     x:Class="PicView.Avalonia.MacOS.Views.ImageInfoWindow"
-    x:DataType="viewModels:MainViewModel"
+    x:DataType="viewModels:MainWindowViewModel"
     xmlns="https://github.com/avaloniaui"
     xmlns:buttons="clr-namespace:PicView.Avalonia.Views.UC.Buttons;assembly=PicView.Avalonia"
     xmlns:customControls="clr-namespace:PicView.Avalonia.CustomControls;assembly=PicView.Avalonia"
-    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:main="clr-namespace:PicView.Avalonia.Views.Main;assembly=PicView.Avalonia"
-    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    xmlns:viewModels="clr-namespace:PicView.Avalonia.ViewModels;assembly=PicView.Avalonia"
-    xmlns:vm="using:PicView.Avalonia.ViewModels"
+    xmlns:viewModels="clr-namespace:PicView.Core.ViewModels;assembly=PicView.Core"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
-    <Design.DataContext>
-        <vm:MainViewModel />
-    </Design.DataContext>
     <DockPanel PointerPressed="MoveWindow">
         <DockPanel
             Background="{DynamicResource SecondaryBackgroundColor}"
@@ -36,9 +29,7 @@
                 BorderThickness="0,0,1,0"
                 Classes="errorHover"
                 ClickMode="Release"
-                Command="{CompiledBinding Tools.RecycleFileCommand}"
-                CommandParameter="{CompiledBinding PicViewer.FileInfo.Value.FullName,
-                                                   FallbackValue=''}"
+                Command="{CompiledBinding DeleteFileCommand}"
                 Data="{StaticResource RecycleGeometry}"
                 DockPanel.Dock="Right"
                 Foreground="{DynamicResource MainTextColor}"
@@ -75,9 +66,7 @@
                 BorderBrush="{DynamicResource MainBorderColor}"
                 BorderThickness="0,0,1,0"
                 Classes="noBorderHover"
-                Command="{Binding Tools.OptimizeImageCommand}"
-                CommandParameter="{CompiledBinding PicViewer.FileInfo.Value.FullName,
-                                                   FallbackValue=''}"
+                Command="{Binding OptimizeImageCommand}"
                 DockPanel.Dock="Right"
                 Foreground="{DynamicResource MainTextColor}"
                 Height="28"
@@ -85,8 +74,6 @@
                 IconHeight="17"
                 IconMargin="10,0,5,0"
                 IconWidth="17"
-                IsEnabled="{CompiledBinding PicViewer.ShouldOptimizeImageBeEnabled.Value,
-                                            Mode=OneWay}"
                 IsVisible="{CompiledBinding InfoWindow.IsExtraButtonsEnabled.Value}"
                 Text="{CompiledBinding Translation.OptimizeImage.Value,
                                        Mode=OneWay}"
@@ -100,9 +87,7 @@
                 BorderBrush="{DynamicResource MainBorderColor}"
                 BorderThickness="0,0,1,0"
                 Classes="noBorderHover"
-                Command="{CompiledBinding Tools.OpenWithCommand}"
-                CommandParameter="{CompiledBinding PicViewer.FileInfo.Value.FullName,
-                                                   FallbackValue=''}"
+                Command="{CompiledBinding OpenWithCommand}"
                 DockPanel.Dock="Right"
                 Foreground="{DynamicResource MainTextColor}"
                 Height="28"
@@ -124,9 +109,7 @@
                 BorderBrush="{DynamicResource MainBorderColor}"
                 BorderThickness="0,0,1,0"
                 Classes="noBorderHover"
-                Command="{CompiledBinding Tools.DuplicateFileCommand}"
-                CommandParameter="{CompiledBinding PicViewer.FileInfo.Value.FullName,
-                                                   FallbackValue=''}"
+                Command="{CompiledBinding DuplicateFileCommand}"
                 Data="{StaticResource DuplicateGeometry}"
                 DockPanel.Dock="Right"
                 Foreground="{DynamicResource MainTextColor}"
@@ -143,9 +126,7 @@
                 BorderBrush="{DynamicResource MainBorderColor}"
                 BorderThickness="1,0,1,0"
                 Classes="noBorderHover"
-                Command="{CompiledBinding Tools.LocateOnDiskCommand}"
-                CommandParameter="{CompiledBinding PicViewer.FileInfo.Value.FullName,
-                                                   FallbackValue=''}"
+                Command="{CompiledBinding OpenInExplorerCommand}"
                 Data="{StaticResource ShowInFolderGeometry}"
                 DockPanel.Dock="Right"
                 Foreground="{DynamicResource MainTextColor}"
@@ -169,8 +150,6 @@
                 BorderThickness="0,0,1,0"
                 Classes="noBorderHover"
                 Command="{CompiledBinding Exif.SetExifRating0Command}"
-                CommandParameter="{CompiledBinding PicViewer.FileInfo.Value.FullName,
-                                                   FallbackValue=''}"
                 DockPanel.Dock="Right"
                 Foreground="{DynamicResource MainTextColor}"
                 Icon="{StaticResource StarOffImage}"

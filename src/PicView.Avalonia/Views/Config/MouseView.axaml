@@ -1,180 +1,155 @@
 ﻿<UserControl
-    d:DesignHeight="450"
-    d:DesignWidth="800"
-    mc:Ignorable="d"
     x:Class="PicView.Avalonia.Views.Config.MouseView"
-    x:DataType="viewModels:MainViewModel"
     xmlns="https://github.com/avaloniaui"
-    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    xmlns:viewModels="clr-namespace:PicView.Avalonia.ViewModels"
-    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
-    <Design.DataContext>
-        <viewModels:MainViewModel />
-    </Design.DataContext>
-    <StackPanel HorizontalAlignment="Center" Orientation="Vertical">
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:customControls="clr-namespace:PicView.Avalonia.CustomControls"
+    xmlns:ui="clr-namespace:PicView.Avalonia.UI"
+    xmlns:viewModels="clr-namespace:PicView.Core.ViewModels;assembly=PicView.Core"
+    x:DataType="viewModels:CoreViewModel">
 
-        <TextBlock
-            Classes="txt"
-            FontFamily="/Assets/Fonts/Roboto-Bold.ttf#Roboto"
-            FontSize="14"
-            Foreground="{StaticResource SecondaryTextColor}"
-            Margin="0,20,0,20"
-            Text="{CompiledBinding Translation.DoubleClick.Value,
-                                   Mode=OneWay}" />
+    <StackPanel HorizontalAlignment="Center">
 
-        <ComboBox
-            Background="{DynamicResource SecondaryBackgroundColor}"
-            BorderBrush="{DynamicResource MainBorderColor}"
-            BorderThickness="1"
-            FontFamily="/Assets/Fonts/Roboto-Medium.ttf#Roboto"
-            Foreground="{DynamicResource MainTextColor}"
-            Margin="0,6,0,15"
-            Padding="5,7,0,7"
-            Width="300"
-            x:Name="DoubleClickBox">
-            <ComboBoxItem Content="{CompiledBinding Translation.ResetZoom.Value, Mode=OneWay}" Foreground="{DynamicResource MainTextColor}" />
-            <ComboBoxItem Content="{CompiledBinding Translation.ToggleFullscreen.Value, Mode=OneWay}" Foreground="{DynamicResource MainTextColor}" />
-            <ComboBoxItem Content="{CompiledBinding Translation.None.Value, Mode=OneWay}" Foreground="{DynamicResource MainTextColor}" />
-        </ComboBox>
+        <StackPanel Classes="searchHeader">
+            <Image
+                Width="18"
+                Height="18"
+                Source="{StaticResource MouseWheelIcon}" />
+            <TextBlock
+                Margin="0,20,0,20"
+                Classes="txt bold"
+                Text="{CompiledBinding Translation.Mouse.Value,
+                                       Mode=OneWay}" />
+        </StackPanel>
 
-        <TextBlock
-            Classes="txt"
-            FontFamily="/Assets/Fonts/Roboto-Bold.ttf#Roboto"
-            FontSize="14"
-            Foreground="{StaticResource SecondaryTextColor}"
-            Margin="0,20,0,20"
-            Text="{CompiledBinding Translation.MouseSideButtons.Value,
-                                   Mode=OneWay}" />
-
-        <ComboBox
-            Background="{DynamicResource SecondaryBackgroundColor}"
-            BorderBrush="{DynamicResource MainBorderColor}"
-            BorderThickness="1"
-            FontFamily="/Assets/Fonts/Roboto-Medium.ttf#Roboto"
-            Foreground="{DynamicResource MainTextColor}"
-            Margin="0,6,0,15"
-            Padding="5,7,0,7"
-            Width="300"
-            x:Name="MouseSideButtonBox">
-            <ComboBoxItem Content="{CompiledBinding Translation.NavigateFileHistory.Value, Mode=OneWay}" Foreground="{DynamicResource MainTextColor}" />
-            <ComboBoxItem Content="{CompiledBinding Translation.NavigateBetweenDirectories.Value, Mode=OneWay}" Foreground="{DynamicResource MainTextColor}" />
-            <ComboBoxItem Content="{CompiledBinding Translation.None.Value, Mode=OneWay}" Foreground="{DynamicResource MainTextColor}" />
-        </ComboBox>
-
-        <TextBlock
-            Classes="txt"
-            FontFamily="/Assets/Fonts/Roboto-Bold.ttf#Roboto"
-            FontSize="14"
-            Foreground="{StaticResource SecondaryTextColor}"
-            Margin="0,20,0,20"
-            Text="{CompiledBinding Translation.MouseWheel.Value,
-                                   Mode=OneWay}" />
-
-        <ComboBox
-            Background="{DynamicResource SecondaryBackgroundColor}"
-            BorderBrush="{DynamicResource MainBorderColor}"
-            BorderThickness="1"
-            FontFamily="/Assets/Fonts/Roboto-Medium.ttf#Roboto"
-            Foreground="{DynamicResource MainTextColor}"
-            Margin="0,6,0,15"
-            Padding="5,7,0,7"
-            Width="300"
-            x:Name="MouseWheelBox">
-            <ComboBoxItem Content="{CompiledBinding Translation.CtrlToZoom.Value, Mode=OneWay}" Foreground="{DynamicResource MainTextColor}" />
-            <ComboBoxItem Content="{CompiledBinding Translation.ScrollToZoom.Value, Mode=OneWay}" Foreground="{DynamicResource MainTextColor}" />
-        </ComboBox>
-
-        <TextBlock
-            Classes="txt"
-            FontFamily="/Assets/Fonts/Roboto-Bold.ttf#Roboto"
-            FontSize="14"
-            Foreground="{StaticResource SecondaryTextColor}"
-            Margin="0,10,0,10"
-            MaxWidth="300"
-            Text="{CompiledBinding Translation.ScrollDirection.Value,
-                                   Mode=OneWay}" />
-        <ComboBox
-            Background="{DynamicResource SecondaryBackgroundColor}"
-            BorderBrush="{DynamicResource MainBorderColor}"
-            BorderThickness="1"
-            FontFamily="/Assets/Fonts/Roboto-Medium.ttf#Roboto"
-            Foreground="{DynamicResource MainTextColor}"
-            Margin="0,6,0,15"
-            Padding="5,7,0,7"
-            Width="300"
-            x:Name="ScrollDirectionBox">
-            <ComboBoxItem Content="{CompiledBinding Translation.Reverse.Value, Mode=OneWay}" Foreground="{DynamicResource MainTextColor}" />
-            <ComboBoxItem Content="{CompiledBinding Translation.Forward.Value, Mode=OneWay}" Foreground="{DynamicResource MainTextColor}" />
-        </ComboBox>
-
-        <Button
-            Background="Transparent"
-            BorderThickness="0"
-            Classes="altHover"
-            Command="{CompiledBinding Tools.ToggleUsingTouchPadCommand}"
-            Margin="0,0,0,10"
-            Padding="0,10,0,10"
-            Width="300">
-            <StackPanel Orientation="Horizontal">
-                <Image
-                    Height="18"
-                    IsVisible="{CompiledBinding SettingsViewModel.IsUsingTouchpad.Value}"
-                    Margin="10,0,10,0"
-                    Width="18">
-                    <DrawingImage>
-                        <DrawingGroup>
-                            <GeometryDrawing Geometry="F1 M2 18L2 6Q2 5.90175 2.00963 5.80397Q2.01926 5.70618 2.03843 5.60982Q2.0576 5.51345 2.08612 5.41943Q2.11464 5.32541 2.15224 5.23463Q2.18984 5.14386 2.23616 5.05721Q2.28247 4.97055 2.33706 4.88886Q2.39165 4.80716 2.45398 4.73121Q2.51631 4.65526 2.58579 4.58579Q2.65526 4.51631 2.73121 4.45398Q2.80716 4.39165 2.88886 4.33706Q2.97055 4.28247 3.05721 4.23616Q3.14386 4.18984 3.23463 4.15224Q3.32541 4.11464 3.41943 4.08612Q3.51345 4.0576 3.60982 4.03843Q3.70619 4.01926 3.80397 4.00963Q3.90175 4 4 4L20 4Q20.0983 4 20.196 4.00963Q20.2938 4.01926 20.3902 4.03843Q20.4865 4.0576 20.5806 4.08612Q20.6746 4.11464 20.7654 4.15224Q20.8561 4.18984 20.9428 4.23616Q21.0294 4.28247 21.1111 4.33706Q21.1928 4.39165 21.2688 4.45398Q21.3447 4.51631 21.4142 4.58579Q21.4837 4.65526 21.546 4.73121Q21.6084 4.80716 21.6629 4.88886Q21.7175 4.97055 21.7638 5.05721Q21.8102 5.14386 21.8478 5.23463Q21.8854 5.32541 21.9139 5.41943Q21.9424 5.51345 21.9616 5.60982Q21.9807 5.70618 21.9904 5.80397Q22 5.90175 22 6L22 18Q22 18.0983 21.9904 18.196Q21.9807 18.2938 21.9616 18.3902Q21.9424 18.4865 21.9139 18.5806Q21.8854 18.6746 21.8478 18.7654Q21.8102 18.8561 21.7638 18.9428Q21.7175 19.0294 21.6629 19.1111Q21.6084 19.1928 21.546 19.2688Q21.4837 19.3447 21.4142 19.4142Q21.3447 19.4837 21.2688 19.546Q21.1928 19.6083 21.1111 19.6629Q21.0294 19.7175 20.9428 19.7638Q20.8561 19.8102 20.7654 19.8478Q20.6746 19.8854 20.5806 19.9139Q20.4865 19.9424 20.3902 19.9616Q20.2938 19.9807 20.196 19.9904Q20.0983 20 20 20L4 20Q3.90175 20 3.80397 19.9904Q3.70618 19.9807 3.60982 19.9616Q3.51345 19.9424 3.41943 19.9139Q3.32541 19.8854 3.23463 19.8478Q3.14386 19.8102 3.05721 19.7638Q2.97055 19.7175 2.88886 19.6629Q2.80716 19.6084 2.73121 19.546Q2.65526 19.4837 2.58579 19.4142Q2.51631 19.3447 2.45398 19.2688Q2.39165 19.1928 2.33706 19.1111Q2.28247 19.0294 2.23616 18.9428Q2.18984 18.8561 2.15224 18.7654Q2.11464 18.6746 2.08612 18.5806Q2.0576 18.4865 2.03843 18.3902Q2.01926 18.2938 2.00963 18.196Q2 18.0983 2 18Z">
-                                <GeometryDrawing.Pen>
-                                    <Pen
-                                        Brush="{StaticResource SecondaryTextColor}"
-                                        LineCap="Round"
-                                        LineJoin="Round"
-                                        MiterLimit="4"
-                                        Thickness="2" />
-                                </GeometryDrawing.Pen>
-                            </GeometryDrawing>
-                            <GeometryDrawing Geometry="F1 M2 14L22 14">
-                                <GeometryDrawing.Pen>
-                                    <Pen
-                                        Brush="{StaticResource SecondaryTextColor}"
-                                        LineCap="Round"
-                                        LineJoin="Round"
-                                        MiterLimit="4"
-                                        Thickness="2" />
-                                </GeometryDrawing.Pen>
-                            </GeometryDrawing>
-                            <GeometryDrawing Geometry="F1 M12 20L12 14">
-                                <GeometryDrawing.Pen>
-                                    <Pen
-                                        Brush="{StaticResource SecondaryTextColor}"
-                                        LineCap="Round"
-                                        LineJoin="Round"
-                                        MiterLimit="4"
-                                        Thickness="2" />
-                                </GeometryDrawing.Pen>
-                            </GeometryDrawing>
-                        </DrawingGroup>
-                    </DrawingImage>
-                </Image>
-                <Image
-                    Height="18"
-                    IsVisible="{CompiledBinding !SettingsViewModel.IsUsingTouchpad.Value}"
-                    Margin="10,0,10,0"
-                    Source="{StaticResource MouseWheelIcon}"
-                    Width="18" />
+        <Border ui:SearchProperties.Keywords="{CompiledBinding SettingsViewModel.SearchData.MouseDoubleClickSearchTags}" Classes="searchBorder">
+            <StackPanel>
                 <TextBlock
-                    Classes="txt"
-                    Foreground="{StaticResource SecondaryTextColor}"
-                    Margin="0"
-                    MaxWidth="240"
-                    Padding="0,1,5,0"
-                    Text="{CompiledBinding Translation.IsUsingTouchpad.Value,
+                    Margin="0,20,0,20"
+                    Classes="txt bold"
+                    Text="{CompiledBinding Translation.DoubleClick.Value,
                                            Mode=OneWay}" />
+
+                <ComboBox
+                    x:Name="DoubleClickBox"
+                    Width="300"
+                    Margin="0,6,0,15"
+                    Padding="5,7,0,7"
+                    Background="{DynamicResource SecondaryBackgroundColor}"
+                    BorderBrush="{DynamicResource MainBorderColor}"
+                    BorderThickness="1"
+                    FontFamily="/Assets/Fonts/Roboto-Medium.ttf#Roboto"
+                    Foreground="{DynamicResource MainTextColor}"
+                    ItemsSource="{CompiledBinding SettingsViewModel.MouseDoubleClickBehaviors.Value}"
+                    SelectedIndex="{CompiledBinding SettingsViewModel.MouseDoubleClickBehaviorIndex.Value}" />
             </StackPanel>
-        </Button>
+        </Border>
 
+        <Border ui:SearchProperties.Keywords="{CompiledBinding SettingsViewModel.SearchData.MouseNavigationSearchTags}" Classes="searchBorder">
+            <StackPanel>
+                <TextBlock
+                    Margin="0,20,0,20"
+                    Classes="txt bold"
+                    Text="{CompiledBinding Translation.MouseSideButtons.Value,
+                                           Mode=OneWay}" />
 
+                <ComboBox
+                    x:Name="MouseSideButtonBox"
+                    Width="300"
+                    Margin="0,6,0,15"
+                    Padding="5,7,0,7"
+                    Background="{DynamicResource SecondaryBackgroundColor}"
+                    BorderBrush="{DynamicResource MainBorderColor}"
+                    BorderThickness="1"
+                    FontFamily="/Assets/Fonts/Roboto-Medium.ttf#Roboto"
+                    Foreground="{DynamicResource MainTextColor}"
+                    ItemsSource="{Binding SettingsViewModel.MouseSideButtonBehaviors.Value}"
+                    SelectedIndex="{CompiledBinding SettingsViewModel.MouseSideButtonBehaviorIndex.Value,
+                                                    Mode=TwoWay}" />
+            </StackPanel>
+        </Border>
+
+        <Border ui:SearchProperties.Keywords="{CompiledBinding SettingsViewModel.SearchData.MouseWheelBehaviorSearchTags}" Classes="searchBorder">
+            <StackPanel>
+                <TextBlock
+                    Margin="0,20,0,20"
+                    Classes="txt bold"
+                    Text="{CompiledBinding Translation.MouseWheel.Value,
+                                           Mode=OneWay}" />
+
+                <ComboBox
+                    x:Name="MouseWheelBox"
+                    Width="300"
+                    Margin="0,6,0,15"
+                    Padding="5,7,0,7"
+                    Background="{DynamicResource SecondaryBackgroundColor}"
+                    BorderBrush="{DynamicResource MainBorderColor}"
+                    BorderThickness="1"
+                    FontFamily="/Assets/Fonts/Roboto-Medium.ttf#Roboto"
+                    Foreground="{DynamicResource MainTextColor}"
+                    SelectedIndex="{CompiledBinding SettingsViewModel.MouseWheelBehavior.Value,
+                                                    Mode=TwoWay}">
+                    <ComboBoxItem Content="{CompiledBinding Translation.CtrlToZoom.Value, Mode=OneWay}" Foreground="{DynamicResource MainTextColor}" />
+                    <ComboBoxItem Content="{CompiledBinding Translation.ScrollToZoom.Value, Mode=OneWay}" Foreground="{DynamicResource MainTextColor}" />
+                </ComboBox>
+            </StackPanel>
+        </Border>
+
+        <Border ui:SearchProperties.Keywords="{CompiledBinding SettingsViewModel.SearchData.MouseScrollDirectionSearchTags}" Classes="searchBorder">
+            <StackPanel>
+                <TextBlock
+                    MaxWidth="300"
+                    Margin="0,10,0,10"
+                    Classes="txt bold"
+                    Text="{CompiledBinding Translation.ScrollDirection.Value,
+                                           Mode=OneWay}" />
+                <ComboBox
+                    x:Name="ScrollDirectionBox"
+                    Width="300"
+                    Margin="0,6,0,15"
+                    Padding="5,7,0,7"
+                    Background="{DynamicResource SecondaryBackgroundColor}"
+                    BorderBrush="{DynamicResource MainBorderColor}"
+                    BorderThickness="1"
+                    FontFamily="/Assets/Fonts/Roboto-Medium.ttf#Roboto"
+                    Foreground="{DynamicResource MainTextColor}"
+                    SelectedIndex="{CompiledBinding SettingsViewModel.ScrollDirectionIndex.Value,
+                                                    Mode=TwoWay}">
+                    <ComboBoxItem Content="{CompiledBinding Translation.Reverse.Value, Mode=OneWay}" Foreground="{DynamicResource MainTextColor}" />
+                    <ComboBoxItem Content="{CompiledBinding Translation.Forward.Value, Mode=OneWay}" Foreground="{DynamicResource MainTextColor}" />
+                </ComboBox>
+            </StackPanel>
+        </Border>
+
+        <Border ui:SearchProperties.Keywords="{CompiledBinding SettingsViewModel.SearchData.MouseTouchpadSearchTags}" Classes="searchBorder">
+            <StackPanel>
+                <customControls:TextIconButton
+                    x:Name="TouchPadButton"
+                    Classes="altHover settingsTextIconButton"
+                    Command="{CompiledBinding SettingsViewModel.ToggleUsingTouchpadCommand}"
+                    Icon="{StaticResource TouchPadImage}"
+                    IconHeight="18"
+                    IconMargin="10,0,10,0"
+                    IconWidth="18"
+                    IsVisible="{CompiledBinding SettingsViewModel.IsUsingTouchpad.Value}"
+                    Text="{CompiledBinding Translation.IsUsingTouchpad.Value,
+                                           Mode=OneWay}"
+                    TextMargin="0,1,5,0"
+                    TextMaxWidth="240" />
+                <customControls:TextIconButton
+                    x:Name="MouseButton"
+                    Classes="altHover settingsTextIconButton"
+                    Command="{CompiledBinding SettingsViewModel.ToggleUsingTouchpadCommand}"
+                    Icon="{StaticResource MouseWheelIcon}"
+                    IconHeight="18"
+                    IconMargin="10,0,10,0"
+                    IconWidth="18"
+                    IsVisible="{CompiledBinding !SettingsViewModel.IsUsingTouchpad.Value}"
+                    Text="{CompiledBinding Translation.IsUsingTouchpad.Value,
+                                           Mode=OneWay}"
+                    TextMargin="0,1,5,0"
+                    TextMaxWidth="240" />
+            </StackPanel>
+        </Border>
 
     </StackPanel>
 </UserControl>

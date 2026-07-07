@@ -1,47 +1,28 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
-using Avalonia.Interactivity;
 using Avalonia.Media;
-using Avalonia.Threading;
+using PicView.Avalonia.CustomControls;
 using PicView.Avalonia.Input;
 using PicView.Avalonia.UI;
-using PicView.Avalonia.ViewModels;
+using PicView.Avalonia.WindowBehavior;
 using PicView.Core.Config;
+using PicView.Core.Extensions;
+using PicView.Core.ViewModels;
 using PicView.Core.FileAssociations;
 using PicView.Core.Localization;
 using PicView.Core.WindowsNT.FileAssociation;
+using R3;
 
 namespace PicView.Avalonia.Win32.Views;
 
-public partial class SettingsWindow : Window
+public partial class SettingsWindow : GenericWindow
 {
-    private readonly SettingsWindowConfig _config;
+    
     public SettingsWindow(SettingsWindowConfig config)
     {
-        _config = config;
         InitializeComponent();
-        Task.Run(async () =>
-        {
-            await _config.LoadAsync();
-            await Dispatcher.UIThread.InvokeAsync(() =>
-            {
-                if (_config.WindowProperties.Maximized)
-                {
-                    WindowState = WindowState.Maximized;
-                }
-                else
-                {
-                    var left = _config.WindowProperties.Left;
-                    var top = _config.WindowProperties.Top;
-                    if (left.HasValue && top.HasValue)
-                    {
-                        Position = new PixelPoint(left.Value, top.Value);
-                    }
-                }
-            });
-        });
-        ParentBorder.Height = ScreenHelper.GetWindowMaxHeight();
+        GenericWindowHelper.GenericWindowInitialize(this, TranslationManager.Translation.Settings, false, config.WindowProperties);
         if (Settings.Theme.GlassTheme)
         {
             SettingsView.Background = Brushes.Transparent;
@@ -112,15 +93,17 @@ public partial class SettingsWindow : Window
 
         Loaded += delegate
         {
-            MinWidth = Width;
-            Title = TranslationManager.GetTranslation("Settings") + " - PicView";
-            if (DataContext is not MainViewModel vm)
+            SettingsView.Focus();
+            if (DataContext is not CoreViewModel core)
             {
                 return;
             }
+            
+            core.SettingsViewModel.RestoreLastTab(config.WindowProperties.LastTab);
 
-            GoForwardButton.Command = vm.SettingsViewModel.GoForwardCommand;
-            GoBackButton.Command = vm.SettingsViewModel.GoBackCommand;
+            GoForwardButton.Command = core.SettingsViewModel?.GoForwardCommand;
+            GoBackButton.Command = core.SettingsViewModel?.GoBackCommand;
+            HomeButton.Command = core.SettingsViewModel?.GoHomeCommand;
         };
         KeyDown += (_, e) =>
         {
@@ -137,49 +120,17 @@ public partial class SettingsWindow : Window
             }
         };
 
-        Closing += async delegate
-        {
-            Hide();
-            await _config.SaveAsync();
-            await SaveSettingsAsync();
-        };
-
         InitializeFileAssociationManager();
     }
 
     private void FocusFilterBox()
     {
-        var fileAssociationsView = SettingsView.FindControl<Control>("FileAssociationsView");
-        var filterBox = fileAssociationsView?.FindControl<Control>("FilterBox");
+        var filterBox = SettingsView.FindControl<Control>("FilterBox");
         var isFilterBoxEffectivelyVisible = filterBox?.Bounds is { Width: > 0, Height: > 0 };
         if (isFilterBoxEffectivelyVisible)
         {
             filterBox?.Focus();
         }
-    }
-
-    private void MoveWindow(object? sender, PointerPressedEventArgs e)
-    {
-        if (VisualRoot is null)
-        {
-            return;
-        }
-
-        var hostWindow = (Window)VisualRoot;
-        hostWindow?.BeginMoveDrag(e);
-    }
-    
-    private void UpdateWindowPosition(object? sender, PointerReleasedEventArgs e)
-    {
-        _config.WindowProperties.Left = Position.X;
-        _config.WindowProperties.Top = Position.Y;
-    }
-
-    private void Close(object? sender, RoutedEventArgs e) => Close();
-
-    private void Minimize(object? sender, RoutedEventArgs e)
-    {
-        WindowState = WindowState.Minimized;
     }
 
     private static void InitializeFileAssociationManager()
@@ -188,5 +139,36 @@ public partial class SettingsWindow : Window
         FileAssociationManager.Initialize(iIFileAssociationService);
     }
 
+    protected override void OnPointerPressed(PointerPressedEventArgs e)
+    {
+        base.OnPointerPressed(e);
 
+        if (DataContext is not CoreViewModel vm)
+        {
+            return;
+        }
+
+        var properties = e.GetCurrentPoint(this).Properties;
+        switch (properties.PointerUpdateKind)
+        {
+            case PointerUpdateKind.XButton1Pressed:
+            {
+                if (vm.SettingsViewModel.GoBackCommand.CanExecute())
+                {
+                    vm.SettingsViewModel.GoBackCommand.Execute(Unit.Default);
+                }
+
+                break;
+            }
+            case PointerUpdateKind.XButton2Pressed:
+            {
+                if (vm.SettingsViewModel.GoForwardCommand.CanExecute())
+                {
+                    vm.SettingsViewModel.GoForwardCommand.Execute(Unit.Default);
+                }
+
+                break;
+            }
+        }
+    }
 }

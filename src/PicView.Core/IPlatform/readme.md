@@ -1,0 +1,1 @@
+Directory containing interfaces, that requires platform specific solutions.

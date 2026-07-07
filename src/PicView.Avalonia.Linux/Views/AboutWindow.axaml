@@ -1,0 +1,39 @@
+<Window
+    CanResize="False"
+    ExtendClientAreaTitleBarHeightHint="-1"
+    SizeToContent="WidthAndHeight"
+    Title="Loading..."
+    x:Class="PicView.Avalonia.Linux.Views.AboutWindow"
+    x:DataType="viewModels:CoreViewModel"
+    xmlns="https://github.com/avaloniaui"
+    xmlns:main="clr-namespace:PicView.Avalonia.Views.Main;assembly=PicView.Avalonia"
+    xmlns:viewModels="clr-namespace:PicView.Core.ViewModels;assembly=PicView.Core"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Border
+        BorderBrush="{DynamicResource MainBorderColor}"
+        BorderThickness="1"
+        CornerRadius="8">
+        <Panel>
+
+            <DockPanel
+                Background="{DynamicResource SecondaryBackgroundColor}"
+                Height="28"
+                PointerPressed="MoveWindow"
+                VerticalAlignment="Top">
+
+                <TextBlock
+                    Classes="txt"
+                    Text="{CompiledBinding Translation.About.Value,
+                                           Mode=OneWay}"
+                    TextAlignment="Center" />
+            </DockPanel>
+
+            <main:AboutView
+                Background="{DynamicResource WindowBackgroundColor}"
+                Margin="0,28,0,0"
+                Padding="10,5,5,10"
+                PointerPressed="MoveWindow"
+                x:Name="XAboutView" />
+        </Panel>
+    </Border>
+</Window>

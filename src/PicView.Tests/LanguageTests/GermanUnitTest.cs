@@ -1,4 +1,4 @@
-﻿using PicView.Core.Localization;
+using PicView.Core.Localization;
 
 namespace PicView.Tests.LanguageTests;
 public static class GermanUnitTest
@@ -41,9 +41,9 @@ public static class GermanUnitTest
         Assert.Equal(TranslationManager.Translation.BitDepth, "Farbtiefe");
         Assert.Equal(TranslationManager.Translation.BlackAndWhite, "Schwarz & Weiß");
         Assert.Equal(TranslationManager.Translation.Blur, "Verwischen");
-        Assert.Equal(TranslationManager.Translation.BottomGalleryItemSize,
+        Assert.Equal(TranslationManager.Translation.DockedGalleryItemSize,
             "Größe der Miniaturansichten in der unteren Galerie");
-        Assert.Equal(TranslationManager.Translation.BottomGalleryThumbnailStretch,
+        Assert.Equal(TranslationManager.Translation.DockedGalleryThumbnailStretch,
             "Miniaturbild-Erweiterung in der unteren Galerie");
         Assert.Equal(TranslationManager.Translation.Brightness, "Helligkeit");
         Assert.Equal(TranslationManager.Translation.CameraMaker, "Kamerahersteller");
@@ -172,7 +172,7 @@ public static class GermanUnitTest
         Assert.Equal(TranslationManager.Translation.GoBackBy10Images, "10 Bilder zurück gehen");
         Assert.Equal(TranslationManager.Translation.Hard, "Hart");
         Assert.Equal(TranslationManager.Translation.Height, "Höhe");
-        Assert.Equal(TranslationManager.Translation.HideBottomGallery, "Untere Galerie ausblenden");
+        Assert.Equal(TranslationManager.Translation.HideDockedGallery, "Untere Galerie ausblenden");
         Assert.Equal(TranslationManager.Translation.HideBottomToolbar, "Untere Symbolleiste ausblenden");
         Assert.Equal(TranslationManager.Translation.HideUI, "Benutzeroberfläche ausblenden");
         Assert.Equal(TranslationManager.Translation.High, "Hoch");
@@ -317,8 +317,8 @@ public static class GermanUnitTest
         Assert.Equal(TranslationManager.Translation.Sharpness, "Schärfe");
         Assert.Equal(TranslationManager.Translation.Shift, "Schicht");
         Assert.Equal(TranslationManager.Translation.ShowAllSettingsWindow, "Alle Einstellungsfenster anzeigen");
-        Assert.Equal(TranslationManager.Translation.ShowBottomGallery, "Untere Galerie anzeigen");
-        Assert.Equal(TranslationManager.Translation.ShowBottomGalleryWhenUiIsHidden,
+        Assert.Equal(TranslationManager.Translation.ShowDockedGallery, "Untere Galerie anzeigen");
+        Assert.Equal(TranslationManager.Translation.ShowDockedGalleryWhenUiIsHidden,
             "Untere Galerie anzeigen, wenn die Benutzeroberfläche ausgeblendet ist");
         Assert.Equal(TranslationManager.Translation.ShowBottomToolbar, "Untere Symbolleiste anzeigen");
         Assert.Equal(TranslationManager.Translation.ShowConfirmationOnEsc,
@@ -349,7 +349,7 @@ public static class GermanUnitTest
         Assert.Equal(TranslationManager.Translation.StayCentered, "Fenster zentriert halten");
         Assert.Equal(TranslationManager.Translation.StayTopMost, "Immer im Vordergrund");
         Assert.Equal(TranslationManager.Translation.Stretch, "Strecken");
-        Assert.Equal(TranslationManager.Translation.StretchImage, "Bild strecken");
+        Assert.Equal(TranslationManager.Translation.ZoomToFit, "Zoom anpassen");
         Assert.Equal(TranslationManager.Translation.StrobeReturnLightDetected, "Blitzlicht erkannt");
         Assert.Equal(TranslationManager.Translation.StrobeReturnLightNotDetected, "Blitzlicht nicht erkannt");
         Assert.Equal(TranslationManager.Translation.Subject, "Thema");

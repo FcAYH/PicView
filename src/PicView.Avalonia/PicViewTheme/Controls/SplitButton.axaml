@@ -119,7 +119,7 @@
                         VerticalContentAlignment="Center"
                         x:Name="PART_SecondaryButton">
                         <PathIcon
-                            Data="{StaticResource ChevronDownGeometry}"
+                            Data="{StaticResource FilledChevronDownGeometry}"
                             Foreground="{TemplateBinding Foreground}"
                             Height="12"
                             Width="12"

@@ -1,0 +1,56 @@
+<ResourceDictionary
+    x:ClassModifier="internal"
+    xmlns="https://github.com/avaloniaui"
+    xmlns:customControls="clr-namespace:PicView.Avalonia.CustomControls"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <ControlTheme TargetType="customControls:NavigateAbleItem" x:Key="{x:Type customControls:NavigateAbleItem}">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BorderThickness" Value="2" />
+        <Setter Property="BorderBrush" Value="{DynamicResource MainBorderColor}" />
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Border
+                    Background="{TemplateBinding Background}"
+                    BorderBrush="{TemplateBinding BorderBrush}"
+                    BorderThickness="{TemplateBinding BorderThickness}"
+                    CornerRadius="{TemplateBinding CornerRadius}"
+                    Name="border"
+                    Opacity="0.92"
+                    Padding="{TemplateBinding Padding}">
+                    <ContentPresenter
+                        BorderBrush="Transparent"
+                        BorderThickness="1"
+                        Content="{TemplateBinding Content}"
+                        ContentTemplate="{TemplateBinding ContentTemplate}"
+                        HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
+                        Name="PART_ContentPresenter"
+                        TextElement.Foreground="{TemplateBinding Foreground}"
+                        VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}" />
+                </Border>
+            </ControlTemplate>
+        </Setter>
+
+        <Style Selector="^:pointerover /template/ Border#border">
+            <Setter Property="BorderBrush" Value="{DynamicResource SecondaryAccentColor}" />
+            <Setter Property="Opacity" Value="1" />
+        </Style>
+        <Style Selector="^:selectedItem  /template/ Border#border">
+            <Setter Property="BorderBrush" Value="{DynamicResource SecondaryAccentColor}" />
+            <Setter Property="Opacity" Value="1" />
+        </Style>
+        <Style Selector="^:currentItem  /template/ Border#border">
+            <Setter Property="BorderBrush" Value="{DynamicResource AccentColor}" />
+            <Setter Property="Opacity" Value="1" />
+        </Style>
+        <Style Selector="^:contextMenuOpen  /template/ Border#border">
+            <Setter Property="BorderBrush" Value="{DynamicResource SecondaryAccentColor}" />
+            <Setter Property="BorderThickness" Value="2" />
+        </Style>
+        <Style Selector="^:contextMenuOpen  /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="BorderBrush" Value="{DynamicResource SecondaryAccentColor}" />
+        </Style>
+        <Style Selector="^:disabled">
+            <Setter Property="Opacity" Value="{DynamicResource ThemeDisabledOpacity}" />
+        </Style>
+    </ControlTheme>
+</ResourceDictionary>

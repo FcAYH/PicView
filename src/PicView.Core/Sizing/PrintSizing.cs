@@ -21,7 +21,7 @@ public static class PrintSizing
     /// <param name="dpiX">The horizontal DPI (dots per inch) of the image.</param>
     /// <param name="dpiY">The vertical DPI (dots per inch) of the image.</param>
     /// <returns>An instance of the PrintSizes structure containing print dimensions in centimeters, print dimensions in inches, and the image size in megapixels.</returns>
-    public static PrintSizes GetPrintSizes(int pixelWidth, int pixelHeight, double dpiX, double dpiY)
+    public static PrintSizes GetPrintSizes(uint pixelWidth, uint pixelHeight, double dpiX, double dpiY)
     {
         var cm = TranslationManager.Translation.Centimeters;
         var mp = TranslationManager.Translation.MegaPixels;

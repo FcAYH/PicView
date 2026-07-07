@@ -84,11 +84,11 @@
                 </DockPanel>
             </ControlTemplate>
         </Setter>
-        <Style Selector="^ /template/ RepeatButton &gt; Path">
+        <Style Selector="^ /template/ RepeatButton > Path">
             <Setter Property="Fill" Value="{DynamicResource MainBackgroundColor}" />
         </Style>
 
-        <Style Selector="^ /template/ RepeatButton:pointerover &gt; Path">
+        <Style Selector="^ /template/ RepeatButton:pointerover > Path">
             <Setter Property="Fill" Value="{DynamicResource AccentColor}" />
         </Style>
     </ControlTheme>

@@ -1,6 +1,8 @@
 ﻿using System.Collections.ObjectModel;
 using System.Diagnostics;
 using ImageMagick;
+using PicView.Core.BatchResize;
+using PicView.Core.Config;
 using PicView.Core.DebugTools;
 using PicView.Core.Extensions;
 using PicView.Core.Localization;
@@ -9,48 +11,8 @@ using R3;
 
 namespace PicView.Core.ViewModels
 {
-    public enum ConversionTarget
-    {
-        NoConversion,
-        Png,
-        Jpg,
-        Webp,
-        Avif,
-        Heic,
-        Jxl
-    }
-
-    public enum CompressionMode
-    {
-        None,
-        Lossless,
-        Lossy
-    }
-
-    public enum ResizeMode
-    {
-        None,
-        Percentage,
-        WidthAndHeight,
-        Width,
-        Height
-    }
-
-    public struct BatchThumb(
-        string saveDestination,
-        Percentage? percentage = null,
-        double? width = null,
-        double? height = null)
-    {
-        public string SaveDestination = saveDestination;
-        public Percentage? Percentage = percentage;
-        public double? Width = width;
-        public double? Height = height;
-    }
-
     public class BatchResizeViewModel : IDisposable
     {
-        private readonly bool _canNavigate;
         private readonly FileInfo? _fileInfo;
 
         private readonly Func<FileInfo, List<FileInfo>> _getFiles;
@@ -58,12 +20,76 @@ namespace PicView.Core.ViewModels
         private readonly Lock _lock = new();
         private CancellationTokenSource? _cts;
         public BatchThumb[] Thumbs = new BatchThumb[7];
+        
+        public BatchResizeWindowConfig? Config { get; set; }
+        
+        public int ThumbnailAmount { get; set; }
 
-        public BatchResizeViewModel(bool canNavigate, Func<Task<string>> selectDirectory,
+        // Commands
+        public ReactiveCommand StartCommand { get; }
+        public ReactiveCommand CancelCommand { get; }
+        public ReactiveCommand CloseProgressCommand { get; }
+        public ReactiveCommand ResetCommand { get; }
+        public ReactiveCommand SelectAndAddFolderCommand { get; }
+        public ReactiveCommand SelectAndAddFileCommand { get; }
+        public ReactiveCommand PickOutputFolderCommand { get; }
+        public ReactiveCommand ToggleAspectRatioCommand { get; }
+
+        public ReactiveCommand? ClearFilterCommand { get; }
+        public ReactiveCommand? RemoveAllCommand { get; }
+
+        public ReactiveCommand<FileInfo> RemoveFileFromListCommand { get; }
+
+        // Bindable properties (R3) \\
+        public BindableReactiveProperty<string?> SourceFolder { get; } = new();
+        public BindableReactiveProperty<string?> OutputFolder { get; } = new();
+
+        // Progress
+        public BindableReactiveProperty<bool> IsIndeterminate { get; } = new(true);
+        public BindableReactiveProperty<bool> IsRunning { get; } = new(false);
+        public BindableReactiveProperty<bool> IsFinished { get; } = new(false);
+        public BindableReactiveProperty<double> Progress { get; } = new();
+        public BindableReactiveProperty<double> ProgressMaximum { get; } = new();
+
+        public BindableReactiveProperty<ConversionTarget> Conversion { get; } = new();
+        public BindableReactiveProperty<CompressionMode> Compression { get; } = new();
+
+        // Quality
+        public BindableReactiveProperty<bool> IsQualityEnabled { get; } = new();
+        public BindableReactiveProperty<uint> Quality { get; } = new();
+
+        // Resize
+        public BindableReactiveProperty<ResizeMode> Resize { get; } = new();
+        public BindableReactiveProperty<uint> SingleWidthValue { get; } = new();
+        public BindableReactiveProperty<uint> SingleHeightValue { get; } = new();
+        public BindableReactiveProperty<uint> WidthValue { get; } = new();
+        public BindableReactiveProperty<uint> HeightValue { get; } = new();
+        public BindableReactiveProperty<double> PercentageValue { get; } = new(100);
+        public BindableReactiveProperty<bool> IsKeepingAspectRatio { get; } = new(true);
+        public BindableReactiveProperty<bool> IsPercentageResizing { get; } = new();
+        public BindableReactiveProperty<bool> IsWidthAndHeightResizing { get; } = new();
+        public BindableReactiveProperty<bool> IsWidthResizing { get; } = new();
+        public BindableReactiveProperty<bool> IsHeightResizing { get; } = new();
+
+        public BindableReactiveProperty<string?> FilterText { get; } = new(string.Empty);
+
+        public BindableReactiveProperty<string[]> ConversionTargets { get; }
+        public BindableReactiveProperty<string[]> ResizeModes { get; }
+        public BindableReactiveProperty<string[]> CompressionModes { get; }
+        public BindableReactiveProperty<string[]> ThumbnailAmounts { get; }
+
+
+        // Logs
+        public BindableReactiveProperty<ObservableCollection<FileInfo>> SelectedFiles { get; } = new();
+        public BindableReactiveProperty<ObservableCollection<FileInfo>> FilteredFiles { get; } = new();
+        public BindableReactiveProperty<ObservableCollection<BatchLogEntry>>? ProcessedFiles { get; } = new([]);
+        public BindableReactiveProperty<bool> IsFiltering { get; } = new(false);
+
+        public BatchResizeViewModel(
+            Func<Task<string>> selectDirectory, 
             Func<Task<string?>> selectFile, FileInfo? fileInfo,
             Func<FileInfo, List<FileInfo>> getFiles)
         {
-            _canNavigate = canNavigate;
             _fileInfo = fileInfo;
             _getFiles = getFiles;
 
@@ -157,74 +183,6 @@ namespace PicView.Core.ViewModels
                 .Subscribe(_ => { UpdateFilteredFiles(); });
         }
 
-        public int ThumbnailAmount { get; set; }
-
-        // Commands
-        public ReactiveCommand StartCommand { get; }
-        public ReactiveCommand CancelCommand { get; }
-        public ReactiveCommand CloseProgressCommand { get; }
-        public ReactiveCommand ResetCommand { get; }
-        public ReactiveCommand SelectAndAddFolderCommand { get; }
-        public ReactiveCommand SelectAndAddFileCommand { get; }
-        public ReactiveCommand PickOutputFolderCommand { get; }
-        public ReactiveCommand ToggleAspectRatioCommand { get; }
-
-        public ReactiveCommand? ClearFilterCommand { get; }
-        public ReactiveCommand? RemoveAllCommand { get; }
-
-        public ReactiveCommand<FileInfo> RemoveFileFromListCommand { get; }
-
-        // Bindable properties (R3) \\
-        public BindableReactiveProperty<string?> SourceFolder { get; } = new();
-        public BindableReactiveProperty<string?> OutputFolder { get; } = new();
-
-        // Progress
-        public BindableReactiveProperty<bool> IsIndeterminate { get; } = new(true);
-        public BindableReactiveProperty<bool> IsRunning { get; } = new(false);
-        public BindableReactiveProperty<bool> IsFinished { get; } = new(false);
-        public BindableReactiveProperty<double> Progress { get; } = new();
-        public BindableReactiveProperty<double> ProgressMaximum { get; } = new();
-
-        public BindableReactiveProperty<ConversionTarget> Conversion { get; } = new();
-        public BindableReactiveProperty<CompressionMode> Compression { get; } = new();
-
-        // Quality
-        public BindableReactiveProperty<bool> IsQualityEnabled { get; } = new();
-        public BindableReactiveProperty<uint> Quality { get; } = new();
-
-        // Resize
-        public BindableReactiveProperty<ResizeMode> Resize { get; } = new();
-        public BindableReactiveProperty<uint> SingleWidthValue { get; } = new();
-        public BindableReactiveProperty<uint> SingleHeightValue { get; } = new();
-        public BindableReactiveProperty<uint> WidthValue { get; } = new();
-        public BindableReactiveProperty<uint> HeightValue { get; } = new();
-        public BindableReactiveProperty<double> PercentageValue { get; } = new(100);
-        public BindableReactiveProperty<bool> IsKeepingAspectRatio { get; } = new(true);
-        public BindableReactiveProperty<bool> IsPercentageResizing { get; } = new();
-        public BindableReactiveProperty<bool> IsWidthAndHeightResizing { get; } = new();
-        public BindableReactiveProperty<bool> IsWidthResizing { get; } = new();
-        public BindableReactiveProperty<bool> IsHeightResizing { get; } = new();
-
-        public BindableReactiveProperty<string?> FilterText { get; } = new(string.Empty);
-
-        public BindableReactiveProperty<string[]> ConversionTargets { get; }
-        public BindableReactiveProperty<string[]> ResizeModes { get; }
-        public BindableReactiveProperty<string[]> CompressionModes { get; }
-        public BindableReactiveProperty<string[]> ThumbnailAmounts { get; }
-
-
-        // Logs
-        public BindableReactiveProperty<ObservableCollection<FileInfo>> SelectedFiles { get; } = new();
-        public BindableReactiveProperty<ObservableCollection<FileInfo>> FilteredFiles { get; } = new();
-        public BindableReactiveProperty<ObservableCollection<BatchLogEntry>>? ProcessedFiles { get; } = new([]);
-        public BindableReactiveProperty<bool> IsFiltering { get; } = new(false);
-
-        public void Dispose()
-        {
-            _cts?.Cancel();
-            _cts?.Dispose();
-        }
-
         private void UpdateFilteredFiles()
         {
             if (string.IsNullOrWhiteSpace(FilterText.CurrentValue))
@@ -294,10 +252,7 @@ namespace PicView.Core.ViewModels
             Quality.Value = 75;
             Resize.Value = ResizeMode.None;
 
-            if (_canNavigate)
-            {
-                SourceFolder.Value = _fileInfo.DirectoryName ?? string.Empty;
-            }
+            SourceFolder.Value = _fileInfo.DirectoryName ?? string.Empty;
         }
 
         private async ValueTask StartBatchResizeAsync(CancellationToken cancellationToken)
@@ -545,5 +500,17 @@ namespace PicView.Core.ViewModels
                 }
             }, cancellationToken);
         }
+        
+        #region IDisposable
+    
+        public void Dispose()
+        {
+            _cts?.Cancel();
+            _cts?.Dispose();
+            
+            GC.SuppressFinalize(this);
+        }
+    
+        #endregion
     }
 }

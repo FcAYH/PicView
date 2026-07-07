@@ -1,4 +1,4 @@
-﻿using PicView.Core.Localization;
+using PicView.Core.Localization;
 
 namespace PicView.Tests.LanguageTests;
 
@@ -42,8 +42,8 @@ public static class SwedishUnitTest
         Assert.Equal(TranslationManager.Translation.BitDepth, "Bitdjup");
         Assert.Equal(TranslationManager.Translation.BlackAndWhite, "Svart/vit");
         Assert.Equal(TranslationManager.Translation.Blur, "Oskärpa");
-        Assert.Equal(TranslationManager.Translation.BottomGalleryItemSize, "Storlek på tumnaglar i nedre galleriet");
-        Assert.Equal(TranslationManager.Translation.BottomGalleryThumbnailStretch,
+        Assert.Equal(TranslationManager.Translation.DockedGalleryItemSize, "Storlek på tumnaglar i nedre galleriet");
+        Assert.Equal(TranslationManager.Translation.DockedGalleryThumbnailStretch,
             "Sträck tumnagnaglar i nedre galleriet");
         Assert.Equal(TranslationManager.Translation.Brightness, "Ljusstyrka");
         Assert.Equal(TranslationManager.Translation.CameraMaker, "Kameratillverkare");
@@ -171,7 +171,7 @@ public static class SwedishUnitTest
         Assert.Equal(TranslationManager.Translation.GoBackBy10Images, "Bakåt 10 bilder");
         Assert.Equal(TranslationManager.Translation.Hard, "Hård");
         Assert.Equal(TranslationManager.Translation.Height, "Höjd");
-        Assert.Equal(TranslationManager.Translation.HideBottomGallery, "Dölj nedre galleriet");
+        Assert.Equal(TranslationManager.Translation.HideDockedGallery, "Dölj nedre galleriet");
         Assert.Equal(TranslationManager.Translation.HideBottomToolbar, "Dölj nedre verktygsfält");
         Assert.Equal(TranslationManager.Translation.HideUI, "Dölj användargränssnitt");
         Assert.Equal(TranslationManager.Translation.High, "Hög");
@@ -314,8 +314,8 @@ public static class SwedishUnitTest
         Assert.Equal(TranslationManager.Translation.Sharpness, "Skärpa");
         Assert.Equal(TranslationManager.Translation.Shift, "Skift");
         Assert.Equal(TranslationManager.Translation.ShowAllSettingsWindow, "Visa inställningsfönstret");
-        Assert.Equal(TranslationManager.Translation.ShowBottomGallery, "Visa nedre galleriet");
-        Assert.Equal(TranslationManager.Translation.ShowBottomGalleryWhenUiIsHidden,
+        Assert.Equal(TranslationManager.Translation.ShowDockedGallery, "Visa nedre galleriet");
+        Assert.Equal(TranslationManager.Translation.ShowDockedGalleryWhenUiIsHidden,
             "Visa nedre galleriet när användargränssnittet är dolt");
         Assert.Equal(TranslationManager.Translation.ShowBottomToolbar, "Visa nedre verktygsfält");
         Assert.Equal(TranslationManager.Translation.ShowConfirmationOnEsc, "Visa bekräftelsedialog när 'Esc' trycks");
@@ -345,7 +345,7 @@ public static class SwedishUnitTest
         Assert.Equal(TranslationManager.Translation.StayCentered, "Centrera fönstret");
         Assert.Equal(TranslationManager.Translation.StayTopMost, "Lägg fönstret överst");
         Assert.Equal(TranslationManager.Translation.Stretch, "Sträck");
-        Assert.Equal(TranslationManager.Translation.StretchImage, "Sträck bilden");
+        Assert.Equal(TranslationManager.Translation.ZoomToFit, "Zooma för att passa");
         Assert.Equal(TranslationManager.Translation.StrobeReturnLightDetected, "Strob-returljus detekterat");
         Assert.Equal(TranslationManager.Translation.StrobeReturnLightNotDetected, "Strob-returljus inte detekterat");
         Assert.Equal(TranslationManager.Translation.Subject, "Ämne");

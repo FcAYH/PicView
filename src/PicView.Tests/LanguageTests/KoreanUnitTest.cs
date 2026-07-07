@@ -1,4 +1,4 @@
-﻿using PicView.Core.Localization;
+using PicView.Core.Localization;
 
 namespace PicView.Tests.LanguageTests;
 
@@ -41,8 +41,8 @@ public static class KoreanUnitTest
         Assert.Equal(TranslationManager.Translation.BitDepth, "비트 깊이");
         Assert.Equal(TranslationManager.Translation.BlackAndWhite, "흑백");
         Assert.Equal(TranslationManager.Translation.Blur, "흐림");
-        Assert.Equal(TranslationManager.Translation.BottomGalleryItemSize, "하단 갤러리의 썸네일 크기");
-        Assert.Equal(TranslationManager.Translation.BottomGalleryThumbnailStretch, "하단 갤러리의 슬라이드쇼 크기");
+        Assert.Equal(TranslationManager.Translation.DockedGalleryItemSize, "하단 갤러리의 썸네일 크기");
+        Assert.Equal(TranslationManager.Translation.DockedGalleryThumbnailStretch, "하단 갤러리의 슬라이드쇼 크기");
         Assert.Equal(TranslationManager.Translation.Brightness, "밝기");
         Assert.Equal(TranslationManager.Translation.CameraMaker, "카메라 제조사");
         Assert.Equal(TranslationManager.Translation.CameraModel, "카메라 모델");
@@ -165,7 +165,7 @@ public static class KoreanUnitTest
         Assert.Equal(TranslationManager.Translation.GoBackBy10Images, "이미지 10개 뒤로 이동");
         Assert.Equal(TranslationManager.Translation.Hard, "단단함");
         Assert.Equal(TranslationManager.Translation.Height, "높이");
-        Assert.Equal(TranslationManager.Translation.HideBottomGallery, "하단 갤러리 숨기기");
+        Assert.Equal(TranslationManager.Translation.HideDockedGallery, "하단 갤러리 숨기기");
         Assert.Equal(TranslationManager.Translation.HideBottomToolbar, "하단 도구 모음 숨기기");
         Assert.Equal(TranslationManager.Translation.HideUI, "UI 숨기기");
         Assert.Equal(TranslationManager.Translation.High, "높음");
@@ -307,8 +307,8 @@ public static class KoreanUnitTest
         Assert.Equal(TranslationManager.Translation.Sharpness, "선명도");
         Assert.Equal(TranslationManager.Translation.Shift, "Shift");
         Assert.Equal(TranslationManager.Translation.ShowAllSettingsWindow, "모든 설정 창 표시");
-        Assert.Equal(TranslationManager.Translation.ShowBottomGallery, "하단 갤러리 표시");
-        Assert.Equal(TranslationManager.Translation.ShowBottomGalleryWhenUiIsHidden, "UI를 숨겼을 때 하단 갤러리 표시");
+        Assert.Equal(TranslationManager.Translation.ShowDockedGallery, "하단 갤러리 표시");
+        Assert.Equal(TranslationManager.Translation.ShowDockedGalleryWhenUiIsHidden, "UI를 숨겼을 때 하단 갤러리 표시");
         Assert.Equal(TranslationManager.Translation.ShowBottomToolbar, "하단 도구 모음 표시");
         Assert.Equal(TranslationManager.Translation.ShowConfirmationOnEsc, "'Esc'를 누를 때 확인 대화 상자를 표시");
         Assert.Equal(TranslationManager.Translation.ShowFadeInButtonsOnHover, "마우스 오버 시 페이드인 버튼 표시");
@@ -336,7 +336,7 @@ public static class KoreanUnitTest
         Assert.Equal(TranslationManager.Translation.StayCentered, "창 중앙 유지");
         Assert.Equal(TranslationManager.Translation.StayTopMost, "다른 창 위에 유지");
         Assert.Equal(TranslationManager.Translation.Stretch, "늘이기");
-        Assert.Equal(TranslationManager.Translation.StretchImage, "이미지 늘리기");
+        Assert.Equal(TranslationManager.Translation.ZoomToFit, "크기에 맞게 확대/축소");
         Assert.Equal(TranslationManager.Translation.StrobeReturnLightDetected, "스트로브 반사 빛 감지됨");
         Assert.Equal(TranslationManager.Translation.StrobeReturnLightNotDetected, "스트로브 반사 빛 감지 안 됨");
         Assert.Equal(TranslationManager.Translation.Subject, "주제");

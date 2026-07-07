@@ -1,4 +1,4 @@
-﻿using Avalonia;
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
@@ -6,10 +6,8 @@ using Avalonia.LogicalTree;
 using Avalonia.Threading;
 using PicView.Avalonia.Animations;
 using PicView.Avalonia.CustomControls;
-using PicView.Avalonia.Gallery;
 using PicView.Avalonia.UI;
-using PicView.Avalonia.ViewModels;
-using PicView.Core.Sizing;
+using PicView.Core.ViewModels;
 
 namespace PicView.Avalonia.Views.UC;
 
@@ -26,30 +24,32 @@ public partial class ZoomPreviewer : UserControl
     {
         InitializeComponent();
 
+        if (!Settings.Theme.Dark && Settings.Theme.GlassTheme)
+        {
+            if (Settings.Theme.GlassTheme)
+            {
+                MainBorder.BorderThickness = new Thickness(0);
+            }
+
+            ResetZoomButton.Classes.Remove("altHover");
+            CloseButton.Classes.Remove("altHover");
+            ResetZoomButton.Classes.Add("hover");
+            CloseButton.Classes.Add("hover");
+        }
+        Loaded += OnLoaded;
+    }
+
+    private void OnLoaded(object? sender, RoutedEventArgs e)
+    {
         CloseButton.Click += delegate { SetInvisible(); };
 
         // Add pointer event handlers for dragging
         AddHandler(PointerPressedEvent, OnPointerPressed, RoutingStrategies.Tunnel);
         AddHandler(PointerMovedEvent, OnPointerMoved, RoutingStrategies.Tunnel);
         AddHandler(PointerReleasedEvent, OnPointerReleased, RoutingStrategies.Tunnel);
-
-        if (Settings.Theme.Dark && !Settings.Theme.GlassTheme)
-        {
-            return;
-        }
-
-        if (Settings.Theme.GlassTheme)
-        {
-            MainBorder.BorderThickness = new Thickness(0);
-        }
-
-        ResetZoomButton.Classes.Remove("altHover");
-        CloseButton.Classes.Remove("altHover");
-        ResetZoomButton.Classes.Add("hover");
-        CloseButton.Classes.Add("hover");
     }
 
-    protected override void OnGotFocus(GotFocusEventArgs e)
+    protected override void OnGotFocus(FocusChangedEventArgs e)
     {
         // Don't call base to prevent focus
         e.Handled = true;
@@ -178,7 +178,7 @@ public partial class ZoomPreviewer : UserControl
 
     public void UpdateVisibility()
     {
-        if (_zoomPanControl == null)
+        if (_zoomPanControl == null || !Settings.Zoom.IsShowingZoomPreviewer)
         {
             SetInvisible();
             return;
@@ -190,39 +190,13 @@ public partial class ZoomPreviewer : UserControl
             return;
         }
 
-        if (DataContext is MainViewModel vm)
+        if (TopLevel.GetTopLevel(this) is not MainWindow mainWindow)
         {
-            if (vm.HoverbarViewModel.IsHoverbarVisible.CurrentValue && UIHelper.GetHoverBar?.Opacity > 0)
-            {
-                // Fit zoom preview window on top of gallery and/or hoverbar
-                // TODO: refactor
-                if (UIHelper.GetMainView.Bounds.Width > vm.HoverbarViewModel.MaxWidth + 300)
-                {
-                    var newBottomMargin = Settings.Gallery.IsBottomGalleryShown
-                        ? GalleryFunctions.GetGalleryHeight(vm) + UIHelper.GetHoverBar.BottomBorder.Bounds.Height + 5
-                        : 25;
-                    Margin = new Thickness(0, 0, 25,
-                        UIHelper.GetMainView.Bounds.Height > SizeDefaults.WindowMinSize ? newBottomMargin : 0);
-                }
-                else
-                {
-                    var newBottomMargin = Settings.Gallery.IsBottomGalleryShown
-                        ? GalleryFunctions.GetGalleryHeight(vm) + UIHelper.GetHoverBar.BottomBorder.Bounds.Height + 10
-                        : 115;
-                    Margin = new Thickness(0, 0, 70,
-                        UIHelper.GetMainView.Bounds.Height > SizeDefaults.WindowMinSize ? newBottomMargin : 0);
-                }
-                
-            }
-            else if (Settings.Gallery.IsBottomGalleryShown)
-            {
-                Margin = new Thickness(0, 0, 25, vm.Gallery.GalleryMargin.CurrentValue.Bottom + 7);
-            }
-            else
-            {
-                Margin = new Thickness(0, 0, 25, 25);
-            }
-
+            return;
+        }
+        
+        if (mainWindow.UIHelper?.GetMainView?.DataContext is MainWindowViewModel vm)
+        {
             UpdateSize(vm);
         }
 
@@ -246,11 +220,15 @@ public partial class ZoomPreviewer : UserControl
         }
     }
 
-    private void UpdateSize(MainViewModel vm)
+    private void UpdateSize(MainWindowViewModel vm)
     {
         const int defaultHeight = 150;
         OverlayImage.Height = defaultHeight;
-        if (vm.PicViewer.PixelWidth.CurrentValue is 0 || vm.PicViewer.PixelHeight.CurrentValue is 0)
+        if (vm.WindowTabs.ActiveTab.CurrentValue.Model is not {} model)
+        {
+            return;
+        }
+        if (model.PixelWidth is 0 || model.PixelHeight is 0)
         {
             return;
         }
@@ -259,17 +237,17 @@ public partial class ZoomPreviewer : UserControl
 
         if (Settings.ImageScaling.ShowImageSideBySide)
         {
-            var secondaryWidth = vm.PicViewer.SecondaryImageWidth.CurrentValue * defaultHeight /
-                                 vm.PicViewer.ImageHeight.CurrentValue;
-            var width = vm.PicViewer.ImageWidth.CurrentValue * defaultHeight / vm.PicViewer.ImageHeight.Value;
-            OverlayImage.Width = width;
-            OverlayImage.SecondaryImageWidth = secondaryWidth;
+            // var secondaryWidth = model.SecondaryImageWidth.CurrentValue * defaultHeight /
+            //                      vm.PicViewer.ImageHeight.CurrentValue;
+            // var width = vm.PicViewer.ImageWidth.CurrentValue * defaultHeight / vm.PicViewer.ImageHeight.Value;
+            // OverlayImage.Width = width;
+            //OverlayImage.SecondaryImageWidth = secondaryWidth;
         }
         else
         {
-            OverlayImage.Width = vm.PicViewer.PixelWidth.CurrentValue * defaultHeight /
-                                 vm.PicViewer.PixelHeight.CurrentValue;
-            OverlayImage.SecondaryImageWidth = 0;
+            OverlayImage.Width = model.PixelWidth * defaultHeight /
+                                 model.PixelHeight;
+            //OverlayImage.SecondaryImageWidth = 0;
         }
     }
 

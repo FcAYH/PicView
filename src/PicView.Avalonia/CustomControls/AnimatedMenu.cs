@@ -1,15 +1,17 @@
 ﻿using Avalonia;
 using Avalonia.Controls;
 using PicView.Avalonia.Animations;
-using PicView.Avalonia.UI;
+using PicView.Core.DebugTools;
 using R3;
 
 namespace PicView.Avalonia.CustomControls;
 
-public class AnimatedMenu : UserControl
+public class AnimatedMenu : UserControl, IDisposable
 {
     public static readonly AvaloniaProperty<bool> IsOpenProperty =
         AvaloniaProperty.Register<AnimatedMenu, bool>(nameof(IsOpen));
+
+    private IDisposable _disposable;
 
     public bool IsOpen
     {
@@ -20,9 +22,9 @@ public class AnimatedMenu : UserControl
     protected AnimatedMenu()
     {
         // Subscribe to changes in the IsOpen property
-        this.GetObservable(IsOpenProperty).ToObservable()
+        _disposable = this.GetObservable(IsOpenProperty).ToObservable()
+            .Skip(1)
             .SubscribeAwait(async (isOpen, _) =>
-
             {
                 // Make sure it is visible before starting the animation
                 if (!IsVisible && isOpen)
@@ -37,7 +39,8 @@ public class AnimatedMenu : UserControl
                 {
                     IsVisible = false;
                 }
-            });
+                
+            }, DebugHelper.LogError(nameof(AnimatedMenu), nameof(IsOpenProperty)));
     }
     
     /// <summary>
@@ -52,5 +55,11 @@ public class AnimatedMenu : UserControl
         const double speed = 0.3;
         var anim = AnimationsHelper.OpacityAnimation(from, to, speed);
         await anim.RunAsync(this);
+    }
+    
+    public virtual void Dispose()
+    {
+        _disposable.Dispose();
+        GC.SuppressFinalize(this);
     }
 }

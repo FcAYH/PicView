@@ -1,30 +1,27 @@
 ﻿using Avalonia;
-using Avalonia.Controls;
-using Avalonia.Input;
-using Avalonia.Interactivity;
 using Avalonia.Media;
+using PicView.Avalonia.CustomControls;
 using PicView.Avalonia.UI;
-using PicView.Avalonia.ViewModels;
-using PicView.Avalonia.WindowBehavior;
 using PicView.Core.Config;
+using PicView.Core.DebugTools;
+using PicView.Core.Extensions;
 using PicView.Core.Localization;
+using PicView.Core.ViewModels;
 using PicView.Core.WindowsNT.Taskbar;
 using R3;
 
 namespace PicView.Avalonia.Win32.Views;
 
-public partial class BatchResizeWindow : Window, IDisposable
+public partial class BatchResizeWindow : GenericWindow, IDisposable
 {
-    private readonly CompositeDisposable _disposables = new();
-    private readonly BatchResizeWindowConfig _config;
+    private DisposableBag _disposables;
     public BatchResizeWindow(BatchResizeWindowConfig config)
     {
-        _config = config;
         InitializeComponent();
-        StartUp();
+        StartUp(config);
     }
 
-    private void StartUp()
+    private void StartUp(BatchResizeWindowConfig config)
     {
         if (Settings.Theme.GlassTheme)
         {
@@ -57,50 +54,28 @@ public partial class BatchResizeWindow : Window, IDisposable
 
         }
 
-        GenericWindowHelper.GenericWindowInitialize(this, TranslationManager.Translation.BatchResize + " - PicView");
+        GenericWindowHelper.GenericWindowInitialize(this, StringExtensions.CombineWithAppName(TranslationManager.Translation.BatchResize), false, config.WindowProperties);
         Loaded += delegate
         {
-            ClientSizeProperty.Changed.ToObservable()
-                .ObserveOn(UIHelper.GetFrameProvider)
-                .Subscribe(size =>
-                {
-                    WindowResizing.HandleWindowResize(this, size);
-                    UpdateWindowSize(size);
-                })
-                .AddTo(_disposables);
-            PositionChanged += (_, _) => UpdateWindowPosition();
-
-            if (DataContext is not MainViewModel vm)
+            if (DataContext is not CoreViewModel core)
             {
                 return;
             }
 
             if (Settings.UIProperties.IsTaskbarProgressEnabled)
             {
-                Observable.EveryValueChanged(vm.BatchResizeViewModel.Progress, x => x.CurrentValue)
+                Observable.EveryValueChanged(core.BatchResize.Progress, x => x.CurrentValue)
                     .Skip(1)
                     .Subscribe(d =>
                     {
-                        if (vm.BatchResizeViewModel?.Progress is not null &&
-                            vm.BatchResizeViewModel?.ProgressMaximum?.Value is not null)
+                        if (core.BatchResize?.Progress is not null &&
+                            core.BatchResize.ProgressMaximum?.Value is not null)
                         {
-                            SetTaskbarProgress((ulong)d, (ulong)vm.BatchResizeViewModel.ProgressMaximum.CurrentValue);
+                            SetTaskbarProgress((ulong)d, (ulong)core.BatchResize.ProgressMaximum.CurrentValue);
                         }
-                    });
+                    }, DebugHelper.LogError(nameof(BatchResizeWindow), nameof(core.BatchResize)))
+                    .AddTo(ref _disposables);
             }
-        };
-        
-        Closing += async delegate
-        {
-            Hide();
-            if (VisualRoot is null)
-            {
-                return;
-            }
-
-            var hostWindow = (Window)VisualRoot;
-            hostWindow?.BringIntoView();
-            await _config.SaveAsync();
         };
     }
 
@@ -129,30 +104,6 @@ public partial class BatchResizeWindow : Window, IDisposable
         {
             _taskbarProgress.SetProgress(progress, max);
         }
-    }
-
-    private void MoveWindow(object? sender, PointerPressedEventArgs e)
-    {
-        if (VisualRoot is null)
-        {
-            return;
-        }
-
-        var hostWindow = (Window)VisualRoot;
-        hostWindow?.BeginMoveDrag(e);
-    }
-
-    private void Close(object? sender, RoutedEventArgs e) => Close();
-
-    private void Minimize(object? sender, RoutedEventArgs e) => WindowState = WindowState.Minimized;
-    
-    private void UpdateWindowSize(AvaloniaPropertyChangedEventArgs<Size> size)
-        => WindowFunctions.SetWindowSize(this, size, _config.WindowProperties);
-    
-    private void UpdateWindowPosition()
-    {
-        _config.WindowProperties.Left = Position.X;
-        _config.WindowProperties.Top = Position.Y;
     }
 
     public void Dispose()

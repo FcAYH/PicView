@@ -179,49 +179,6 @@
             <Setter Property="Foreground" Value="{StaticResource SecondaryTextColor}" />
         </Style>
 
-        <Style Selector="^.foregroundHover:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-            <Style.Animations>
-                <Animation Duration="{StaticResource ButtonHoverAnimationDuration}" IterationCount="1">
-                    <KeyFrame>
-                        <Setter Property="Foreground">
-                            <SolidColorBrush Color="{DynamicResource MainTextColor}" />
-                        </Setter>
-                    </KeyFrame>
-                    <KeyFrame Cue="1">
-                        <Setter Property="Foreground">
-                            <SolidColorBrush Color="{DynamicResource AccentColor}" />
-                        </Setter>
-                    </KeyFrame>
-                </Animation>
-            </Style.Animations>
-            <Setter Property="Foreground" Value="{DynamicResource AccentColor}" />
-        </Style>
-
-        <Style Selector="^.foregroundHoverAlt:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-            <Style.Animations>
-                <Animation Duration="{StaticResource ButtonHoverAnimationDuration}" IterationCount="1">
-                    <KeyFrame>
-                        <Setter Property="Foreground">
-                            <SolidColorBrush Color="{DynamicResource MainTextColor}" />
-                        </Setter>
-                        <Setter Property="Background">
-                            <SolidColorBrush Color="Transparent" />
-                        </Setter>
-                    </KeyFrame>
-                    <KeyFrame Cue="1">
-                        <Setter Property="Foreground">
-                            <SolidColorBrush Color="{StaticResource SecondaryTextColor}" />
-                        </Setter>
-                        <Setter Property="Background">
-                            <SolidColorBrush Color="{DynamicResource AltBackgroundHoverColor}" />
-                        </Setter>
-                    </KeyFrame>
-                </Animation>
-            </Style.Animations>
-            <Setter Property="Foreground" Value="{StaticResource SecondaryTextColor}" />
-            <Setter Property="Background" Value="{DynamicResource AltBackgroundHoverColor}" />
-        </Style>
-
         <!--  End of animations  -->
 
         <Style Selector="^.noAnimHover:pointerover /template/ ContentPresenter#PART_ContentPresenter">

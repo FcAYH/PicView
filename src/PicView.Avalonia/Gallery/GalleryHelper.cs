@@ -1,52 +1,48 @@
-﻿using Avalonia.Media;
-using PicView.Avalonia.UI;
-using PicView.Avalonia.ViewModels;
+﻿using Avalonia;
+using PicView.Avalonia.Navigation;
+using PicView.Avalonia.Views.UC;
+using MainWindowViewModel = PicView.Core.ViewModels.MainWindowViewModel;
 
 namespace PicView.Avalonia.Gallery;
 
 public static class GalleryHelper
 {
-    public static void SetGalleryItemStretch(string value) => SetGalleryItemStretch(value, UIHelper.GetMainView.DataContext as MainViewModel);
-    public static void SetGalleryItemStretch(string value, MainViewModel vm)
+    public static (double width, double height) GetGallerySize(MainWindowViewModel vm)
     {
-        if (value.Equals("Square", StringComparison.OrdinalIgnoreCase))
+        var tabs = vm.WindowTabs;
+        var tab = tabs.ActiveTab.CurrentValue;
+        var gallery = tab.Gallery;
+        if (!Settings.Gallery.IsGalleryDocked || Slideshow.IsRunning || gallery.IsGalleryExpanded.CurrentValue ||
+            !Settings.Gallery.ShowDockedGalleryInHiddenUI && !vm.IsUIShown.CurrentValue)
         {
-            if (GalleryFunctions.IsFullGalleryOpen)
-            {
-                GalleryStretchMode.ChangeFullGalleryStretchSquare(vm);
-            }
-            else
-            {
-                GalleryStretchMode.ChangeBottomGalleryStretchSquare(vm);
-            }
+            return (0, 0);
+        }
 
+        Rect galleryBounds;
+        if (tab.CurrentView.CurrentValue is ImageViewer imageViewer)
+        {
+            galleryBounds = imageViewer.GalleryView.Bounds;
+        }
+        else
+        {
+            return (0, 0);
+        }
+
+        if (tab.Gallery.IsLeftDocked.CurrentValue || tab.Gallery.IsRightDocked.CurrentValue)
+        {
+            return (galleryBounds.Width, 0);
+        }
+
+        return (0, galleryBounds.Height);
+    }
+
+    public static void CenterGallery(MainWindowViewModel main)
+    {
+        if (main.WindowTabs.ActiveTab.CurrentValue.CurrentView.CurrentValue is not ImageViewer imageViewer)
+        {
             return;
         }
 
-        if (value.Equals("FillSquare", StringComparison.OrdinalIgnoreCase))
-        {
-            if (GalleryFunctions.IsFullGalleryOpen)
-            {
-                GalleryStretchMode.ChangeFullGalleryStretchSquareFill(vm);
-            }
-            else
-            {
-                GalleryStretchMode.ChangeBottomGalleryStretchSquareFill(vm);
-            }
-
-            return;
-        }
-
-        if (Enum.TryParse<Stretch>(value, out var stretch))
-        {
-            if (GalleryFunctions.IsFullGalleryOpen)
-            {
-                GalleryStretchMode.ChangeFullGalleryItemStretch(vm, stretch);
-            }
-            else
-            {
-                GalleryStretchMode.ChangeBottomGalleryItemStretch(vm, stretch);
-            }
-        }
+        imageViewer.GalleryView.GalleryItemsControl.ScrollToCenterOfCurrentItem();
     }
 }

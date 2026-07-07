@@ -12,20 +12,7 @@ public static class FileTypeResolver
     /// <summary>
     /// Represents a structure containing a loadable file type and its associated data.
     /// </summary>
-    /// <param name="type">The type of the loadable file.</param>
-    /// <param name="data">The data associated with the loadable file.</param>
-    public readonly struct FileTypeStruct(LoadAbleFileType type, string data)
-    {
-        /// <summary>
-        /// Gets the type of the loadable file.
-        /// </summary>
-        public LoadAbleFileType Type => type;
-        
-        /// <summary>
-        /// Gets the data associated with the loadable file.
-        /// </summary>
-        public string Data => data;
-    }
+    public readonly record struct FileTypeStruct(LoadAbleFileType Type, string Data);
 
     /// <summary>
     /// Specifies the different types of loadable files.

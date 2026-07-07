@@ -1,4 +1,4 @@
-﻿namespace PicView.Core.Navigation;
+namespace PicView.Core.Navigation;
 
 public enum NavigateTo
 {
@@ -6,4 +6,6 @@ public enum NavigateTo
     Previous,
     First,
     Last,
+    Up,
+    Down
 }

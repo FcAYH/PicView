@@ -1,8 +1,10 @@
-﻿using Avalonia.Controls;
+﻿using Avalonia;
+using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
+using PicView.Avalonia.CustomControls;
 using PicView.Avalonia.UI;
-using PicView.Avalonia.ViewModels;
+using PicView.Core.ViewModels;
 
 namespace PicView.Avalonia.Views.UC.Buttons;
 public partial class ClickArrowLeft : UserControl
@@ -12,36 +14,42 @@ public partial class ClickArrowLeft : UserControl
         InitializeComponent();
         Loaded += delegate
         {
-            if (DataContext is not MainViewModel vm)
+            if (Application.Current.DataContext is not CoreViewModel core)
             {
                 return;
             }
-            PointerWheelChanged += async (_, e) => await ImageViewer.PreviewOnPointerWheelChanged(this, e);
             AddHandler(PointerPressedEvent, ManagePointerPressed, RoutingStrategies.Tunnel);
             PolyButton.Click += (_, _) =>
             {
-                vm.MainWindow.IsClickArrowLeftClicked = true;
+                core.MainWindows.ActiveWindow.CurrentValue.IsClickArrowLeftClicked = true;
+                core.MainWindows.ActiveWindow.CurrentValue.TopTitlebarViewModel.CloseDropDownMenu();
                 UIHelper.SetButtonInterval(PolyButton);
             };
+            
+            _ = new HoverFadeButtonHandler(this, PolyButton);
         };
     }
 
     private void ManagePointerPressed(object? sender, PointerPressedEventArgs e)
     {
+        if ( TopLevel.GetTopLevel(this) is not MainWindow mainWindow)
+        {
+            return;
+        }
         var props = e.Properties;
 
         if (PolyButton.IsPointerOver)
         {
             if (props.IsRightButtonPressed)
             {
-                DialogManager.AddNavigationDialog();
+                mainWindow.AddNavigationDialog();
             }
         }
         else
         {
             if (props.IsRightButtonPressed)
             {
-                UIHelper.ShowMainContextMenu();
+                UIHelper.ShowMainContextMenu(mainWindow);
             }
         }
     }

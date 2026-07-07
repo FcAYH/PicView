@@ -1,21 +1,22 @@
 ﻿<ResourceDictionary
-    x:ClassModifier="internal"
     xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:customControls="clr-namespace:PicView.Avalonia.CustomControls"
-    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
-    <ControlTheme TargetType="customControls:AnimatedPopUp" x:Key="{x:Type customControls:AnimatedPopUp}">
+    x:ClassModifier="internal">
+    <ControlTheme x:Key="{x:Type customControls:AnimatedPopUp}" TargetType="customControls:AnimatedPopUp">
         <Setter Property="Template">
             <ControlTemplate>
-                <Panel Background="#A8000000" x:Name="PART_Overlay">
+                <Panel x:Name="PART_Overlay" Background="#A8000000">
                     <Border
+                        x:Name="PART_Border"
+                        Margin="20"
+                        Padding="{TemplateBinding Padding}"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center"
                         Background="{DynamicResource MainBackgroundColor}"
                         BorderBrush="{DynamicResource MainBorderColor}"
                         BorderThickness="1"
-                        CornerRadius="8"
-                        HorizontalAlignment="Center"
-                        Padding="{TemplateBinding Padding}"
-                        VerticalAlignment="Center"
-                        x:Name="PART_Border">
+                        CornerRadius="8">
                         <ContentPresenter Content="{TemplateBinding Content}" />
                     </Border>
                 </Panel>

@@ -1,4 +1,4 @@
-﻿using Avalonia;
+using Avalonia;
 using Avalonia.Styling;
 
 namespace PicView.Avalonia.ColorManagement;
@@ -66,5 +66,10 @@ public static class ThemeManager
                 application.RequestedThemeVariant = Settings.Theme.Dark ? ThemeVariant.Dark : ThemeVariant.Light;
             }
         }
+    }
+    
+    public static void SetColorTheme(int colorIndex)
+    {
+        ColorManager.UpdateAccentColors(colorIndex);
     }
 }

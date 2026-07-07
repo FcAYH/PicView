@@ -3,16 +3,11 @@
     <OutputType>WinExe</OutputType>
     <!--If you are willing to use Windows/MacOS native APIs you will need to create 3 projects.
     One for Windows with net7.0-windows TFM, one for MacOS with net7.0-macos and one with net7.0 TFM for Linux.-->
-    <TargetFramework>net10.0-windows10.0.22621.0</TargetFramework>
+    <TargetFramework>net11.0-windows10.0.22621.0</TargetFramework>
     <Nullable>enable</Nullable>
     <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <ApplicationIcon>icon.ico</ApplicationIcon>
-    <PublishAot>true</PublishAot>
-    <Trimming>full</Trimming>
-    <TrimmerRemoveSymbols>true</TrimmerRemoveSymbols>
-    <OptimizationPreference>Speed</OptimizationPreference>
-    <HttpActivityPropagationSupport>false</HttpActivityPropagationSupport>
     <Platforms>x64;arm64</Platforms>
     <ImplicitUsings>enable</ImplicitUsings>
     <Product>PicView</Product>
@@ -21,7 +16,21 @@
     <Copyright>© Ruben Hyldgaard Negendahl</Copyright>
     <AssemblyName>PicView</AssemblyName>
     <StartupObject>PicView.Avalonia.Win32.Program</StartupObject>
+      
     <LangVersion>preview</LangVersion>
+
+    <!-- AOT -->
+    <PublishAot>true</PublishAot>
+    <Trimming>full</Trimming>
+    <TrimmerRemoveSymbols>true</TrimmerRemoveSymbols>
+    <OptimizationPreference>Speed</OptimizationPreference>
+    <HttpActivityPropagationSupport>false</HttpActivityPropagationSupport>
+    <IsAotCompatible>True</IsAotCompatible>
+    <IsTrimmable>True</IsTrimmable>
+    <EventSourceSupport>false</EventSourceSupport>
+    <StackTraceSupport>true</StackTraceSupport>
+    <EventSourceSupport>false</EventSourceSupport>
+    <IlcTrimMetadata>true</IlcTrimMetadata>
   </PropertyGroup>
   <ItemGroup>
     <AvaloniaResource Include="icon.ico">
@@ -52,10 +61,11 @@
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x64' ">
     <DebugType>none</DebugType>
   </PropertyGroup>
-
-  <ItemGroup>
-    <PackageReference Include="Clowd.Clipboard.Avalonia" Version="1.1.4" />
-  </ItemGroup>
+    
+  <PropertyGroup>
+      <EnablePreviewFeatures>true</EnablePreviewFeatures>
+      <Features>$(Features);runtime-async=on</Features>
+  </PropertyGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\PicView.Avalonia\PicView.Avalonia.csproj" />
@@ -86,6 +96,14 @@
     </Compile>
       <Compile Update="Views\PrintPreviewWindow.axaml.cs">
           <DependentUpon>PrintPreviewWindow.axaml</DependentUpon>
+      </Compile>
+      <Compile Update="Views\PrintPreviewWindow2.axaml.cs">
+        <DependentUpon>PrintPreviewWindow2.axaml</DependentUpon>
+        <SubType>Code</SubType>
+      </Compile>
+      <Compile Update="Views\FileAssociationWindow.axaml.cs">
+        <DependentUpon>FileAssociationWindow.axaml</DependentUpon>
+        <SubType>Code</SubType>
       </Compile>
   </ItemGroup>
 

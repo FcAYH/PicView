@@ -1,4 +1,4 @@
-﻿using PicView.Core.Localization;
+using PicView.Core.Localization;
 
 namespace PicView.Tests.LanguageTests;
 
@@ -42,8 +42,8 @@ public static class TurkishUnitTest
         Assert.Equal(TranslationManager.Translation.BitDepth, "Bit derinliği");
         Assert.Equal(TranslationManager.Translation.BlackAndWhite, "Siyah Beyaz");
         Assert.Equal(TranslationManager.Translation.Blur, "Bulanıklaştırma");
-        Assert.Equal(TranslationManager.Translation.BottomGalleryItemSize, "Alt galerideki küçük resimlerin boyutu");
-        Assert.Equal(TranslationManager.Translation.BottomGalleryThumbnailStretch, "Alt galeride küçük resim esnetme");
+        Assert.Equal(TranslationManager.Translation.DockedGalleryItemSize, "Alt galerideki küçük resimlerin boyutu");
+        Assert.Equal(TranslationManager.Translation.DockedGalleryThumbnailStretch, "Alt galeride küçük resim esnetme");
         Assert.Equal(TranslationManager.Translation.Brightness, "Parlaklık");
         Assert.Equal(TranslationManager.Translation.CameraMaker, "Kamera üreticisi");
         Assert.Equal(TranslationManager.Translation.CameraModel, "Kamera modeli");
@@ -171,7 +171,7 @@ public static class TurkishUnitTest
         Assert.Equal(TranslationManager.Translation.GoBackBy10Images, "10 Resim geri git");
         Assert.Equal(TranslationManager.Translation.Hard, "Zor");
         Assert.Equal(TranslationManager.Translation.Height, "Yükseklik");
-        Assert.Equal(TranslationManager.Translation.HideBottomGallery, "Alt galeriyi gizle");
+        Assert.Equal(TranslationManager.Translation.HideDockedGallery, "Alt galeriyi gizle");
         Assert.Equal(TranslationManager.Translation.HideBottomToolbar, "Alt araç çubuğunu gizle");
         Assert.Equal(TranslationManager.Translation.HideUI, "Arayüzü gizle");
         Assert.Equal(TranslationManager.Translation.High, "Yüksek");
@@ -314,8 +314,8 @@ public static class TurkishUnitTest
         Assert.Equal(TranslationManager.Translation.Sharpness, "Keskinlik");
         Assert.Equal(TranslationManager.Translation.Shift, "Shift");
         Assert.Equal(TranslationManager.Translation.ShowAllSettingsWindow, "Tüm ayarlar penceresini göster");
-        Assert.Equal(TranslationManager.Translation.ShowBottomGallery, "Alt galeriyi göster");
-        Assert.Equal(TranslationManager.Translation.ShowBottomGalleryWhenUiIsHidden,
+        Assert.Equal(TranslationManager.Translation.ShowDockedGallery, "Alt galeriyi göster");
+        Assert.Equal(TranslationManager.Translation.ShowDockedGalleryWhenUiIsHidden,
             "Arayüz gizlendiğinde alt galeriyi göster");
         Assert.Equal(TranslationManager.Translation.ShowBottomToolbar, "Alt araç çubuğunu göster");
         Assert.Equal(TranslationManager.Translation.ShowConfirmationOnEsc,
@@ -346,7 +346,7 @@ public static class TurkishUnitTest
         Assert.Equal(TranslationManager.Translation.StayCentered, "Pencereyi ortada tut");
         Assert.Equal(TranslationManager.Translation.StayTopMost, "Diğer pencerelerin üstünde kal");
         Assert.Equal(TranslationManager.Translation.Stretch, "Esneme");
-        Assert.Equal(TranslationManager.Translation.StretchImage, "Resmi esnet");
+        Assert.Equal(TranslationManager.Translation.ZoomToFit, "Pencereye sığdır");
         Assert.Equal(TranslationManager.Translation.StrobeReturnLightDetected, "Strob ışık geri dönüşü algılandı");
         Assert.Equal(TranslationManager.Translation.StrobeReturnLightNotDetected, "Strob ışık geri dönüşü algılanmadı");
         Assert.Equal(TranslationManager.Translation.Subject, "Konu");

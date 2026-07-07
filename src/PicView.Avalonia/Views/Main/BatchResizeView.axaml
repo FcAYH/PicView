@@ -1,11 +1,11 @@
 ﻿<UserControl
     x:Class="PicView.Avalonia.Views.Main.BatchResizeView"
-    x:DataType="viewModels:MainViewModel"
     xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:converters="clr-namespace:PicView.Avalonia.Converters"
     xmlns:customControls="clr-namespace:PicView.Avalonia.CustomControls"
-    xmlns:viewModels="clr-namespace:PicView.Avalonia.ViewModels;assembly=PicView.Avalonia"
-    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    xmlns:viewModels="clr-namespace:PicView.Core.ViewModels;assembly=PicView.Core"
+    x:DataType="viewModels:CoreViewModel">
     <UserControl.Resources>
         <converters:IndexBiggerThanBooleanConverter x:Key="IndexBiggerThanBooleanConverter" />
         <converters:IndexToStringSizeConverter x:Key="IndexToStringSizeConverter" />
@@ -16,16 +16,15 @@
 
         <!--  Files processing panel log  -->
         <Panel
+            x:Name="ProcessingPanel"
             Background="Transparent"
-            IsVisible="{CompiledBinding BatchResizeViewModel.IsRunning.Value}"
-            x:Name="ProcessingPanel">
+            IsVisible="{CompiledBinding BatchResize.IsRunning.Value}">
             <Border
+                Margin="10,0,10,70"
                 Background="{DynamicResource TertiaryBackgroundColor}"
                 BorderBrush="{DynamicResource MainBorderColor}"
                 BorderThickness="0,0,0,1"
-                CornerRadius="6"
-                Effect="{StaticResource MenuShadowButtonBorder}"
-                Margin="10,0,10,70">
+                CornerRadius="6">
                 <Border.ContextMenu>
                     <ContextMenu>
                         <MenuItem Header="{CompiledBinding Translation.Cancel, Mode=OneWay}">
@@ -36,28 +35,27 @@
                     </ContextMenu>
                 </Border.ContextMenu>
                 <customControls:AutoScrollViewer MinHeight="50">
-                    <ItemsControl ItemsSource="{CompiledBinding BatchResizeViewModel.ProcessedFiles.Value}"
-                                  Padding="15,10,10,10">
+                    <ItemsControl Padding="15,10,10,10" ItemsSource="{CompiledBinding BatchResize.ProcessedFiles.Value}">
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
                                 <Grid ColumnDefinitions="*, 65, 65" ColumnSpacing="10">
                                     <TextBlock
+                                        Margin="0,5"
                                         Background="Transparent"
                                         Classes="txt"
-                                        Margin="0,5"
                                         Text="{Binding FileName}" />
                                     <TextBlock
+                                        Grid.Column="1"
                                         Background="Transparent"
                                         Classes="txt"
                                         Foreground="Red"
-                                        Grid.Column="1"
                                         Text="{Binding OldSize}"
                                         TextDecorations="StrikeThrough" />
                                     <TextBlock
+                                        Grid.Column="2"
                                         Background="Transparent"
                                         Classes="txt"
                                         Foreground="ForestGreen"
-                                        Grid.Column="2"
                                         Text="{Binding NewSize}" />
                                 </Grid>
                             </DataTemplate>
@@ -72,60 +70,60 @@
             </Border>
 
             <ProgressBar
+                Height="32"
+                Margin="10,0,10,25"
+                VerticalAlignment="Bottom"
                 CornerRadius="6"
                 FontFamily="/Assets/Fonts/Roboto-Bold.ttf#Roboto"
-                Height="32"
-                IsIndeterminate="{CompiledBinding BatchResizeViewModel.IsIndeterminate.Value,
+                IsIndeterminate="{CompiledBinding BatchResize.IsIndeterminate.Value,
                                                   Mode=OneWay}"
-                Margin="10,0,10,25"
-                Maximum="{CompiledBinding BatchResizeViewModel.ProgressMaximum.Value}"
+                Maximum="{CompiledBinding BatchResize.ProgressMaximum.Value}"
                 Minimum="0"
                 ShowProgressText="True"
-                Value="{CompiledBinding BatchResizeViewModel.Progress.Value,
-                                        Mode=OneWay}"
-                VerticalAlignment="Bottom" />
+                Value="{CompiledBinding BatchResize.Progress.Value,
+                                        Mode=OneWay}" />
 
             <StackPanel
-                HorizontalAlignment="Center"
                 Margin="10,0,10,-20"
-                Orientation="Horizontal"
-                VerticalAlignment="Bottom">
+                HorizontalAlignment="Center"
+                VerticalAlignment="Bottom"
+                Orientation="Horizontal">
                 <Button
                     Classes="BorderStyle altHover mainBtn"
-                    Command="{CompiledBinding BatchResizeViewModel.CancelCommand}"
+                    Command="{CompiledBinding BatchResize.CancelCommand}"
                     CornerRadius="4"
                     DockPanel.Dock="Left"
-                    IsVisible="{CompiledBinding !BatchResizeViewModel.IsFinished.Value}">
+                    IsVisible="{CompiledBinding !BatchResize.IsFinished.Value}">
                     <TextBlock
-                        Classes="txt"
                         Padding="15,0"
+                        Classes="txt"
                         Text="{CompiledBinding Translation.Cancel.Value,
                                                Mode=OneWay}"
                         TextAlignment="Center" />
                 </Button>
                 <Button
                     Classes="BorderStyle altHover mainBtn"
-                    Command="{CompiledBinding BatchResizeViewModel.CloseProgressCommand}"
+                    Command="{CompiledBinding BatchResize.CloseProgressCommand}"
                     CornerRadius="4"
                     DockPanel.Dock="Left"
-                    IsVisible="{CompiledBinding BatchResizeViewModel.IsFinished.Value}">
+                    IsVisible="{CompiledBinding BatchResize.IsFinished.Value}">
                     <TextBlock
-                        Classes="txt"
                         Padding="15,0"
+                        Classes="txt"
                         Text="{CompiledBinding Translation.Close.Value,
                                                Mode=OneWay}"
                         TextAlignment="Center" />
                 </Button>
                 <Button
+                    x:Name="ShowInFolderButton"
                     Classes="BorderStyle altHover mainBtn"
                     Click="ShowInFolderButton_OnClick"
                     CornerRadius="4"
                     DockPanel.Dock="Left"
-                    IsVisible="{CompiledBinding BatchResizeViewModel.IsFinished.Value}"
-                    x:Name="ShowInFolderButton">
+                    IsVisible="{CompiledBinding BatchResize.IsFinished.Value}">
                     <TextBlock
-                        Classes="txt"
                         Padding="15,0"
+                        Classes="txt"
                         Text="{CompiledBinding Translation.ShowInFolder.Value,
                                                Mode=OneWay}"
                         TextAlignment="Center" />
@@ -133,66 +131,66 @@
             </StackPanel>
         </Panel>
 
-        <DockPanel IsVisible="{CompiledBinding !BatchResizeViewModel.IsRunning.Value}">
+        <DockPanel IsVisible="{CompiledBinding !BatchResize.IsRunning.Value}">
 
             <!--  Tabs  -->
             <TabControl
-                DockPanel.Dock="Top"
+                x:Name="MainTabControl"
                 HorizontalAlignment="Center"
-                x:Name="MainTabControl">
+                DockPanel.Dock="Top">
                 <TabItem
+                    x:Name="SelectFilesTabItem"
                     Classes="alt"
-                    CornerRadius="6"
-                    x:Name="SelectFilesTabItem">
+                    CornerRadius="6">
                     <TabItem.Header>
-                        <StackPanel VerticalAlignment="Center" Width="112">
+                        <StackPanel Width="112" VerticalAlignment="Center">
                             <PathIcon
-                                Data="{StaticResource FolderGeometry}"
-                                Foreground="{DynamicResource MainTextColor}"
+                                Width="18"
                                 Height="18"
                                 HorizontalAlignment="Center"
-                                Width="18" />
+                                Data="{StaticResource FolderGeometry}"
+                                Foreground="{DynamicResource MainTextColor}" />
                             <TextBlock
-                                Classes="txt"
                                 Margin="0,5,0,0"
+                                Classes="txt"
                                 Text="{CompiledBinding Translation.SelectFiles}"
                                 TextAlignment="Center" />
                         </StackPanel>
                     </TabItem.Header>
                 </TabItem>
                 <TabItem
+                    x:Name="ResizeSettingsTabItem"
                     Classes="alt"
-                    CornerRadius="6"
-                    x:Name="ResizeSettingsTabItem">
+                    CornerRadius="6">
                     <TabItem.Header>
-                        <StackPanel VerticalAlignment="Center" Width="112">
+                        <StackPanel Width="112" VerticalAlignment="Center">
                             <Image
+                                Width="18"
                                 Height="18"
                                 HorizontalAlignment="Center"
-                                Source="{StaticResource UpscaleImage}"
-                                Width="18" />
+                                Source="{StaticResource UpscaleImage}" />
                             <TextBlock
-                                Classes="txt"
                                 Margin="0,5,0,0"
+                                Classes="txt"
                                 Text="{CompiledBinding Translation.ResizeSettings}"
                                 TextAlignment="Center" />
                         </StackPanel>
                     </TabItem.Header>
                 </TabItem>
                 <TabItem
+                    x:Name="ThumbnailTabItem"
                     Classes="alt"
-                    CornerRadius="6"
-                    x:Name="ThumbnailTabItem">
+                    CornerRadius="6">
                     <TabItem.Header>
-                        <StackPanel VerticalAlignment="Center" Width="112">
+                        <StackPanel Width="112" VerticalAlignment="Center">
                             <Image
+                                Width="18"
                                 Height="18"
                                 HorizontalAlignment="Center"
-                                Source="{StaticResource BatchResizeImage}"
-                                Width="18" />
+                                Source="{StaticResource BatchResizeImage}" />
                             <TextBlock
-                                Classes="txt"
                                 Margin="0,5,0,0"
+                                Classes="txt"
                                 Text="{CompiledBinding Translation.Thumbnail}"
                                 TextAlignment="Center" />
                         </StackPanel>
@@ -202,57 +200,57 @@
 
             <!--  Add folder of files buttons  -->
             <StackPanel
-                DockPanel.Dock="Top"
-                HorizontalAlignment="Center"
-                IsVisible="{Binding Path=IsSelected, ElementName=SelectFilesTabItem}"
                 Margin="0,15"
+                HorizontalAlignment="Center"
+                DockPanel.Dock="Top"
+                IsVisible="{Binding Path=IsSelected, ElementName=SelectFilesTabItem}"
                 Orientation="Horizontal"
                 Spacing="10">
                 <customControls:TextIconButton
+                    x:Name="AddFileButton"
                     Background="{DynamicResource SoftenColor}"
                     Classes="ButtonBorder altHover mainBtn"
-                    Command="{CompiledBinding BatchResizeViewModel.SelectAndAddFileCommand}"
+                    Command="{CompiledBinding BatchResize.SelectAndAddFileCommand}"
                     Foreground="{DynamicResource MainTextColor}"
                     Icon="{StaticResource AddFileImage}"
                     IconHeight="16"
                     IconMargin="5,0,10,0"
                     IconWidth="16"
-                    Text="{CompiledBinding Translation.AddFiles}"
-                    x:Name="AddFileButton" />
+                    Text="{CompiledBinding Translation.AddFiles}" />
                 <customControls:TextIconButton
+                    x:Name="AddFolderButton"
                     Background="{DynamicResource SoftenColor}"
                     Classes="ButtonBorder altHover mainBtn"
-                    Command="{CompiledBinding BatchResizeViewModel.SelectAndAddFolderCommand}"
+                    Command="{CompiledBinding BatchResize.SelectAndAddFolderCommand}"
                     Foreground="{DynamicResource MainTextColor}"
                     Icon="{StaticResource AddFolderImage}"
                     IconHeight="16"
                     IconMargin="5,0,10,0"
                     IconWidth="16"
-                    Text="{CompiledBinding Translation.AddFolder}"
-                    x:Name="AddFolderButton" />
+                    Text="{CompiledBinding Translation.AddFolder}" />
 
             </StackPanel>
 
             <!--  add files log  -->
             <Border
+                x:Name="FileLogHeaderBorder"
+                Margin="10,0"
                 Background="{DynamicResource TertiaryBackgroundColor}"
                 BorderBrush="{DynamicResource MainBorderColor}"
                 BorderThickness="0,1,0,1"
                 CornerRadius="4,4,0,0"
                 DockPanel.Dock="Top"
-                IsVisible="{Binding Path=IsSelected, ElementName=SelectFilesTabItem}"
-                Margin="10,0"
-                x:Name="FileLogHeaderBorder">
+                IsVisible="{Binding Path=IsSelected, ElementName=SelectFilesTabItem}">
 
                 <!--  Files panel header  -->
-                <DockPanel LastChildFill="True" VerticalAlignment="Top">
+                <DockPanel VerticalAlignment="Top" LastChildFill="True">
                     <Button
-                        Classes="errorHover focus"
-                        Command="{CompiledBinding BatchResizeViewModel.RemoveAllCommand}"
-                        CornerRadius="0,4,0,0"
-                        DockPanel.Dock="Right"
+                        x:Name="UnSelectAllButton"
                         Padding="10,2,10,2"
-                        x:Name="UnSelectAllButton">
+                        Classes="errorHover focus"
+                        Command="{CompiledBinding BatchResize.RemoveAllCommand}"
+                        CornerRadius="0,4,0,0"
+                        DockPanel.Dock="Right">
                         <TextBlock Classes="txt" Text="{CompiledBinding Translation.RemoveAll.Value, Mode=OneWay}" />
                     </Button>
 
@@ -260,39 +258,39 @@
                     <Panel DockPanel.Dock="Left">
 
                         <Image
+                            Width="14"
                             Height="14"
-                            HorizontalAlignment="Left"
                             Margin="15,0,0,0"
-                            Source="{StaticResource SearchImage}"
-                            Width="14" />
+                            HorizontalAlignment="Left"
+                            Source="{StaticResource SearchImage}" />
 
                         <TextBox
+                            x:Name="FilterBox"
+                            Padding="50,7,4,7"
+                            VerticalAlignment="Center"
                             Background="Transparent"
                             BorderBrush="Transparent"
                             BorderThickness="1"
                             FontFamily="/Assets/Fonts/Roboto-Regular.ttf#Roboto"
                             Foreground="{DynamicResource MainTextColor}"
-                            Padding="50,7,4,7"
-                            Text="{CompiledBinding BatchResizeViewModel.FilterText.Value,
+                            Text="{CompiledBinding BatchResize.FilterText.Value,
                                                    FallbackValue='',
                                                    Mode=TwoWay}"
-                            VerticalAlignment="Center"
                             Watermark="{CompiledBinding Translation.Filter.Value,
-                                                        Mode=OneWay}"
-                            x:Name="FilterBox" />
+                                                        Mode=OneWay}" />
 
                         <!--  File count  -->
                         <StackPanel
-                            DockPanel.Dock="Right"
-                            HorizontalAlignment="Right"
-                            IsVisible="{Binding Path=!IsVisible, ElementName=ClearButton}"
                             Margin="0,0,10,0"
+                            HorizontalAlignment="Right"
+                            DockPanel.Dock="Right"
+                            IsVisible="{Binding Path=!IsVisible, ElementName=ClearButton}"
                             Opacity="0.5"
                             Orientation="Horizontal">
                             <TextBlock
                                 Classes="txt"
                                 Foreground="{DynamicResource MainTextColorFaded}"
-                                Text="{CompiledBinding BatchResizeViewModel.SelectedFiles.Value.Count}" />
+                                Text="{CompiledBinding BatchResize.SelectedFiles.Value.Count}" />
                             <TextBlock Classes="txt" Text=" " />
                             <TextBlock
                                 Classes="txt"
@@ -302,18 +300,18 @@
 
                         <!--  clear  -->
                         <customControls:IconButton
+                            x:Name="ClearButton"
+                            Padding="10,3,10,3"
+                            HorizontalAlignment="Right"
                             Classes="altHover"
-                            Command="{CompiledBinding BatchResizeViewModel.ClearFilterCommand}"
+                            Command="{CompiledBinding BatchResize.ClearFilterCommand}"
                             Data="{StaticResource CloseGeometry}"
                             DockPanel.Dock="Right"
                             Foreground="{DynamicResource MainTextColorFaded}"
-                            HorizontalAlignment="Right"
                             IconHeight="12"
                             IconWidth="12"
-                            IsVisible="{CompiledBinding BatchResizeViewModel.FilterText.Value,
-                                                        Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
-                            Padding="10,3,10,3"
-                            x:Name="ClearButton" />
+                            IsVisible="{CompiledBinding BatchResize.FilterText.Value,
+                                                        Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
 
 
                     </Panel>
@@ -321,40 +319,38 @@
             </Border>
             <!--  Add Files panel log  -->
             <Border
+                x:Name="FilePanelLogBorder"
+                Margin="10,0,10,75"
                 Background="{DynamicResource TertiaryBackgroundColor}"
                 BorderBrush="{DynamicResource MainBorderColor}"
                 BorderThickness="0,0,0,1"
                 CornerRadius="0,0,4,4"
                 DockPanel.Dock="Top"
                 DragDrop.AllowDrop="True"
-                Effect="{StaticResource MenuShadowButtonBorder}"
-                IsVisible="{Binding Path=IsSelected, ElementName=SelectFilesTabItem}"
-                Margin="10,0,10,75"
-                x:Name="FilePanelLogBorder">
+                IsVisible="{Binding Path=IsSelected, ElementName=SelectFilesTabItem}">
                 <Panel>
-                    <customControls:AutoScrollViewer
-                        IsVisible="{CompiledBinding !BatchResizeViewModel.IsFiltering.Value}">
-                        <ItemsControl ItemsSource="{CompiledBinding BatchResizeViewModel.SelectedFiles.Value}">
+                    <customControls:AutoScrollViewer IsVisible="{CompiledBinding !BatchResize.IsFiltering.Value}">
+                        <ItemsControl ItemsSource="{CompiledBinding BatchResize.SelectedFiles.Value}">
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate>
                                     <DockPanel>
                                         <customControls:IconButton
+                                            Padding="16,12"
                                             Background="Transparent"
                                             Classes="errorHover"
-                                            Command="{Binding #MainTabControl.((viewModels:MainViewModel)DataContext).BatchResizeViewModel.RemoveFileFromListCommand}"
+                                            Command="{Binding #MainTabControl.((viewModels:CoreViewModel)DataContext).BatchResize.RemoveFileFromListCommand}"
                                             CommandParameter="{Binding}"
                                             Data="{StaticResource CloseGeometry}"
                                             DockPanel.Dock="Left"
                                             IconHeight="12"
-                                            IconWidth="12"
-                                            Padding="16,12" />
+                                            IconWidth="12" />
                                         <Button
                                             Background="Transparent"
                                             Classes="altHover"
                                             DockPanel.Dock="Right">
                                             <TextBlock
-                                                Classes="txt"
                                                 Margin="10,0"
+                                                Classes="txt"
                                                 Text="{Binding Name}" />
                                         </Button>
                                     </DockPanel>
@@ -367,29 +363,28 @@
                             </ItemsControl.ItemsPanel>
                         </ItemsControl>
                     </customControls:AutoScrollViewer>
-                    <customControls:AutoScrollViewer
-                        IsVisible="{CompiledBinding BatchResizeViewModel.IsFiltering.Value}">
-                        <ItemsControl ItemsSource="{CompiledBinding BatchResizeViewModel.FilteredFiles.Value}">
+                    <customControls:AutoScrollViewer IsVisible="{CompiledBinding BatchResize.IsFiltering.Value}">
+                        <ItemsControl ItemsSource="{CompiledBinding BatchResize.FilteredFiles.Value}">
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate>
                                     <DockPanel>
                                         <customControls:IconButton
+                                            Padding="16,12"
                                             Background="Transparent"
                                             Classes="errorHover"
-                                            Command="{Binding #MainTabControl.((viewModels:MainViewModel)DataContext).BatchResizeViewModel.RemoveFileFromListCommand}"
+                                            Command="{Binding #MainTabControl.((viewModels:CoreViewModel)DataContext).BatchResize.RemoveFileFromListCommand}"
                                             CommandParameter="{Binding}"
                                             Data="{StaticResource CloseGeometry}"
                                             DockPanel.Dock="Left"
                                             IconHeight="12"
-                                            IconWidth="12"
-                                            Padding="16,12" />
+                                            IconWidth="12" />
                                         <Button
                                             Background="Transparent"
                                             Classes="altHover"
                                             DockPanel.Dock="Right">
                                             <TextBlock
-                                                Classes="txt"
                                                 Margin="10,0"
+                                                Classes="txt"
                                                 Text="{Binding Name}" />
                                         </Button>
                                     </DockPanel>
@@ -407,238 +402,234 @@
 
             <!--  Output folder  -->
             <DockPanel
-                DockPanel.Dock="Top"
                 Height="36"
+                Margin="0,-85,0,0"
+                DockPanel.Dock="Top"
                 IsVisible="{Binding Path=IsSelected, ElementName=SelectFilesTabItem}"
-                LastChildFill="True"
-                Margin="0,-85,0,0">
+                LastChildFill="True">
                 <TextBlock
+                    Margin="15,0,5,0"
+                    VerticalAlignment="Center"
                     Classes="txt"
                     DockPanel.Dock="Left"
-                    Margin="15,0,5,0"
                     Text="{CompiledBinding Translation.OutputFolder.Value,
-                                           Mode=OneWay}"
-                    VerticalAlignment="Center" />
+                                           Mode=OneWay}" />
 
                 <customControls:IconButton
+                    x:Name="OutputFolderButton"
+                    Width="30"
+                    Margin="5,0,10,0"
                     Background="Transparent"
                     Classes="altHover"
                     ClickMode="Release"
-                    Command="{CompiledBinding BatchResizeViewModel.PickOutputFolderCommand}"
+                    Command="{CompiledBinding BatchResize.PickOutputFolderCommand}"
                     CornerRadius="4"
-                    Data="{StaticResource AltFolderGeometry}"
+                    Data="{StaticResource FolderGeometry}"
                     DockPanel.Dock="Right"
                     Foreground="{DynamicResource MainTextColor}"
                     IconHeight="20"
                     IconWidth="20"
-                    IsRepeatEnabled="False"
-                    Margin="5,0,10,0"
-                    Width="30"
-                    x:Name="OutputFolderButton" />
+                    IsRepeatEnabled="False" />
                 <customControls:FuncTextBox
+                    x:Name="OutputFolderTextBox"
+                    MinWidth="252"
                     Classes="hover TStyle"
                     DockPanel.Dock="Left"
-                    MinWidth="252"
-                    Text="{CompiledBinding BatchResizeViewModel.OutputFolder.Value,
-                                           Mode=TwoWay}"
-                    x:Name="OutputFolderTextBox" />
+                    Text="{CompiledBinding BatchResize.OutputFolder.Value,
+                                           Mode=TwoWay}" />
             </DockPanel>
 
 
             <!--  Resize settings  -->
             <customControls:AutoScrollViewer
-                DockPanel.Dock="Top"
-                IsVisible="{Binding Path=IsSelected, ElementName=ResizeSettingsTabItem}"
+                x:Name="ResizeSettingsContainer"
                 Margin="10,15"
-                x:Name="ResizeSettingsContainer">
+                DockPanel.Dock="Top"
+                IsVisible="{Binding Path=IsSelected, ElementName=ResizeSettingsTabItem}">
                 <StackPanel HorizontalAlignment="Center" Spacing="15">
 
                     <!--  Compression  -->
                     <StackPanel HorizontalAlignment="Center" Orientation="Horizontal">
                         <TextBlock
+                            Width="130"
+                            Margin="5,0,0,0"
                             Classes="txt"
                             Foreground="{DynamicResource MainTextColor}"
-                            Margin="5,0,0,0"
                             Text="{CompiledBinding Translation.Compression.Value,
-                                                   Mode=OneWay}"
-                            Width="130" />
+                                                   Mode=OneWay}" />
                         <ComboBox
+                            x:Name="CompressionComboBox"
+                            Width="252"
+                            Height="30"
+                            Margin="10,0,0,0"
+                            Padding="5,7,0,7"
                             Background="{DynamicResource SecondaryBackgroundColor}"
                             BorderBrush="{DynamicResource MainBorderColor}"
                             BorderThickness="1"
                             CornerRadius="2"
                             FontFamily="/Assets/Fonts/Roboto-Medium.ttf#Roboto"
                             Foreground="{DynamicResource MainTextColor}"
-                            Height="30"
-                            ItemsSource="{CompiledBinding BatchResizeViewModel.CompressionModes.Value,
-                                                          Mode=TwoWay}"
-                            Margin="10,0,0,0"
-                            Padding="5,7,0,7"
-                            SelectedIndex="{CompiledBinding Window.BatchResizeWindowConfig.WindowProperties.CompressionIndex}"
-                            Width="252"
-                            x:Name="CompressionComboBox" />
+                            ItemsSource="{CompiledBinding BatchResize.CompressionModes.Value,
+                                                          Mode=TwoWay}" />
                     </StackPanel>
 
                     <!--  Quality  -->
                     <StackPanel HorizontalAlignment="Center" Orientation="Horizontal">
                         <TextBlock
+                            Width="130"
+                            Margin="5,0,0,0"
                             Classes="txt"
                             IsEnabled="{Binding Path=IsChecked, ElementName=IsQualityEnabledBox}"
-                            Margin="5,0,0,0"
                             Text="{CompiledBinding Translation.Quality.Value,
-                                                   Mode=OneWay}"
-                            Width="130" />
+                                                   Mode=OneWay}" />
                         <CheckBox
-                            Classes="altHover"
-                            IsChecked="{CompiledBinding Window.BatchResizeWindowConfig.WindowProperties.IsQualityEnabled}"
-                            IsCheckedChanged="IsQualityEnabledBox_OnIsCheckedChanged"
+                            x:Name="IsQualityEnabledBox"
                             Margin="10,0,6,0"
-                            x:Name="IsQualityEnabledBox" />
+                            Classes="altHover"
+                            IsCheckedChanged="IsQualityEnabledBox_OnIsCheckedChanged" />
                         <customControls:CustomSlider
+                            x:Name="QualitySlider"
+                            Width="170"
                             Height="10"
+                            Margin="0,0,10,2"
                             IsEnabled="{Binding Path=IsChecked, ElementName=IsQualityEnabledBox}"
                             IsSnapToTickEnabled="True"
-                            Margin="0,0,10,2"
                             Maximum="100"
                             Minimum="1"
                             TickFrequency="1"
-                            Value="75"
-                            Width="170"
-                            x:Name="QualitySlider" />
+                            Value="75" />
                         <TextBlock
+                            Margin="10,0,0,3"
                             Classes="txt"
                             IsEnabled="{Binding Path=IsChecked, ElementName=IsQualityEnabledBox}"
-                            Margin="10,0,0,3"
                             Text="{Binding Path=Value, ElementName=QualitySlider}" />
                     </StackPanel>
 
                     <!--  Convert to  -->
                     <StackPanel HorizontalAlignment="Center" Orientation="Horizontal">
                         <TextBlock
-                            Classes="txt"
+                            Width="130"
                             Margin="5,0,0,0"
+                            Classes="txt"
                             Text="{CompiledBinding Translation.ConvertTo.Value,
-                                                   Mode=OneWay}"
-                            Width="130" />
+                                                   Mode=OneWay}" />
                         <ComboBox
+                            x:Name="ConversionComboBox"
+                            Width="252"
+                            Margin="11,0,0,0"
+                            Padding="5,7,0,7"
                             Background="{DynamicResource SecondaryBackgroundColor}"
                             BorderBrush="{DynamicResource MainBorderColor}"
                             BorderThickness="1"
                             CornerRadius="2"
                             FontFamily="/Assets/Fonts/Roboto-Medium.ttf#Roboto"
                             Foreground="{DynamicResource MainTextColor}"
-                            ItemsSource="{CompiledBinding BatchResizeViewModel.ConversionTargets.Value,
-                                                          Mode=TwoWay}"
-                            Margin="11,0,0,0"
-                            Padding="5,7,0,7"
-                            SelectedIndex="{CompiledBinding Window.BatchResizeWindowConfig.WindowProperties.ConvertToIndex}"
-                            Width="252"
-                            x:Name="ConversionComboBox" />
+                            ItemsSource="{CompiledBinding BatchResize.ConversionTargets.Value,
+                                                          Mode=TwoWay}" />
                     </StackPanel>
 
                     <!--  Resize  -->
                     <StackPanel HorizontalAlignment="Center" Orientation="Horizontal">
                         <TextBlock
-                            Classes="txt"
-                            Margin="5,0,0,0"
-                            Text="{CompiledBinding Translation.Resize.Value,
-                                                   Mode=OneWay}"
+                            x:Name="ResizeTextBlock"
                             Width="130"
-                            x:Name="ResizeTextBlock" />
+                            Margin="5,0,0,0"
+                            Classes="txt"
+                            Text="{CompiledBinding Translation.Resize.Value,
+                                                   Mode=OneWay}" />
                         <ComboBox
+                            x:Name="ResizeComboBox"
+                            Width="252"
+                            Height="30"
+                            Margin="10,0,0,0"
+                            Padding="5,7,0,7"
                             Background="{DynamicResource SecondaryBackgroundColor}"
                             BorderBrush="{DynamicResource MainBorderColor}"
                             BorderThickness="1"
                             CornerRadius="2"
                             FontFamily="/Assets/Fonts/Roboto-Medium.ttf#Roboto"
                             Foreground="{DynamicResource MainTextColor}"
-                            Height="30"
-                            ItemsSource="{CompiledBinding BatchResizeViewModel.ResizeModes.Value,
+                            ItemsSource="{CompiledBinding BatchResize.ResizeModes.Value,
                                                           Mode=TwoWay}"
-                            Margin="10,0,0,0"
-                            Padding="5,7,0,7"
-                            SelectedIndex="{CompiledBinding Window.BatchResizeWindowConfig.WindowProperties.ResizeIndex}"
                             SelectedItem="NoResizeBox"
-                            SelectionChanged="ResizeComboBox_OnSelectionChanged"
-                            Width="252"
-                            x:Name="ResizeComboBox" />
+                            SelectionChanged="ResizeComboBox_OnSelectionChanged" />
                     </StackPanel>
 
                     <!--  Percentage  -->
                     <StackPanel
-                        HorizontalAlignment="Center"
-                        IsVisible="{CompiledBinding BatchResizeViewModel.IsPercentageResizing.Value}"
                         Margin="10,0,0,0"
+                        HorizontalAlignment="Center"
+                        IsVisible="{CompiledBinding BatchResize.IsPercentageResizing.Value}"
                         Orientation="Horizontal">
                         <StackPanel Orientation="Horizontal" Spacing="10">
                             <TextBlock
+                                Margin="5,0,0,0"
                                 Classes="txt"
                                 FontFamily="/Assets/Fonts/Roboto-Medium.ttf#Roboto"
-                                Margin="5,0,0,0"
                                 Text="{CompiledBinding Translation.Percentage.Value,
                                                        Mode=OneWay}" />
                             <customControls:FuncTextBox
-                                Classes="hover TStyle"
-                                Text="{CompiledBinding BatchResizeViewModel.PercentageValue.Value,
-                                                       Mode=TwoWay}"
+                                x:Name="PercentageValueBox"
                                 Width="130"
-                                x:Name="PercentageValueBox" />
+                                Classes="hover TStyle"
+                                Text="{CompiledBinding BatchResize.PercentageValue.Value,
+                                                       Mode=TwoWay}" />
                         </StackPanel>
 
                         <Image
+                            Width="12"
                             Height="12"
                             Margin="15,0"
-                            Source="{StaticResource PercentageIcon}"
-                            Width="12" />
+                            Source="{StaticResource PercentageIcon}" />
                     </StackPanel>
 
                     <!--  Width and height adjustment  -->
                     <StackPanel
-                        HorizontalAlignment="Center"
-                        IsVisible="{CompiledBinding BatchResizeViewModel.IsWidthAndHeightResizing.Value}"
                         Margin="10,0,0,0"
+                        HorizontalAlignment="Center"
+                        IsVisible="{CompiledBinding BatchResize.IsWidthAndHeightResizing.Value}"
                         Orientation="Horizontal">
                         <StackPanel Orientation="Horizontal" Spacing="10">
                             <TextBlock
+                                Margin="5,0,0,0"
                                 Classes="txt"
                                 FontFamily="/Assets/Fonts/Roboto-Medium.ttf#Roboto"
-                                Margin="5,0,0,0"
                                 Text="{CompiledBinding Translation.Width.Value,
                                                        Mode=OneWay}" />
                             <customControls:NumTextBox
+                                Width="110"
+                                Height="35"
+                                MinWidth="100"
+                                Margin="0"
                                 Background="{DynamicResource SecondaryBackgroundColor}"
                                 Classes="hover TStyle"
                                 CornerRadius="4"
                                 Foreground="{DynamicResource MainTextColor}"
-                                Height="35"
-                                Margin="0"
-                                MinWidth="100"
-                                Text="{CompiledBinding BatchResizeViewModel.WidthValue.Value,
-                                                       Mode=TwoWay}"
-                                Width="110" />
+                                Text="{CompiledBinding BatchResize.WidthValue.Value,
+                                                       Mode=TwoWay}" />
                         </StackPanel>
 
                         <Button
-                            Background="Transparent"
-                            Classes="altHover"
-                            Command="{CompiledBinding BatchResizeViewModel.ToggleAspectRatioCommand}"
-                            Foreground="{DynamicResource MainTextColor}"
+                            Width="38"
                             Height="35"
                             Margin="15,0"
-                            Width="38">
+                            Background="Transparent"
+                            Classes="altHover"
+                            Command="{CompiledBinding BatchResize.ToggleAspectRatioCommand}"
+                            Foreground="{DynamicResource MainTextColor}">
                             <Panel>
                                 <Image
-                                    Height="21"
-                                    IsVisible="{CompiledBinding !BatchResizeViewModel.IsKeepingAspectRatio}"
-                                    Source="{StaticResource UnlinkChainImage}"
+                                    x:Name="UnlinkChainImage"
                                     Width="21"
-                                    x:Name="UnlinkChainImage" />
+                                    Height="21"
+                                    IsVisible="{CompiledBinding !BatchResize.IsKeepingAspectRatio}"
+                                    Source="{StaticResource UnlinkChainImage}" />
                                 <Image
-                                    Height="21"
-                                    IsVisible="{CompiledBinding BatchResizeViewModel.IsKeepingAspectRatio}"
-                                    Source="{StaticResource LinkChainImage}"
+                                    x:Name="LinkChainImage"
                                     Width="21"
-                                    x:Name="LinkChainImage" />
+                                    Height="21"
+                                    IsVisible="{CompiledBinding BatchResize.IsKeepingAspectRatio}"
+                                    Source="{StaticResource LinkChainImage}" />
                             </Panel>
                         </Button>
 
@@ -648,76 +639,76 @@
                             Orientation="Horizontal"
                             Spacing="10">
                             <TextBlock
+                                Margin="5,0,0,0"
                                 Classes="txt"
                                 FontFamily="/Assets/Fonts/Roboto-Medium.ttf#Roboto"
-                                Margin="5,0,0,0"
                                 Text="{CompiledBinding Translation.Height.Value,
                                                        Mode=OneWay}" />
                             <customControls:NumTextBox
+                                Width="110"
+                                Height="35"
+                                MinWidth="100"
+                                Margin="0"
                                 Background="{DynamicResource SecondaryBackgroundColor}"
                                 Classes="hover TStyle"
                                 CornerRadius="4"
                                 Foreground="{DynamicResource MainTextColor}"
-                                Height="35"
-                                Margin="0"
-                                MinWidth="100"
-                                Text="{CompiledBinding BatchResizeViewModel.HeightValue.Value,
-                                                       Mode=TwoWay}"
-                                Width="110" />
+                                Text="{CompiledBinding BatchResize.HeightValue.Value,
+                                                       Mode=TwoWay}" />
                         </StackPanel>
                     </StackPanel>
 
 
                     <!--  Width  -->
                     <StackPanel
-                        HorizontalAlignment="Center"
-                        IsVisible="{CompiledBinding BatchResizeViewModel.IsWidthResizing.Value}"
                         Margin="10,0,0,0"
+                        HorizontalAlignment="Center"
+                        IsVisible="{CompiledBinding BatchResize.IsWidthResizing.Value}"
                         Orientation="Horizontal"
                         Spacing="10">
                         <TextBlock
+                            Margin="5,0,0,0"
                             Classes="txt"
                             FontFamily="/Assets/Fonts/Roboto-Medium.ttf#Roboto"
-                            Margin="5,0,0,0"
                             Text="{CompiledBinding Translation.Width.Value,
                                                    Mode=OneWay}" />
                         <customControls:NumTextBox
+                            Width="175"
+                            Height="35"
+                            MinWidth="60"
+                            Margin="0"
                             Background="{DynamicResource SecondaryBackgroundColor}"
                             Classes="hover TStyle"
                             CornerRadius="4"
                             Foreground="{DynamicResource MainTextColor}"
-                            Height="35"
-                            Margin="0"
-                            MinWidth="60"
-                            Text="{CompiledBinding BatchResizeViewModel.SingleWidthValue.Value,
-                                                   Mode=TwoWay}"
-                            Width="175" />
+                            Text="{CompiledBinding BatchResize.SingleWidthValue.Value,
+                                                   Mode=TwoWay}" />
                     </StackPanel>
 
                     <!--  Height  -->
                     <StackPanel
-                        HorizontalAlignment="Center"
-                        IsVisible="{CompiledBinding BatchResizeViewModel.IsHeightResizing.Value}"
                         Margin="10,0,0,0"
+                        HorizontalAlignment="Center"
+                        IsVisible="{CompiledBinding BatchResize.IsHeightResizing.Value}"
                         Orientation="Horizontal"
                         Spacing="10">
                         <TextBlock
+                            Margin="5,0,0,0"
                             Classes="txt"
                             FontFamily="/Assets/Fonts/Roboto-Medium.ttf#Roboto"
-                            Margin="5,0,0,0"
                             Text="{CompiledBinding Translation.Height.Value,
                                                    Mode=OneWay}" />
                         <customControls:NumTextBox
+                            Width="175"
+                            Height="35"
+                            MinWidth="60"
+                            Margin="0"
                             Background="{DynamicResource SecondaryBackgroundColor}"
                             Classes="hover TStyle"
                             CornerRadius="4"
                             Foreground="{DynamicResource MainTextColor}"
-                            Height="35"
-                            Margin="0"
-                            MinWidth="60"
-                            Text="{CompiledBinding BatchResizeViewModel.SingleHeightValue.Value,
-                                                   Mode=TwoWay}"
-                            Width="175" />
+                            Text="{CompiledBinding BatchResize.SingleHeightValue.Value,
+                                                   Mode=TwoWay}" />
                     </StackPanel>
 
                 </StackPanel>
@@ -725,464 +716,463 @@
 
             <!--  Generate thumbnails  -->
             <customControls:AutoScrollViewer
-                DockPanel.Dock="Top"
-                IsVisible="{Binding Path=IsSelected, ElementName=ThumbnailTabItem}"
+                x:Name="ThumbnailTabContainer"
                 Margin="0,0,0,20"
-                x:Name="ThumbnailTabContainer">
+                DockPanel.Dock="Top"
+                IsVisible="{Binding Path=IsSelected, ElementName=ThumbnailTabItem}">
                 <StackPanel Margin="15,5">
 
                     <StackPanel
-                        HorizontalAlignment="Center"
                         Margin="0,10"
+                        HorizontalAlignment="Center"
                         Orientation="Horizontal">
                         <TextBlock
-                            Classes="txt"
-                            Margin="5,0,0,0"
-                            Text="{CompiledBinding Translation.GenerateThumbnails.Value,
-                                                   Mode=OneWay}"
+                            x:Name="GenerateThumbnailsTextBlock"
                             Width="130"
-                            x:Name="GenerateThumbnailsTextBlock" />
+                            Margin="5,0,0,0"
+                            Classes="txt"
+                            Text="{CompiledBinding Translation.GenerateThumbnails.Value,
+                                                   Mode=OneWay}" />
                         <ComboBox
+                            x:Name="ThumbnailsComboBox"
+                            Width="240"
+                            Height="30"
+                            Margin="11,0,10,0"
+                            Padding="5,7,0,7"
                             Background="{DynamicResource SecondaryBackgroundColor}"
                             BorderBrush="{DynamicResource MainBorderColor}"
                             BorderThickness="1"
                             CornerRadius="2"
                             FontFamily="/Assets/Fonts/Roboto-Medium.ttf#Roboto"
                             Foreground="{DynamicResource MainTextColor}"
-                            Height="30"
-                            ItemsSource="{CompiledBinding BatchResizeViewModel.ThumbnailAmounts.Value,
+                            ItemsSource="{CompiledBinding BatchResize.ThumbnailAmounts.Value,
                                                           Mode=TwoWay}"
-                            Margin="11,0,10,0"
-                            MaxDropDownHeight="300"
-                            Padding="5,7,0,7"
-                            SelectedIndex="{CompiledBinding Window.BatchResizeWindowConfig.WindowProperties.GenerateThumbnailsIndex}"
-                            Width="240"
-                            x:Name="ThumbnailsComboBox" />
+                            MaxDropDownHeight="300" />
                     </StackPanel>
 
                     <StackPanel HorizontalAlignment="Center">
 
                         <!--  Thumb 1  -->
                         <StackPanel
-                            IsVisible="{Binding SelectedIndex, ElementName=ThumbnailsComboBox, ConverterParameter=1, Converter={StaticResource IndexBiggerThanBooleanConverter}}"
                             Margin="0,5,0,0"
+                            IsVisible="{Binding SelectedIndex, ElementName=ThumbnailsComboBox, ConverterParameter=1, Converter={StaticResource IndexBiggerThanBooleanConverter}}"
                             Orientation="Horizontal">
                             <TextBlock
-                                Classes="txt"
+                                Width="130"
                                 Margin="8,0,0,0"
-                                Width="130">
+                                Classes="txt">
                                 <Run Text="{CompiledBinding Translation.Thumbnail.Value, Mode=OneWay}" />
                                 <Run Text=" 1" />
                                 <LineBreak />
                                 <Run Text="{CompiledBinding Translation.OutputFolder.Value, Mode=OneWay}" />
                             </TextBlock>
                             <customControls:FuncTextBox
-                                Classes="hover TStyle"
-                                Margin="4,0,10,0"
-                                Text="{Binding SelectedIndex, ElementName=ThumbnailsComboBox, ConverterParameter=1, Converter={StaticResource IndexToStringSizeConverter}}"
+                                x:Name="Thumb1OutputBox"
                                 Width="410"
-                                x:Name="Thumb1OutputBox" />
+                                Margin="4,0,10,0"
+                                Classes="hover TStyle"
+                                Text="{Binding SelectedIndex, ElementName=ThumbnailsComboBox, ConverterParameter=1, Converter={StaticResource IndexToStringSizeConverter}}" />
                         </StackPanel>
 
                         <StackPanel
-                            IsVisible="{Binding SelectedIndex, ElementName=ThumbnailsComboBox, ConverterParameter=1, Converter={StaticResource IndexBiggerThanBooleanConverter}}"
                             Margin="4,10,0,15"
+                            IsVisible="{Binding SelectedIndex, ElementName=ThumbnailsComboBox, ConverterParameter=1, Converter={StaticResource IndexBiggerThanBooleanConverter}}"
                             Orientation="Horizontal">
 
                             <TextBlock
-                                Classes="txt"
+                                Width="125"
                                 Margin="8,0,0,0"
-                                Text="{CompiledBinding Translation.Resize}"
-                                Width="125" />
+                                Classes="txt"
+                                Text="{CompiledBinding Translation.Resize}" />
 
                             <ComboBox
+                                x:Name="Thumb1ComboBox"
+                                Width="195"
+                                Height="30"
+                                Margin="6,0,10,0"
+                                Padding="5,7,0,7"
                                 Background="{DynamicResource SecondaryBackgroundColor}"
                                 BorderBrush="{DynamicResource MainBorderColor}"
                                 BorderThickness="1"
                                 CornerRadius="2"
                                 FontFamily="/Assets/Fonts/Roboto-Medium.ttf#Roboto"
                                 Foreground="{DynamicResource MainTextColor}"
-                                Height="30"
-                                Margin="6,0,10,0"
-                                Padding="5,7,0,7"
                                 SelectedIndex="0"
-                                SelectedItem="Thumb1PercentageItem"
-                                Width="195"
-                                x:Name="Thumb1ComboBox">
-                                <ComboBoxItem Content="{CompiledBinding Translation.Percentage.Value, Mode=OneWay}" x:Name="Thumb1PercentageItem" />
-                                <ComboBoxItem Content="{CompiledBinding Translation.Width.Value, Mode=OneWay}" x:Name="Thumb1WidthItem" />
-                                <ComboBoxItem Content="{CompiledBinding Translation.Height.Value, Mode=OneWay}" x:Name="Thumb1HeightItem" />
+                                SelectedItem="Thumb1PercentageItem">
+                                <ComboBoxItem x:Name="Thumb1PercentageItem" Content="{CompiledBinding Translation.Percentage.Value, Mode=OneWay}" />
+                                <ComboBoxItem x:Name="Thumb1WidthItem" Content="{CompiledBinding Translation.Width.Value, Mode=OneWay}" />
+                                <ComboBoxItem x:Name="Thumb1HeightItem" Content="{CompiledBinding Translation.Height.Value, Mode=OneWay}" />
                             </ComboBox>
 
                             <customControls:FuncTextBox
-                                Classes="hover TStyle"
-                                Text="{Binding SelectedIndex, ElementName=ThumbnailsComboBox, ConverterParameter=1, Converter={StaticResource IndexToPercentageSizeConverter}}"
+                                x:Name="Thumb1ValueBox"
                                 Width="200"
-                                x:Name="Thumb1ValueBox" />
+                                Classes="hover TStyle"
+                                Text="{Binding SelectedIndex, ElementName=ThumbnailsComboBox, ConverterParameter=1, Converter={StaticResource IndexToPercentageSizeConverter}}" />
                         </StackPanel>
 
 
                         <!--  Thumb 2  -->
                         <StackPanel
-                            IsVisible="{Binding SelectedIndex, ElementName=ThumbnailsComboBox, ConverterParameter=2, Converter={StaticResource IndexBiggerThanBooleanConverter}}"
                             Margin="0,5,0,0"
+                            IsVisible="{Binding SelectedIndex, ElementName=ThumbnailsComboBox, ConverterParameter=2, Converter={StaticResource IndexBiggerThanBooleanConverter}}"
                             Orientation="Horizontal">
                             <TextBlock
-                                Classes="txt"
+                                Width="130"
                                 Margin="8,0,0,0"
-                                Width="130">
+                                Classes="txt">
                                 <Run Text="{CompiledBinding Translation.Thumbnail.Value, Mode=OneWay}" />
                                 <Run Text=" 2" />
                                 <LineBreak />
                                 <Run Text="{CompiledBinding Translation.OutputFolder.Value, Mode=OneWay}" />
                             </TextBlock>
                             <customControls:FuncTextBox
-                                Classes="hover TStyle"
-                                Margin="4,0,10,0"
-                                Text="{Binding SelectedIndex, ElementName=ThumbnailsComboBox, ConverterParameter=2, Converter={StaticResource IndexToStringSizeConverter}}"
+                                x:Name="Thumb2OutputBox"
                                 Width="410"
-                                x:Name="Thumb2OutputBox" />
+                                Margin="4,0,10,0"
+                                Classes="hover TStyle"
+                                Text="{Binding SelectedIndex, ElementName=ThumbnailsComboBox, ConverterParameter=2, Converter={StaticResource IndexToStringSizeConverter}}" />
                         </StackPanel>
 
                         <StackPanel
-                            IsVisible="{Binding SelectedIndex, ElementName=ThumbnailsComboBox, ConverterParameter=2, Converter={StaticResource IndexBiggerThanBooleanConverter}}"
                             Margin="4,10,0,15"
+                            IsVisible="{Binding SelectedIndex, ElementName=ThumbnailsComboBox, ConverterParameter=2, Converter={StaticResource IndexBiggerThanBooleanConverter}}"
                             Orientation="Horizontal">
 
                             <TextBlock
-                                Classes="txt"
+                                Width="125"
                                 Margin="8,0,0,0"
+                                Classes="txt"
                                 Text="{CompiledBinding Translation.Resize.Value,
-                                                       Mode=OneWay}"
-                                Width="125" />
+                                                       Mode=OneWay}" />
 
                             <ComboBox
+                                x:Name="Thumb2ComboBox"
+                                Width="195"
+                                Height="30"
+                                Margin="6,0,10,0"
+                                Padding="5,7,0,7"
                                 Background="{DynamicResource SecondaryBackgroundColor}"
                                 BorderBrush="{DynamicResource MainBorderColor}"
                                 BorderThickness="1"
                                 CornerRadius="2"
                                 FontFamily="/Assets/Fonts/Roboto-Medium.ttf#Roboto"
                                 Foreground="{DynamicResource MainTextColor}"
-                                Height="30"
-                                Margin="6,0,10,0"
-                                Padding="5,7,0,7"
                                 SelectedIndex="0"
-                                SelectedItem="Thumb2PercentageItem"
-                                Width="195"
-                                x:Name="Thumb2ComboBox">
-                                <ComboBoxItem Content="{CompiledBinding Translation.Percentage.Value, Mode=OneWay}" x:Name="Thumb2PercentageItem" />
-                                <ComboBoxItem Content="{CompiledBinding Translation.Width.Value, Mode=OneWay}" x:Name="Thumb2WidthItem" />
-                                <ComboBoxItem Content="{CompiledBinding Translation.Height.Value, Mode=OneWay}" x:Name="Thumb2HeightItem" />
+                                SelectedItem="Thumb2PercentageItem">
+                                <ComboBoxItem x:Name="Thumb2PercentageItem" Content="{CompiledBinding Translation.Percentage.Value, Mode=OneWay}" />
+                                <ComboBoxItem x:Name="Thumb2WidthItem" Content="{CompiledBinding Translation.Width.Value, Mode=OneWay}" />
+                                <ComboBoxItem x:Name="Thumb2HeightItem" Content="{CompiledBinding Translation.Height.Value, Mode=OneWay}" />
                             </ComboBox>
 
                             <customControls:FuncTextBox
-                                Classes="hover TStyle"
-                                Text="{Binding SelectedIndex, ElementName=ThumbnailsComboBox, ConverterParameter=2, Converter={StaticResource IndexToPercentageSizeConverter}}"
+                                x:Name="Thumb2ValueBox"
                                 Width="200"
-                                x:Name="Thumb2ValueBox" />
+                                Classes="hover TStyle"
+                                Text="{Binding SelectedIndex, ElementName=ThumbnailsComboBox, ConverterParameter=2, Converter={StaticResource IndexToPercentageSizeConverter}}" />
                         </StackPanel>
 
 
                         <!--  Thumb 3  -->
                         <StackPanel
-                            IsVisible="{Binding SelectedIndex, ElementName=ThumbnailsComboBox, ConverterParameter=3, Converter={StaticResource IndexBiggerThanBooleanConverter}}"
                             Margin="0,5,0,0"
+                            IsVisible="{Binding SelectedIndex, ElementName=ThumbnailsComboBox, ConverterParameter=3, Converter={StaticResource IndexBiggerThanBooleanConverter}}"
                             Orientation="Horizontal">
                             <TextBlock
-                                Classes="txt"
+                                Width="130"
                                 Margin="8,0,0,0"
-                                Width="130">
+                                Classes="txt">
                                 <Run Text="{CompiledBinding Translation.Thumbnail.Value, Mode=OneWay}" />
                                 <Run Text=" 3" />
                                 <LineBreak />
                                 <Run Text="{CompiledBinding Translation.OutputFolder.Value, Mode=OneWay}" />
                             </TextBlock>
                             <customControls:FuncTextBox
-                                Classes="hover TStyle"
-                                Margin="4,0,10,0"
-                                Text="{Binding SelectedIndex, ElementName=ThumbnailsComboBox, ConverterParameter=3, Converter={StaticResource IndexToStringSizeConverter}}"
+                                x:Name="Thumb3OutputBox"
                                 Width="410"
-                                x:Name="Thumb3OutputBox" />
+                                Margin="4,0,10,0"
+                                Classes="hover TStyle"
+                                Text="{Binding SelectedIndex, ElementName=ThumbnailsComboBox, ConverterParameter=3, Converter={StaticResource IndexToStringSizeConverter}}" />
                         </StackPanel>
 
                         <StackPanel
-                            IsVisible="{Binding SelectedIndex, ElementName=ThumbnailsComboBox, ConverterParameter=3, Converter={StaticResource IndexBiggerThanBooleanConverter}}"
                             Margin="4,10,0,15"
+                            IsVisible="{Binding SelectedIndex, ElementName=ThumbnailsComboBox, ConverterParameter=3, Converter={StaticResource IndexBiggerThanBooleanConverter}}"
                             Orientation="Horizontal">
 
                             <TextBlock
-                                Classes="txt"
+                                Width="125"
                                 Margin="8,0,0,0"
+                                Classes="txt"
                                 Text="{CompiledBinding Translation.Resize.Value,
-                                                       Mode=OneWay}"
-                                Width="125" />
+                                                       Mode=OneWay}" />
 
                             <ComboBox
+                                x:Name="Thumb3ComboBox"
+                                Width="195"
+                                Height="30"
+                                Margin="6,0,10,0"
+                                Padding="5,7,0,7"
                                 Background="{DynamicResource SecondaryBackgroundColor}"
                                 BorderBrush="{DynamicResource MainBorderColor}"
                                 BorderThickness="1"
                                 CornerRadius="2"
                                 FontFamily="/Assets/Fonts/Roboto-Medium.ttf#Roboto"
                                 Foreground="{DynamicResource MainTextColor}"
-                                Height="30"
-                                Margin="6,0,10,0"
-                                Padding="5,7,0,7"
                                 SelectedIndex="0"
-                                SelectedItem="Thumb3PercentageItem"
-                                Width="195"
-                                x:Name="Thumb3ComboBox">
-                                <ComboBoxItem Content="{CompiledBinding Translation.Percentage.Value, Mode=OneWay}" x:Name="Thumb3PercentageItem" />
-                                <ComboBoxItem Content="{CompiledBinding Translation.Width.Value, Mode=OneWay}" x:Name="Thumb3WidthItem" />
-                                <ComboBoxItem Content="{CompiledBinding Translation.Height.Value, Mode=OneWay}" x:Name="Thumb3HeightItem" />
+                                SelectedItem="Thumb3PercentageItem">
+                                <ComboBoxItem x:Name="Thumb3PercentageItem" Content="{CompiledBinding Translation.Percentage.Value, Mode=OneWay}" />
+                                <ComboBoxItem x:Name="Thumb3WidthItem" Content="{CompiledBinding Translation.Width.Value, Mode=OneWay}" />
+                                <ComboBoxItem x:Name="Thumb3HeightItem" Content="{CompiledBinding Translation.Height.Value, Mode=OneWay}" />
                             </ComboBox>
 
                             <customControls:FuncTextBox
-                                Classes="hover TStyle"
-                                Text="{Binding SelectedIndex, ElementName=ThumbnailsComboBox, ConverterParameter=3, Converter={StaticResource IndexToPercentageSizeConverter}}"
+                                x:Name="Thumb3ValueBox"
                                 Width="200"
-                                x:Name="Thumb3ValueBox" />
+                                Classes="hover TStyle"
+                                Text="{Binding SelectedIndex, ElementName=ThumbnailsComboBox, ConverterParameter=3, Converter={StaticResource IndexToPercentageSizeConverter}}" />
                         </StackPanel>
 
 
                         <!--  Thumb 4  -->
                         <StackPanel
-                            IsVisible="{Binding SelectedIndex, ElementName=ThumbnailsComboBox, ConverterParameter=4, Converter={StaticResource IndexBiggerThanBooleanConverter}}"
                             Margin="0,5,0,0"
+                            IsVisible="{Binding SelectedIndex, ElementName=ThumbnailsComboBox, ConverterParameter=4, Converter={StaticResource IndexBiggerThanBooleanConverter}}"
                             Orientation="Horizontal">
                             <TextBlock
-                                Classes="txt"
+                                Width="130"
                                 Margin="8,0,0,0"
-                                Width="130">
+                                Classes="txt">
                                 <Run Text="{CompiledBinding Translation.Thumbnail.Value, Mode=OneWay}" />
                                 <Run Text=" 4" />
                                 <LineBreak />
                                 <Run Text="{CompiledBinding Translation.OutputFolder.Value, Mode=OneWay}" />
                             </TextBlock>
                             <customControls:FuncTextBox
-                                Classes="hover TStyle"
-                                Margin="4,0,10,0"
-                                Text="{Binding SelectedIndex, ElementName=ThumbnailsComboBox, ConverterParameter=4, Converter={StaticResource IndexToStringSizeConverter}}"
+                                x:Name="Thumb4OutputBox"
                                 Width="410"
-                                x:Name="Thumb4OutputBox" />
+                                Margin="4,0,10,0"
+                                Classes="hover TStyle"
+                                Text="{Binding SelectedIndex, ElementName=ThumbnailsComboBox, ConverterParameter=4, Converter={StaticResource IndexToStringSizeConverter}}" />
                         </StackPanel>
 
                         <StackPanel
-                            IsVisible="{Binding SelectedIndex, ElementName=ThumbnailsComboBox, ConverterParameter=4, Converter={StaticResource IndexBiggerThanBooleanConverter}}"
                             Margin="4,10,0,15"
+                            IsVisible="{Binding SelectedIndex, ElementName=ThumbnailsComboBox, ConverterParameter=4, Converter={StaticResource IndexBiggerThanBooleanConverter}}"
                             Orientation="Horizontal">
 
                             <TextBlock
-                                Classes="txt"
+                                Width="125"
                                 Margin="8,0,0,0"
+                                Classes="txt"
                                 Text="{CompiledBinding Translation.Resize.Value,
-                                                       Mode=OneWay}"
-                                Width="125" />
+                                                       Mode=OneWay}" />
 
                             <ComboBox
+                                x:Name="Thumb4ComboBox"
+                                Width="195"
+                                Height="30"
+                                Margin="6,0,10,0"
+                                Padding="5,7,0,7"
                                 Background="{DynamicResource SecondaryBackgroundColor}"
                                 BorderBrush="{DynamicResource MainBorderColor}"
                                 BorderThickness="1"
                                 CornerRadius="2"
                                 FontFamily="/Assets/Fonts/Roboto-Medium.ttf#Roboto"
                                 Foreground="{DynamicResource MainTextColor}"
-                                Height="30"
-                                Margin="6,0,10,0"
-                                Padding="5,7,0,7"
                                 SelectedIndex="0"
-                                SelectedItem="Thumb4PercentageItem"
-                                Width="195"
-                                x:Name="Thumb4ComboBox">
-                                <ComboBoxItem Content="{CompiledBinding Translation.Percentage.Value, Mode=OneWay}" x:Name="Thumb4PercentageItem" />
-                                <ComboBoxItem Content="{CompiledBinding Translation.Width.Value, Mode=OneWay}" x:Name="Thumb4WidthItem" />
-                                <ComboBoxItem Content="{CompiledBinding Translation.Height.Value, Mode=OneWay}" x:Name="Thumb4HeightItem" />
+                                SelectedItem="Thumb4PercentageItem">
+                                <ComboBoxItem x:Name="Thumb4PercentageItem" Content="{CompiledBinding Translation.Percentage.Value, Mode=OneWay}" />
+                                <ComboBoxItem x:Name="Thumb4WidthItem" Content="{CompiledBinding Translation.Width.Value, Mode=OneWay}" />
+                                <ComboBoxItem x:Name="Thumb4HeightItem" Content="{CompiledBinding Translation.Height.Value, Mode=OneWay}" />
                             </ComboBox>
 
                             <customControls:FuncTextBox
-                                Classes="hover TStyle"
-                                Text="{Binding SelectedIndex, ElementName=ThumbnailsComboBox, ConverterParameter=4, Converter={StaticResource IndexToPercentageSizeConverter}}"
+                                x:Name="Thumb4ValueBox"
                                 Width="200"
-                                x:Name="Thumb4ValueBox" />
+                                Classes="hover TStyle"
+                                Text="{Binding SelectedIndex, ElementName=ThumbnailsComboBox, ConverterParameter=4, Converter={StaticResource IndexToPercentageSizeConverter}}" />
                         </StackPanel>
 
                         <!--  Thumb 5  -->
                         <StackPanel
-                            IsVisible="{Binding SelectedIndex, ElementName=ThumbnailsComboBox, ConverterParameter=5, Converter={StaticResource IndexBiggerThanBooleanConverter}}"
                             Margin="0,5,0,0"
+                            IsVisible="{Binding SelectedIndex, ElementName=ThumbnailsComboBox, ConverterParameter=5, Converter={StaticResource IndexBiggerThanBooleanConverter}}"
                             Orientation="Horizontal">
                             <TextBlock
-                                Classes="txt"
+                                Width="130"
                                 Margin="8,0,0,0"
-                                Width="130">
+                                Classes="txt">
                                 <Run Text="{CompiledBinding Translation.Thumbnail.Value, Mode=OneWay}" />
                                 <Run Text=" 5" />
                                 <LineBreak />
                                 <Run Text="{CompiledBinding Translation.OutputFolder.Value, Mode=OneWay}" />
                             </TextBlock>
                             <customControls:FuncTextBox
-                                Classes="hover TStyle"
-                                Margin="4,0,10,0"
-                                Text="{Binding SelectedIndex, ElementName=ThumbnailsComboBox, ConverterParameter=5, Converter={StaticResource IndexToStringSizeConverter}}"
+                                x:Name="Thumb5OutputBox"
                                 Width="410"
-                                x:Name="Thumb5OutputBox" />
+                                Margin="4,0,10,0"
+                                Classes="hover TStyle"
+                                Text="{Binding SelectedIndex, ElementName=ThumbnailsComboBox, ConverterParameter=5, Converter={StaticResource IndexToStringSizeConverter}}" />
                         </StackPanel>
 
                         <StackPanel
-                            IsVisible="{Binding SelectedIndex, ElementName=ThumbnailsComboBox, ConverterParameter=5, Converter={StaticResource IndexBiggerThanBooleanConverter}}"
                             Margin="4,10,0,15"
+                            IsVisible="{Binding SelectedIndex, ElementName=ThumbnailsComboBox, ConverterParameter=5, Converter={StaticResource IndexBiggerThanBooleanConverter}}"
                             Orientation="Horizontal">
 
                             <TextBlock
-                                Classes="txt"
+                                Width="125"
                                 Margin="8,0,0,0"
+                                Classes="txt"
                                 Text="{CompiledBinding Translation.Resize.Value,
-                                                       Mode=OneWay}"
-                                Width="125" />
+                                                       Mode=OneWay}" />
 
                             <ComboBox
+                                x:Name="Thumb5ComboBox"
+                                Width="195"
+                                Height="30"
+                                Margin="6,0,10,0"
+                                Padding="5,7,0,7"
                                 Background="{DynamicResource SecondaryBackgroundColor}"
                                 BorderBrush="{DynamicResource MainBorderColor}"
                                 BorderThickness="1"
                                 CornerRadius="2"
                                 FontFamily="/Assets/Fonts/Roboto-Medium.ttf#Roboto"
                                 Foreground="{DynamicResource MainTextColor}"
-                                Height="30"
-                                Margin="6,0,10,0"
-                                Padding="5,7,0,7"
                                 SelectedIndex="0"
-                                SelectedItem="Thumb5PercentageItem"
-                                Width="195"
-                                x:Name="Thumb5ComboBox">
-                                <ComboBoxItem Content="{CompiledBinding Translation.Percentage.Value, Mode=OneWay}" x:Name="Thumb5PercentageItem" />
-                                <ComboBoxItem Content="{CompiledBinding Translation.Width.Value, Mode=OneWay}" x:Name="Thumb5WidthItem" />
-                                <ComboBoxItem Content="{CompiledBinding Translation.Height.Value, Mode=OneWay}" x:Name="Thumb5HeightItem" />
+                                SelectedItem="Thumb5PercentageItem">
+                                <ComboBoxItem x:Name="Thumb5PercentageItem" Content="{CompiledBinding Translation.Percentage.Value, Mode=OneWay}" />
+                                <ComboBoxItem x:Name="Thumb5WidthItem" Content="{CompiledBinding Translation.Width.Value, Mode=OneWay}" />
+                                <ComboBoxItem x:Name="Thumb5HeightItem" Content="{CompiledBinding Translation.Height.Value, Mode=OneWay}" />
                             </ComboBox>
 
                             <customControls:FuncTextBox
-                                Classes="hover TStyle"
-                                Text="{Binding SelectedIndex, ElementName=ThumbnailsComboBox, ConverterParameter=5, Converter={StaticResource IndexToPercentageSizeConverter}}"
+                                x:Name="Thumb5ValueBox"
                                 Width="200"
-                                x:Name="Thumb5ValueBox" />
+                                Classes="hover TStyle"
+                                Text="{Binding SelectedIndex, ElementName=ThumbnailsComboBox, ConverterParameter=5, Converter={StaticResource IndexToPercentageSizeConverter}}" />
                         </StackPanel>
 
                         <!--  Thumb 6  -->
                         <StackPanel
-                            IsVisible="{Binding SelectedIndex, ElementName=ThumbnailsComboBox, ConverterParameter=6, Converter={StaticResource IndexBiggerThanBooleanConverter}}"
                             Margin="0,5,0,0"
+                            IsVisible="{Binding SelectedIndex, ElementName=ThumbnailsComboBox, ConverterParameter=6, Converter={StaticResource IndexBiggerThanBooleanConverter}}"
                             Orientation="Horizontal">
                             <TextBlock
-                                Classes="txt"
+                                Width="130"
                                 Margin="8,0,0,0"
-                                Width="130">
+                                Classes="txt">
                                 <Run Text="{CompiledBinding Translation.Thumbnail.Value, Mode=OneWay}" />
                                 <Run Text=" 6" />
                                 <LineBreak />
                                 <Run Text="{CompiledBinding Translation.OutputFolder.Value, Mode=OneWay}" />
                             </TextBlock>
                             <customControls:FuncTextBox
-                                Classes="hover TStyle"
-                                Margin="4,0,10,0"
-                                Text="{Binding SelectedIndex, ElementName=ThumbnailsComboBox, ConverterParameter=6, Converter={StaticResource IndexToStringSizeConverter}}"
+                                x:Name="Thumb6OutputBox"
                                 Width="410"
-                                x:Name="Thumb6OutputBox" />
+                                Margin="4,0,10,0"
+                                Classes="hover TStyle"
+                                Text="{Binding SelectedIndex, ElementName=ThumbnailsComboBox, ConverterParameter=6, Converter={StaticResource IndexToStringSizeConverter}}" />
                         </StackPanel>
 
                         <StackPanel
-                            IsVisible="{Binding SelectedIndex, ElementName=ThumbnailsComboBox, ConverterParameter=6, Converter={StaticResource IndexBiggerThanBooleanConverter}}"
                             Margin="4,10,0,15"
+                            IsVisible="{Binding SelectedIndex, ElementName=ThumbnailsComboBox, ConverterParameter=6, Converter={StaticResource IndexBiggerThanBooleanConverter}}"
                             Orientation="Horizontal">
 
                             <TextBlock
-                                Classes="txt"
+                                Width="125"
                                 Margin="8,0,0,0"
+                                Classes="txt"
                                 Text="{CompiledBinding Translation.Resize.Value,
-                                                       Mode=OneWay}"
-                                Width="125" />
+                                                       Mode=OneWay}" />
 
                             <ComboBox
+                                x:Name="Thumb6ComboBox"
+                                Width="195"
+                                Height="30"
+                                Margin="6,0,10,0"
+                                Padding="5,7,0,7"
                                 Background="{DynamicResource SecondaryBackgroundColor}"
                                 BorderBrush="{DynamicResource MainBorderColor}"
                                 BorderThickness="1"
                                 CornerRadius="2"
                                 FontFamily="/Assets/Fonts/Roboto-Medium.ttf#Roboto"
                                 Foreground="{DynamicResource MainTextColor}"
-                                Height="30"
-                                Margin="6,0,10,0"
-                                Padding="5,7,0,7"
                                 SelectedIndex="0"
-                                SelectedItem="Thumb6PercentageItem"
-                                Width="195"
-                                x:Name="Thumb6ComboBox">
-                                <ComboBoxItem Content="{CompiledBinding Translation.Percentage.Value, Mode=OneWay}" x:Name="Thumb6PercentageItem" />
-                                <ComboBoxItem Content="{CompiledBinding Translation.Width.Value, Mode=OneWay}" x:Name="Thumb61WidthItem" />
-                                <ComboBoxItem Content="{CompiledBinding Translation.Height.Value, Mode=OneWay}" x:Name="Thumb6HeightItem" />
+                                SelectedItem="Thumb6PercentageItem">
+                                <ComboBoxItem x:Name="Thumb6PercentageItem" Content="{CompiledBinding Translation.Percentage.Value, Mode=OneWay}" />
+                                <ComboBoxItem x:Name="Thumb61WidthItem" Content="{CompiledBinding Translation.Width.Value, Mode=OneWay}" />
+                                <ComboBoxItem x:Name="Thumb6HeightItem" Content="{CompiledBinding Translation.Height.Value, Mode=OneWay}" />
                             </ComboBox>
 
                             <customControls:FuncTextBox
-                                Classes="hover TStyle"
-                                Text="{Binding SelectedIndex, ElementName=ThumbnailsComboBox, ConverterParameter=6, Converter={StaticResource IndexToPercentageSizeConverter}}"
+                                x:Name="Thumb6ValueBox"
                                 Width="200"
-                                x:Name="Thumb6ValueBox" />
+                                Classes="hover TStyle"
+                                Text="{Binding SelectedIndex, ElementName=ThumbnailsComboBox, ConverterParameter=6, Converter={StaticResource IndexToPercentageSizeConverter}}" />
                         </StackPanel>
 
 
                         <!--  Thumb 7  -->
                         <StackPanel
-                            IsVisible="{Binding SelectedIndex, ElementName=ThumbnailsComboBox, ConverterParameter=7, Converter={StaticResource IndexBiggerThanBooleanConverter}}"
                             Margin="0,5,0,0"
+                            IsVisible="{Binding SelectedIndex, ElementName=ThumbnailsComboBox, ConverterParameter=7, Converter={StaticResource IndexBiggerThanBooleanConverter}}"
                             Orientation="Horizontal">
                             <TextBlock
-                                Classes="txt"
+                                Width="130"
                                 Margin="8,0,0,0"
-                                Width="130">
+                                Classes="txt">
                                 <Run Text="{CompiledBinding Translation.Thumbnail.Value, Mode=OneWay}" />
                                 <Run Text=" 7" />
                                 <LineBreak />
                                 <Run Text="{CompiledBinding Translation.OutputFolder.Value, Mode=OneWay}" />
                             </TextBlock>
                             <customControls:FuncTextBox
-                                Classes="hover TStyle"
-                                Margin="4,0,10,0"
-                                Text="{Binding SelectedIndex, ElementName=ThumbnailsComboBox, ConverterParameter=7, Converter={StaticResource IndexToStringSizeConverter}}"
+                                x:Name="Thumb7OutputBox"
                                 Width="410"
-                                x:Name="Thumb7OutputBox" />
+                                Margin="4,0,10,0"
+                                Classes="hover TStyle"
+                                Text="{Binding SelectedIndex, ElementName=ThumbnailsComboBox, ConverterParameter=7, Converter={StaticResource IndexToStringSizeConverter}}" />
                         </StackPanel>
 
                         <StackPanel
-                            IsVisible="{Binding SelectedIndex, ElementName=ThumbnailsComboBox, ConverterParameter=7, Converter={StaticResource IndexBiggerThanBooleanConverter}}"
                             Margin="4,10,0,15"
+                            IsVisible="{Binding SelectedIndex, ElementName=ThumbnailsComboBox, ConverterParameter=7, Converter={StaticResource IndexBiggerThanBooleanConverter}}"
                             Orientation="Horizontal">
 
                             <TextBlock
-                                Classes="txt"
+                                Width="125"
                                 Margin="8,0,0,0"
+                                Classes="txt"
                                 Text="{CompiledBinding Translation.Resize.Value,
-                                                       Mode=OneWay}"
-                                Width="125" />
+                                                       Mode=OneWay}" />
 
                             <ComboBox
+                                x:Name="Thumb7ComboBox"
+                                Width="195"
+                                Height="30"
+                                Margin="6,0,10,0"
+                                Padding="5,7,0,7"
                                 Background="{DynamicResource SecondaryBackgroundColor}"
                                 BorderBrush="{DynamicResource MainBorderColor}"
                                 BorderThickness="1"
                                 CornerRadius="2"
                                 FontFamily="/Assets/Fonts/Roboto-Medium.ttf#Roboto"
                                 Foreground="{DynamicResource MainTextColor}"
-                                Height="30"
-                                Margin="6,0,10,0"
-                                Padding="5,7,0,7"
                                 SelectedIndex="0"
-                                SelectedItem="Thumb7PercentageItem"
-                                Width="195"
-                                x:Name="Thumb7ComboBox">
-                                <ComboBoxItem Content="{CompiledBinding Translation.Percentage.Value, Mode=OneWay}" x:Name="Thumb7PercentageItem" />
-                                <ComboBoxItem Content="{CompiledBinding Translation.Width.Value, Mode=OneWay}" x:Name="Thumb7WidthItem" />
-                                <ComboBoxItem Content="{CompiledBinding Translation.Height.Value, Mode=OneWay}" x:Name="Thumb7HeightItem" />
+                                SelectedItem="Thumb7PercentageItem">
+                                <ComboBoxItem x:Name="Thumb7PercentageItem" Content="{CompiledBinding Translation.Percentage.Value, Mode=OneWay}" />
+                                <ComboBoxItem x:Name="Thumb7WidthItem" Content="{CompiledBinding Translation.Width.Value, Mode=OneWay}" />
+                                <ComboBoxItem x:Name="Thumb7HeightItem" Content="{CompiledBinding Translation.Height.Value, Mode=OneWay}" />
                             </ComboBox>
 
                             <customControls:FuncTextBox
-                                Classes="hover TStyle"
-                                Text="{Binding SelectedIndex, ElementName=ThumbnailsComboBox, ConverterParameter=7, Converter={StaticResource IndexToPercentageSizeConverter}}"
+                                x:Name="Thumb7ValueBox"
                                 Width="200"
-                                x:Name="Thumb7ValueBox" />
+                                Classes="hover TStyle"
+                                Text="{Binding SelectedIndex, ElementName=ThumbnailsComboBox, ConverterParameter=7, Converter={StaticResource IndexToPercentageSizeConverter}}" />
                         </StackPanel>
                     </StackPanel>
 
@@ -1190,51 +1180,51 @@
             </customControls:AutoScrollViewer>
 
             <DockPanel
-                DockPanel.Dock="Bottom"
                 HorizontalAlignment="Center"
-                VerticalAlignment="Bottom">
+                VerticalAlignment="Bottom"
+                DockPanel.Dock="Bottom">
 
                 <Button
+                    x:Name="CancelButton"
                     Classes="BorderStyle altHover mainBtn"
-                    Command="{CompiledBinding BatchResizeViewModel.CancelCommand}"
+                    Command="{CompiledBinding BatchResize.CancelCommand}"
                     CornerRadius="4"
                     DockPanel.Dock="Left"
-                    IsVisible="True"
-                    x:Name="CancelButton">
+                    IsVisible="True">
                     <TextBlock
-                        Classes="txt"
                         Padding="15,0"
+                        Classes="txt"
                         Text="{CompiledBinding Translation.Cancel.Value,
                                                Mode=OneWay}"
                         TextAlignment="Center" />
                 </Button>
 
                 <Button
+                    x:Name="ResetButton"
                     Classes="BorderStyle altHover mainBtn"
                     CornerRadius="4"
                     DockPanel.Dock="Left"
-                    IsVisible="False"
-                    x:Name="ResetButton">
+                    IsVisible="False">
                     <TextBlock
-                        Classes="txt"
+                        x:Name="ResetButtonTextBlock"
                         Padding="15,0"
+                        Classes="txt"
                         Text="{CompiledBinding Translation.Reset.Value,
                                                Mode=OneWay}"
-                        TextAlignment="Center"
-                        x:Name="ResetButtonTextBlock" />
+                        TextAlignment="Center" />
                 </Button>
 
                 <Button
+                    x:Name="StartButton"
                     Background="{DynamicResource AccentColor}"
                     Classes="BorderStyle accentHover mainBtn"
-                    Command="{CompiledBinding BatchResizeViewModel.StartCommand}"
+                    Command="{CompiledBinding BatchResize.StartCommand}"
                     CornerRadius="4"
-                    DockPanel.Dock="Right"
-                    x:Name="StartButton">
+                    DockPanel.Dock="Right">
                     <TextBlock
+                        Padding="15,0"
                         Classes="txt"
                         Foreground="{StaticResource SecondaryTextColor}"
-                        Padding="15,0"
                         Text="{CompiledBinding Translation.Start.Value,
                                                Mode=OneWay}"
                         TextAlignment="Center" />

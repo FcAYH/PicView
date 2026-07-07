@@ -1,12 +1,14 @@
-﻿using PicView.Core.Localization;
+﻿using PicView.Core.Config;
+using PicView.Core.Localization;
 using PicView.Core.Printing;
 using R3;
 
 namespace PicView.Core.ViewModels;
 
-public class PrintPreviewViewModel : IDisposable
+public class PrintPreviewViewModel
 {
     public readonly CompositeDisposable Disposables = new();
+    public PrintWindowConfig? PrintWindowConfig { get; set; }
 
     public PrintPreviewViewModel()
     {
@@ -48,7 +50,7 @@ public class PrintPreviewViewModel : IDisposable
 
     public BindableReactiveProperty<double> Zoom { get; } = new(1.0);
 
-    public BindableReactiveProperty<bool> IsProcessing { get; } = new(false);
+    public BindableReactiveProperty<bool> IsProcessing { get; } = new(true);
     public BindableReactiveProperty<double> Opacity { get; } = new(1.0);
 
     public object? GrayCache { get; set; }

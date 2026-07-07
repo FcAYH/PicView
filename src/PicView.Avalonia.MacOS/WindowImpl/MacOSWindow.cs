@@ -1,19 +1,20 @@
 ﻿using Avalonia.Controls;
 using Avalonia.Threading;
 using PicView.Avalonia.MacOS.Views;
-using PicView.Avalonia.ViewModels;
+using PicView.Avalonia.Navigation;
+using PicView.Avalonia.UI;
 using PicView.Avalonia.WindowBehavior;
+using PicView.Core.ViewModels;
 
 namespace PicView.Avalonia.MacOS.WindowImpl;
 
 public static class MacOSWindow
 {
-    public static bool IsChangingWindowState { get; private set; }
-    
-    public static async Task ToggleFullscreen(MacMainWindow? window, MainViewModel? vm, bool saveSettings)
+    public static async Task ToggleFullscreen(MacMainWindow? window, MainWindowViewModel? vm, bool saveSettings)
     {
         if (Settings.WindowProperties.Fullscreen)
         {
+            Settings.WindowProperties.Fullscreen = false;
             await Restore(window, vm, saveSettings);
         }
         else
@@ -22,10 +23,11 @@ public static class MacOSWindow
         }
     }
     
-    public static async Task ToggleMaximize(MacMainWindow? window, MainViewModel? vm, bool saveSettings = true)
+    public static async Task ToggleMaximize(MacMainWindow? window, MainWindowViewModel? vm, bool saveSettings = true)
     {
         if (window.WindowState == WindowState.Maximized || Settings.WindowProperties.Maximized)
         {
+            Settings.WindowProperties.Maximized = false;
             await Restore(window, vm, saveSettings); 
         }
         else
@@ -34,52 +36,48 @@ public static class MacOSWindow
         }
     }
 
-    public static async Task Restore(MacMainWindow? window, MainViewModel? vm, bool saveSettings = true)
+    public static async Task Restore(MacMainWindow? window, MainWindowViewModel vm, bool saveSettings = true)
     {
-        IsChangingWindowState = true;
+        window.IsChangingWindowState = true;
         
         // Update settings
         Settings.WindowProperties.Maximized = false;
         Settings.WindowProperties.Fullscreen = false;
+        
+        vm.IsAutoFit.Value = Settings.WindowProperties.AutoFit;
 
         // Update UI state
-        vm.MainWindow.IsMaximized.Value = false;
-        vm.MainWindow.IsFullscreen.Value = false;
-
-        WindowFunctions.RestoreInterface(vm);
-
+        vm.IsMaximized.Value = false;
+        vm.IsFullscreen.Value = false;
+        vm.ShouldMaximizeBeShown.Value = true;
+        vm.ShouldRestoreBeShown.Value = false;
+        
         // Update window state
         await Dispatcher.UIThread.InvokeAsync(() =>
         {
+            // Set the window size back again
+            window.Width = 
+                window.Height = 
+                    window.MainView.Width = 
+                        window.MainView.Height = double.NaN;
             window.WindowState = WindowState.Normal;
-            
-            if (Settings.WindowProperties.AutoFit)
-            {
-                vm.MainWindow.SizeToContent.Value = SizeToContent.WidthAndHeight;
-                vm.MainWindow.CanResize.Value = false;
-                vm.GlobalSettings.IsAutoFit.Value = true;
-                window.SizeToContent = SizeToContent.WidthAndHeight; // Fixes sizeToContent not being applied
-            }
-            else
-            {
-                vm.MainWindow.SizeToContent.Value = SizeToContent.Manual;
-                vm.MainWindow.CanResize.Value = true;
-                vm.GlobalSettings.IsAutoFit.Value = false;
-            }
+            window.SizeToContent = Settings.WindowProperties.AutoFit ? SizeToContent.WidthAndHeight : SizeToContent.Manual;
         });
+
+        WindowFunctions.RestoreInterface(vm);
         
-        await WindowResizing.SetSizeAsync(vm);
+        WindowResizing.SetSize(window, WindowResizeReason.Application);
         
-        if (Settings.WindowProperties.KeepCentered)
+        if (Settings.WindowProperties.AutoFit && Settings.WindowProperties.KeepCentered)
         {
             WindowFunctions.CenterWindowOnScreen();
         }
-        else
+        else if (!Settings.WindowProperties.AutoFit)
         {
             WindowFunctions.InitializeWindowSizeAndPosition(window);
         }
         
-        Dispatcher.UIThread.Post(() => IsChangingWindowState = false, DispatcherPriority.SystemIdle);
+        Dispatcher.UIThread.Post(() => window.IsChangingWindowState = false, DispatcherPriority.SystemIdle);
 
         if (saveSettings)
         {
@@ -87,30 +85,48 @@ public static class MacOSWindow
         }
     }
 
-    public static async Task Fullscreen(MacMainWindow? window, MainViewModel? vm, bool saveSettings = true)
+    public static async Task Fullscreen(MacMainWindow? window, MainWindowViewModel? vm, bool saveSettings = true)
     {
         // Need to set changing state to true, to prevent image resize subscription from firing
-        IsChangingWindowState = true;
+        window.IsChangingWindowState = true;
         
         // Save window size, so that restoring it will return to the same size and position
         WindowResizing.SaveSize(window);
         
         Settings.WindowProperties.Maximized = false;
-        Settings.WindowProperties.Fullscreen = true;
+        if (!Slideshow.IsRunning)
+        {
+            // Don't save the user setting when entering fullscreen from slideshow
+            Settings.WindowProperties.Fullscreen = true;
+        }
         
-        vm.MainWindow.IsTopToolbarShown.Value = false;
-        vm.MainWindow.IsBottomToolbarShown.Value = false;
+        vm.IsTopToolbarShown.Value = false;
+        vm.IsBottomToolbarShown.Value = false;
+        vm.ShouldMaximizeBeShown.Value = true;
+        vm.ShouldRestoreBeShown.Value = true;
+
+        await Dispatcher.UIThread.InvokeAsync(() =>
+        {
+            window.WindowState = WindowState.FullScreen;
+        });
         
-        vm.MainWindow.IsFullscreen.Value = true;
-        vm.MainWindow.IsMaximized.Value = false;
-        vm.MainWindow.CanResize.Value = true;
+        vm.IsFullscreen.Value = true;
+        vm.IsMaximized.Value = false;
         
-        window.WindowState = WindowState.FullScreen;
+        await Dispatcher.UIThread.InvokeAsync(() =>
+        {
+            // Set the window size to the screen size
+            window.Width = ScreenHelper.ScreenSize.Width;
+            window.Height = ScreenHelper.ScreenSize.Height;
+        });
         
-        await WindowResizing.SetSizeAsync(vm);
+        // Sometimes the window is not centered properly, so center it again
+        WindowFunctions.CenterWindowOnScreen(window);
+        
+        WindowResizing.SetSize(window, WindowResizeReason.Application);
         
         // Reset changing state flag so subscription can fire again. Need to be delayed by dispatcher to not be misfired. 
-        Dispatcher.UIThread.Post(() => IsChangingWindowState = false, DispatcherPriority.SystemIdle);
+        Dispatcher.UIThread.Post(() => window.IsChangingWindowState = false, DispatcherPriority.SystemIdle);
         
         if (saveSettings)
         {
@@ -118,35 +134,42 @@ public static class MacOSWindow
         }
     }
 
-    public static async Task Maximize(MacMainWindow? window, MainViewModel? vm, bool saveSettings = true)
+    public static async Task Maximize(MacMainWindow? window, MainWindowViewModel vm, bool saveSettings = true)
     {
-        IsChangingWindowState = true;
-        
+        window.IsChangingWindowState = true;
+        Settings.WindowProperties.Maximized = true;
+                    
         await Dispatcher.UIThread.InvokeAsync(() =>
         {
             // Save window size, so that restoring it will return to the same size and position
             WindowResizing.SaveSize(window);
+
             
-            if (Settings.WindowProperties.AutoFit || window.SizeToContent == SizeToContent.WidthAndHeight)
-            {
-                vm.MainWindow.SizeToContent.Value = SizeToContent.Manual;
-            }
+            // Use WindowResizing to reset the max size of the window
+            WindowResizing.SetSize(window, WindowResizeReason.Application);
+            
+            // Set the window size to the screen size
+            window.Width = ScreenHelper.ScreenSize.WorkingAreaWidth;
+            window.Height = ScreenHelper.ScreenSize.WorkingAreaHeight;
 
             window.WindowState = WindowState.Maximized;
-            Settings.WindowProperties.Maximized = true;
-            WindowResizing.SetSize(vm);
-            WindowFunctions.CenterWindowOnScreen();
         });
 
-        vm.MainWindow.IsMaximized.Value = true;
-        vm.MainWindow.IsFullscreen.Value = false;
-        vm.MainWindow.CanResize.Value = false;
+        vm.IsMaximized.Value = true;
+        vm.IsFullscreen.Value = false;
+        vm.ShouldMaximizeBeShown.Value = false;
+        vm.ShouldRestoreBeShown.Value = true;
         
-        Dispatcher.UIThread.Post(() => IsChangingWindowState = false, DispatcherPriority.SystemIdle);
+        Dispatcher.UIThread.Post(() => window.IsChangingWindowState = false, DispatcherPriority.SystemIdle);
 
         if (saveSettings)
         {
             await SaveSettingsAsync().ConfigureAwait(false);
         }
+    }
+    
+    public static void Minimize(MacMainWindow? window)
+    {
+        window.WindowState = WindowState.Minimized;
     }
 }

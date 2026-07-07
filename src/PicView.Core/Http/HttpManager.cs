@@ -16,32 +16,14 @@ public static class HttpManager
     /// Creates a download client and prepares temporary file path
     /// </summary>
     /// <param name="url">URL to download from</param>
-    /// <param name="customPath">Optional custom path to save the file, instead of temp directory</param>
     /// <returns>HttpDownload object with client and destination path</returns>
     /// <exception cref="Exception">Thrown when unable to create temp directory</exception>
-    public static HttpDownload GetDownloadClient(string url, string? customPath = null)
+    public static HttpDownload GetDownloadClient(string url)
     {
-        string downloadPath;
-        
-        if (customPath != null)
-        {
-            downloadPath = customPath;
-            Directory.CreateDirectory(Path.GetDirectoryName(downloadPath) ?? throw new Exception(TranslationManager.GetTranslation("UnexpectedError")));
-        }
-        else
-        {
-            // Create temp directory
-            var createTempPath = TempFileHelper.CreateTempDirectory();
-            var tempPath = TempFileHelper.TempFilePath;
-            if (!createTempPath)
-            {
-                throw new Exception(TranslationManager.GetTranslation("UnexpectedError"));
-            }
-            
-            var fileName = GetSafeFileName(url);
-            downloadPath = Path.Combine(tempPath, fileName);
-            TempFileHelper.TempFilePath = string.Empty; // Reset it, since not browsing archive
-        }
+        // Create temp directory
+        var tempPath = TempFileManager.GetNewTempFilePath(url);
+        var fileName = GetSafeFileName(url);
+        var downloadPath = Path.Combine(tempPath, fileName);
 
         var client = new HttpClientDownloadWithProgress(url, downloadPath);
 

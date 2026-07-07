@@ -2,10 +2,6 @@ using System.Runtime.InteropServices;
 using Avalonia;
 using Avalonia.Media.Imaging;
 using Avalonia.Platform;
-using Avalonia.Threading;
-using PicView.Avalonia.Navigation;
-using PicView.Avalonia.UI;
-using PicView.Avalonia.ViewModels;
 using PicView.Core.DebugTools;
 using PicView.Core.Printing;
 
@@ -75,9 +71,6 @@ public static class PrintCore
         catch (Exception e)
         {
             DebugHelper.LogDebug(nameof(PrintCore), nameof(ToGrayScale), e);
-            var mainVm = Dispatcher.UIThread.Invoke(() => UIHelper.GetMainView.DataContext as MainViewModel);
-            var cached = NavigationManager.GetPreLoadValueAsync(mainVm.PicViewer.FileInfo.Value).Result;
-            src = cached.ImageModel.Image as Bitmap ?? throw new NullReferenceException();
             width = src.PixelSize.Width;
             height = src.PixelSize.Height;
         }
@@ -125,6 +118,8 @@ public static class PrintCore
         }
     }
 }
+
+public record PaperInfo(string Name, double WidthMm, double HeightMm);
 
 public readonly struct PrintLayout(
     double dx,

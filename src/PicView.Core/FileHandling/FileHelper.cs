@@ -148,28 +148,6 @@ public static partial class FileHelper
             return string.Empty;
         }
     }
-
-    /// <summary>
-    ///     Checks if a file is currently in use by another process.
-    /// </summary>
-    /// <param name="filePath">The path of the file to check.</param>
-    /// <returns>
-    ///     <c>true</c> if the file is in use by another process; otherwise, <c>false</c>.
-    /// </returns>
-    public static bool IsFileInUse(string filePath)
-    {
-        try
-        {
-            using var fs = new FileStream(filePath, FileMode.Open, FileAccess.ReadWrite, FileShare.None);
-            // If the file can be opened, it's not in use by another process
-            return false;
-        }
-        catch (IOException)
-        {
-            // If an IOException occurs, the file is in use by another process
-            return true;
-        }
-    }
     
     /// <summary>
     ///     Ensures that the directory for a file path exists
@@ -180,14 +158,6 @@ public static partial class FileHelper
         if (!string.IsNullOrEmpty(directory) && !Directory.Exists(directory))
         {
             Directory.CreateDirectory(directory);
-        }
-    }
-    
-    public static void DeleteDirectoryIfExists(string? directory)
-    {
-        if (!string.IsNullOrEmpty(directory) && Directory.Exists(directory))
-        {
-            Directory.Delete(directory);
         }
     }
 }

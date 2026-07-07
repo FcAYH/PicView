@@ -3,7 +3,6 @@ using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Layout;
 using Avalonia.Media;
-using Avalonia.Metadata;
 using Avalonia.Threading;
 using PicView.Avalonia.UI;
 
@@ -15,304 +14,282 @@ namespace PicView.Avalonia.CustomControls;
 /// </summary>
 public class TextIconButton : Button
 {
-    /// <summary>
-    /// Defines the <see cref="Icon"/> property.
-    /// The icon is displayed as a <see cref="DrawingImage"/> with support for dynamic brush changes.
-    /// </summary>
-    public static readonly AvaloniaProperty<DrawingImage?> IconProperty =
+    // --- Properties ---
+
+    public static readonly StyledProperty<DrawingImage?> IconProperty =
         AvaloniaProperty.Register<TextIconButton, DrawingImage?>(nameof(Icon));
 
-    /// <summary>
-    /// Defines the <see cref="Data"/> property.
-    /// The icon can also be displayed as a <see cref="StreamGeometry"/> for path-based rendering.
-    /// </summary>
-    public static readonly AvaloniaProperty<StreamGeometry> PathProperty =
-        AvaloniaProperty.Register<TextIconButton, StreamGeometry>(nameof(Data));
+    public static readonly StyledProperty<StreamGeometry?> PathProperty =
+        AvaloniaProperty.Register<TextIconButton, StreamGeometry?>(nameof(Data));
 
-    /// <summary>
-    /// Defines the <see cref="IconWidth"/> property.
-    /// The width of the icon, whether it is a <see cref="DrawingImage"/> or <see cref="StreamGeometry"/>.
-    /// </summary>
-    public static readonly AvaloniaProperty<double> IconWidthProperty =
+    public static readonly StyledProperty<double> IconWidthProperty =
         AvaloniaProperty.Register<TextIconButton, double>(nameof(IconWidth));
 
-    /// <summary>
-    /// Defines the <see cref="IconHeight"/> property.
-    /// The height of the icon, whether it is a <see cref="DrawingImage"/> or <see cref="StreamGeometry"/>.
-    /// </summary>
-    public static readonly AvaloniaProperty<double> IconHeightProperty =
+    public static readonly StyledProperty<double> IconHeightProperty =
         AvaloniaProperty.Register<TextIconButton, double>(nameof(IconHeight));
 
-    /// <summary>
-    /// Defines the maximum width for the text content of the button.
-    /// This property restricts the width that the text within the button can occupy, potentially affecting text wrapping or truncation.
-    /// </summary>
-    public static readonly AvaloniaProperty<double> TextMaxWidthProperty =
+    public static readonly StyledProperty<double> TextMaxWidthProperty =
         AvaloniaProperty.Register<TextIconButton, double>(nameof(TextMaxWidth), double.PositiveInfinity);
 
-    /// <summary>
-    /// Defines the <see cref="Text"/> property.
-    /// </summary>
     public static readonly StyledProperty<string?> TextProperty =
-        AvaloniaProperty.Register<TextBlock, string?>(nameof(Text));
+        AvaloniaProperty.Register<TextIconButton, string?>(nameof(Text));
 
     public static readonly StyledProperty<Thickness> IconMarginProperty =
-        AvaloniaProperty.Register<Layoutable, Thickness>(nameof(IconMargin));
+        AvaloniaProperty.Register<TextIconButton, Thickness>(nameof(IconMargin));
 
-    /// <summary>
-    /// Defines the <see cref="TextMargin"/> property.
-    /// Specifies the margin around the text content of the button.
-    /// </summary>
     public static readonly StyledProperty<Thickness> TextMarginProperty =
-        AvaloniaProperty.Register<Layoutable, Thickness>(nameof(TextMargin));
+        AvaloniaProperty.Register<TextIconButton, Thickness>(nameof(TextMargin));
 
-    private TextBlock? _textBlock;
+    // --- Internal Controls & State ---
 
-    /// <summary>
-    /// Overrides the default style key to <see cref="Button"/>.
-    /// </summary>
+    private readonly TextBlock _textBlock;
+    private readonly Image _iconImage;
+    private readonly PathIcon _pathIcon;
+    private DrawingImage? _localIconCopy; // Holds our unique, private copy of the icon
+
     protected override Type StyleKeyOverride => typeof(Button);
 
-    /// <summary>
-    /// Gets or sets the <see cref="DrawingImage"/> displayed as the icon of the button.
-    /// </summary>
-    [Content]
+    public TextIconButton()
+    {
+        // 1. Initialize internal controls once
+        _textBlock = new TextBlock
+        {
+            VerticalAlignment = VerticalAlignment.Center
+        };
+        _textBlock.Classes.Add("txt");
+
+        _iconImage = new Image { IsVisible = false };
+        _pathIcon = new PathIcon { IsVisible = false };
+
+        var container = new StackPanel
+        {
+            Orientation = Orientation.Horizontal
+        };
+
+        container.Children.Add(_iconImage);
+        container.Children.Add(_pathIcon);
+        container.Children.Add(_textBlock);
+
+        Content = container;
+
+        // 2. Attach pointer events once
+        PointerEntered += OnPointerEntered;
+        PointerExited += OnPointerExited;
+    }
+
+    // --- Property Accessors ---
+
     public DrawingImage? Icon
     {
-        get => (DrawingImage?)GetValue(IconProperty);
+        get => GetValue(IconProperty);
         set => SetValue(IconProperty, value);
     }
 
-    /// <summary>
-    /// Gets or sets the margin around the icon.
-    /// </summary>
-    public Thickness IconMargin
+    public StreamGeometry? Data
     {
-        get { return GetValue(IconMarginProperty); }
-        set { SetValue(IconMarginProperty, value); }
+        get => GetValue(PathProperty);
+        set => SetValue(PathProperty, value);
     }
 
-    /// <summary>
-    /// Defines the <see cref="TextMaxWidth"/> property.
-    /// Specifies the maximum width of the text content within the button.
-    /// </summary>
+    public double IconWidth
+    {
+        get => GetValue(IconWidthProperty);
+        set => SetValue(IconWidthProperty, value);
+    }
+
+    public double IconHeight
+    {
+        get => GetValue(IconHeightProperty);
+        set => SetValue(IconHeightProperty, value);
+    }
+
     public double TextMaxWidth
     {
-        get => (double)(GetValue(TextMaxWidthProperty) ?? 0);
+        get => GetValue(TextMaxWidthProperty);
         set => SetValue(TextMaxWidthProperty, value);
     }
 
-    /// <summary>
-    /// Gets or sets the margin around the text.
-    /// </summary>
-    public Thickness TextMargin
-    {
-        get { return GetValue(TextMarginProperty); }
-        set { SetValue(TextMarginProperty, value); }
-    }
-
-    /// <summary>
-    /// Gets or sets the text.
-    /// </summary>
     public string? Text
     {
         get => GetValue(TextProperty);
         set => SetValue(TextProperty, value);
     }
 
-    /// <summary>
-    /// Gets or sets the <see cref="StreamGeometry"/> used as the icon's path data.
-    /// </summary>
-    public StreamGeometry? Data
+    public Thickness IconMargin
     {
-        get => (StreamGeometry)GetValue(PathProperty)!;
-        set => SetValue(PathProperty, value);
+        get => GetValue(IconMarginProperty);
+        set => SetValue(IconMarginProperty, value);
     }
 
-    /// <summary>
-    /// Gets or sets the width of the icon.
-    /// </summary>
-    public double IconWidth
+    public Thickness TextMargin
     {
-        get => (double)GetValue(IconWidthProperty)!;
-        set => SetValue(IconWidthProperty, value);
-    }
-
-    /// <summary>
-    /// Gets or sets the height of the icon.
-    /// </summary>
-    public double IconHeight
-    {
-        get => (double)GetValue(IconHeightProperty)!;
-        set => SetValue(IconHeightProperty, value);
-    }
-
-    /// <summary>
-    /// Called when the control is added to a visual tree. Initializes the content of the button with the icon.
-    /// </summary>
-    /// <param name="e">The event data associated with attaching the visual tree.</param>
-    protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
-    {
-        base.OnAttachedToVisualTree(e);
-        Content = BuildControl();
+        get => GetValue(TextMarginProperty);
+        set => SetValue(TextMarginProperty, value);
     }
 
     protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
     {
         base.OnPropertyChanged(change);
 
-        if (change.Property == IconProperty || change.Property == TextMaxWidthProperty)
+        if (change.Property == TextProperty) _textBlock.Text = Text;
+        else if (change.Property == TextMarginProperty) _textBlock.Margin = TextMargin;
+        else if (change.Property == TextMaxWidthProperty) _textBlock.MaxWidth = TextMaxWidth;
+        else if (change.Property == ForegroundProperty) _textBlock.Foreground = Foreground;
+        else if (change.Property == FontSizeProperty) _textBlock.FontSize = FontSize;
+        
+        else if (change.Property == IconProperty || change.Property == PathProperty)
         {
-            Content = BuildControl();
+            UpdateIconVisibility();
+            ApplyInitialIconColors();
         }
-
-        if (change.Property == IsPressedProperty && !change.GetNewValue<bool>())
+        else if (change.Property == IconWidthProperty)
+        {
+            _iconImage.Width = IconWidth;
+            _pathIcon.Width = IconWidth;
+        }
+        else if (change.Property == IconHeightProperty)
+        {
+            _iconImage.Height = IconHeight;
+            _pathIcon.Height = IconHeight;
+        }
+        else if (change.Property == IconMarginProperty)
+        {
+            _iconImage.Margin = IconMargin;
+            _pathIcon.Margin = IconMargin;
+        }
+        else if (change.Property == IsPressedProperty && !change.GetNewValue<bool>())
         {
             StopTimer();
         }
+    }
 
-        if (change.Property == TextProperty)
+    // --- Icon Clone & Visibility Logic ---
+
+    private void UpdateIconVisibility()
+    {
+        // Generate a private copy of the icon so we don't mutate global StaticResources
+        _localIconCopy = CreateLocalIconCopy(Icon);
+        
+        _iconImage.Source = _localIconCopy;
+        _pathIcon.Data = Data;
+
+        bool hasDrawing = _localIconCopy != null;
+        bool hasPath = Data != null;
+
+        _iconImage.IsVisible = hasDrawing;
+        _pathIcon.IsVisible = !hasDrawing && hasPath;
+    }
+
+    private DrawingImage? CreateLocalIconCopy(DrawingImage? sourceIcon)
+    {
+        if (sourceIcon?.Drawing is not DrawingGroup sourceGroup)
         {
-            _textBlock?.Text = change.NewValue.ToString();
+            return sourceIcon;
+        }
+
+        var clonedGroup = new DrawingGroup();
+        
+        foreach (var child in sourceGroup.Children)
+        {
+            if (child is GeometryDrawing geomDrawing)
+            {
+                var clonedGeomDrawing = new GeometryDrawing
+                {
+                    Geometry = geomDrawing.Geometry,
+                    Brush = geomDrawing.Brush
+                };
+
+                // Clone the Pen so modifying it later doesn't affect the shared instance
+                if (geomDrawing.Pen is Pen sourcePen)
+                {
+                    clonedGeomDrawing.Pen = new Pen
+                    {
+                        Brush = sourcePen.Brush,
+                        Thickness = sourcePen.Thickness,
+                        DashStyle = sourcePen.DashStyle,
+                        LineCap = sourcePen.LineCap,
+                        LineJoin = sourcePen.LineJoin,
+                        MiterLimit = sourcePen.MiterLimit
+                    };
+                }
+                
+                clonedGroup.Children.Add(clonedGeomDrawing);
+            }
+            else
+            {
+                clonedGroup.Children.Add(child);
+            }
+        }
+
+        return new DrawingImage { Drawing = clonedGroup };
+    }
+
+    // --- Hover State Logic ---
+
+    private void ApplyInitialIconColors()
+    {
+        // Make sure we operate on our private clone, not the public Icon property
+        if (_localIconCopy?.Drawing is not DrawingGroup drawingGroup) return;
+
+        var brush = Settings.Theme.GlassTheme 
+            ? UIHelper.GetBrush("SecondaryTextColor") 
+            : UIHelper.GetBrush("MainTextColor");
+
+        foreach (var drawing in drawingGroup.Children)
+        {
+            if (drawing is GeometryDrawing { Pen: Pen pen })
+            {
+                pen.Brush = brush;
+            }
         }
     }
 
-    private StackPanel BuildControl()
+    private void OnPointerEntered(object? sender, PointerEventArgs e)
     {
-        var stackPanel = new StackPanel
+        Dispatcher.UIThread.Post(() =>
         {
-            Orientation = Orientation.Horizontal
-        };
-        var icon = BuildIcon();
-        icon.Margin = IconMargin;
-        var textBlock = BuildText();
-        stackPanel.Children.Add(icon);
-        stackPanel.Children.Add(textBlock);
-        _textBlock = textBlock;
-        return stackPanel;
-    }
+            var secondaryBrush = UIHelper.GetBrush("SecondaryTextColor");
 
-    private TextBlock BuildText()
-    {
-        var textBlock = new TextBlock
-        {
-            Margin = TextMargin,
-            Text = Text,
-            VerticalAlignment = VerticalAlignment.Center,
-            FontSize = FontSize,
-            Foreground = Foreground,
-            MaxWidth = TextMaxWidth
-        };
-        PointerEntered += (_, _) =>
-        {
-            textBlock.Foreground = UIHelper.GetBrush("SecondaryTextColor");
-        };
-        PointerExited += (_, _) =>
-        {
-            textBlock.Foreground = UIHelper.GetBrush("MainTextColor");
-        };
-        textBlock.Classes.Add("txt");
-        return textBlock;
-    }
+            _textBlock.Foreground = secondaryBrush;
+            _pathIcon.Foreground = secondaryBrush;
 
-    /// <summary>
-    /// Builds the icon for the button, either from a <see cref="DrawingImage"/> or a <see cref="StreamGeometry"/>.
-    /// It also sets up dynamic brush updates on mouse hover.
-    /// </summary>
-    /// <returns>A <see cref="Control"/> representing the icon, or <c>null</c> if no icon is set.</returns>
-    private Control? BuildIcon()
-    {
-        if (Icon is { Drawing: DrawingGroup drawingGroup })
-        {
-            // Set the initial pen brush to match the Foreground color
-            foreach (var drawing in drawingGroup.Children)
+            if (_localIconCopy?.Drawing is not DrawingGroup drawingGroup)
             {
-                if (drawing is not GeometryDrawing { Pen: Pen pen })
-                {
-                    continue;
-                }
-
-                if (Settings.Theme.GlassTheme)
-                {
-                    pen.Brush = UIHelper.GetBrush("SecondaryTextColor");
-                }
-                else
-                {
-                    pen.Brush = UIHelper.GetBrush("MainTextColor");
-                }
+                return;
             }
 
-            var image = new Image
+            foreach (var drawing in drawingGroup.Children)
             {
-                Source = Icon,
-                Width = IconWidth,
-                Height = IconHeight
-            };
-
-            // Change brush to secondary accent color on pointer enter
-            PointerEntered += delegate
-            {
-                Dispatcher.UIThread.Invoke(() =>
+                if (drawing is GeometryDrawing { Pen: Pen pen })
                 {
-                    var brush = UIHelper.GetBrush("SecondaryTextColor");
-                    foreach (var drawing in drawingGroup.Children)
-                    {
-                        if (drawing is GeometryDrawing { Pen: Pen pen })
-                        {
-                            pen.Brush = brush;
-                        }
-                    }
-                });
-            };
-
-            // Revert brush to main text color on pointer exit
-            PointerExited += delegate
-            {
-                if (Settings.Theme.GlassTheme)
-                {
-                    return;
+                    pen.Brush = secondaryBrush;
                 }
+            }
+        });
+    }
 
-                Dispatcher.UIThread.Invoke(() =>
-                {
-                    foreach (var drawing in drawingGroup.Children)
-                    {
-                        if (drawing is GeometryDrawing { Pen: Pen pen })
-                        {
-                            pen.Brush = Foreground;
-                        }
-                    }
-                });
-            };
-
-            return image;
-        }
-
-        // If no DrawingImage, use PathIcon
-        // Make sure button has the hover class and the Foreground property is set
-        if (Data is null)
+    private void OnPointerExited(object? sender, PointerEventArgs e)
+    {
+        Dispatcher.UIThread.Post(() =>
         {
-            return null;
-        }
+            _textBlock.Foreground = UIHelper.GetBrush("MainTextColor");
+            _pathIcon.Foreground = Foreground;
 
-        var pathIcon = new PathIcon
-        {
-            Data = Data,
-            Width = IconWidth,
-            Height = IconHeight
-        };
+            if (Settings.Theme.GlassTheme) return;
 
-        PointerEntered += delegate
-        {
-            Dispatcher.UIThread.InvokeAsync(() =>
+            if (_localIconCopy?.Drawing is not DrawingGroup drawingGroup)
             {
-                pathIcon.Foreground = UIHelper.GetBrush("SecondaryTextColor");
-            });
-        };
+                return;
+            }
 
-        PointerExited += (_, _) => { pathIcon.Foreground = Foreground; };
-
-        return pathIcon;
+            foreach (var drawing in drawingGroup.Children)
+            {
+                if (drawing is GeometryDrawing { Pen: Pen pen })
+                {
+                    pen.Brush = Foreground;
+                }
+            }
+        });
     }
 
     #region Repeat

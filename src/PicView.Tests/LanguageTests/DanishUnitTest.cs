@@ -1,4 +1,4 @@
-﻿using PicView.Core.Localization;
+using PicView.Core.Localization;
 
 namespace PicView.Tests.LanguageTests;
 
@@ -42,8 +42,8 @@ public static class DanishUnitTest
         Assert.Equal(TranslationManager.Translation.BitDepth, "Bit dybde");
         Assert.Equal(TranslationManager.Translation.BlackAndWhite, "Sort/hvid");
         Assert.Equal(TranslationManager.Translation.Blur, "Sløring");
-        Assert.Equal(TranslationManager.Translation.BottomGalleryItemSize, "Billedstørrelse i bundgalleriet");
-        Assert.Equal(TranslationManager.Translation.BottomGalleryThumbnailStretch,
+        Assert.Equal(TranslationManager.Translation.DockedGalleryItemSize, "Billedstørrelse i bundgalleriet");
+        Assert.Equal(TranslationManager.Translation.DockedGalleryThumbnailStretch,
             "Udstrækning af billeder i bundgalleriet");
         Assert.Equal(TranslationManager.Translation.Brightness, "Lysstyrke");
         Assert.Equal(TranslationManager.Translation.CameraMaker, "Kamera producent");
@@ -172,7 +172,7 @@ public static class DanishUnitTest
         Assert.Equal(TranslationManager.Translation.GoBackBy10Images, "Gå 10 billeder tilbage");
         Assert.Equal(TranslationManager.Translation.Hard, "Hård");
         Assert.Equal(TranslationManager.Translation.Height, "Højde");
-        Assert.Equal(TranslationManager.Translation.HideBottomGallery, "Skjul nederste galleri");
+        Assert.Equal(TranslationManager.Translation.HideDockedGallery, "Skjul nederste galleri");
         Assert.Equal(TranslationManager.Translation.HideBottomToolbar, "Skjul bundværktøjslinje");
         Assert.Equal(TranslationManager.Translation.HideUI, "Skjul brugergrænsefladen");
         Assert.Equal(TranslationManager.Translation.High, "Høj");
@@ -315,8 +315,8 @@ public static class DanishUnitTest
         Assert.Equal(TranslationManager.Translation.Sharpness, "Skarphed");
         Assert.Equal(TranslationManager.Translation.Shift, "Skift");
         Assert.Equal(TranslationManager.Translation.ShowAllSettingsWindow, "Vis indstillingsvinduet");
-        Assert.Equal(TranslationManager.Translation.ShowBottomGallery, "Vis nederste galleri");
-        Assert.Equal(TranslationManager.Translation.ShowBottomGalleryWhenUiIsHidden,
+        Assert.Equal(TranslationManager.Translation.ShowDockedGallery, "Vis nederste galleri");
+        Assert.Equal(TranslationManager.Translation.ShowDockedGalleryWhenUiIsHidden,
             "Vis nederste galleri, når brugergrænsefladen er skjult");
         Assert.Equal(TranslationManager.Translation.ShowBottomToolbar, "Vis værktøjslinjen i bunden");
         Assert.Equal(TranslationManager.Translation.ShowConfirmationOnEsc, "Vis bekræftelsesdialog, når 'Esc' trykkes");
@@ -346,7 +346,7 @@ public static class DanishUnitTest
         Assert.Equal(TranslationManager.Translation.StayCentered, "Hold vinduet centreret");
         Assert.Equal(TranslationManager.Translation.StayTopMost, "Hold vinduet øverst");
         Assert.Equal(TranslationManager.Translation.Stretch, "Stræk");
-        Assert.Equal(TranslationManager.Translation.StretchImage, "Stræk billedet");
+        Assert.Equal(TranslationManager.Translation.ZoomToFit, "Zoom for at tilpasse");
         Assert.Equal(TranslationManager.Translation.StrobeReturnLightDetected, "Strob returneringslys genkendt");
         Assert.Equal(TranslationManager.Translation.StrobeReturnLightNotDetected, "returneringslys ikke genkendt");
         Assert.Equal(TranslationManager.Translation.Subject, "Emne");

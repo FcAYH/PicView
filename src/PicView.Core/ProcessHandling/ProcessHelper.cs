@@ -56,10 +56,10 @@ public static class ProcessHelper
     }
 
     /// <summary>
-    ///     Restarts the current application.
+    /// Starts the current application, in another process.
     /// </summary>
-    /// <param name="args">The command line arguments to pass to the restarted application.</param>
-    public static void RestartApp(string? args)
+    /// <param name="args">The command line arguments to pass.</param>
+    public static void StartCurrentAppWithArgs(string? args)
     {
         var getAppPath = GetPathToProcess();
 

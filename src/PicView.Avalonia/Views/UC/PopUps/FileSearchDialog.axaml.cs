@@ -1,71 +1,101 @@
 ﻿using System.Collections.ObjectModel;
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.LogicalTree;
 using PicView.Avalonia.CustomControls;
-using PicView.Avalonia.Navigation;
-using PicView.Avalonia.UI;
-using PicView.Avalonia.ViewModels;
+using PicView.Core.DebugTools;
 using PicView.Core.FileSearch;
+using PicView.Core.ViewModels;
 using R3;
 
 namespace PicView.Avalonia.Views.UC.PopUps;
 
 public partial class FileSearchDialog : AnimatedPopUp
 {
-    private readonly CompositeDisposable _disposables = new();
+    private DisposableBag _disposables;
 
     public FileSearchDialog()
     {
-        DataContext = UIHelper.GetMainView.DataContext as MainViewModel;
-        if (DataContext is MainViewModel { PicViewer.FilteredFileInfos.CurrentValue: null } vm)
+        if (Application.Current.DataContext is not CoreViewModel core)
         {
-            vm.PicViewer.FilteredFileInfos.Value = [];
+            return;
         }
+        DataContext = core;
+        core.SharedNavigationService.FilteredFileInfos ??= new BindableReactiveProperty<ObservableCollection<FileSearchResult>?>();
+        core.SharedNavigationService.LoadFromStringCommand ??= new ReactiveCommand<string>(LoadSelectedFile);
 
         InitializeComponent();
         Loaded += OnLoaded;
     }
 
+    private static async ValueTask LoadSelectedFile(string source, CancellationToken ct)
+    {
+        if (Application.Current.DataContext is not CoreViewModel core)
+        {
+            return;
+        }
+
+        await core.MainWindows.ActiveWindow.CurrentValue.WindowTabs.LoadFromStringAsync(source);
+    }
+
     private void OnLoaded(object? sender, RoutedEventArgs e)
     {
-        // Ensure we don't double-subscribe if Loaded fires multiple times
-        _disposables.Clear();
         SetupSearchSubscription();
-
-        SearchBox.Focus();
-
+        SearchBox.Focus();        
         AddHandler(KeyDownEvent, KeysDownAsync, RoutingStrategies.Tunnel);
+        
+        if (Application.Current.DataContext is not CoreViewModel core)
+        {
+            return;
+        }
+
+        core.SharedNavigationService.LoadFromStringCommand.Subscribe(_ => CloseMenu(sender, e)).AddTo(ref _disposables);
     }
 
     private async ValueTask KeysDownAsync(object? sender, KeyEventArgs e)
     {
+        if (Application.Current.DataContext is not CoreViewModel core)
+        {
+            return;
+        }
         switch (e.Key)
         {
             case Key.Down:
-                MoveFocus(NavigationDirection.Next);
+                MoveFocus(NavigationDirection.Down);
                 e.Handled = true;
                 break;
             case Key.Up:
-                MoveFocus(NavigationDirection.Previous);
+                MoveFocus(NavigationDirection.Up);
                 e.Handled = true;
                 break;
             case Key.Enter:
-                if (string.IsNullOrWhiteSpace(SearchBox.Text))
+                if (SearchBox.IsFocused)
                 {
-                    return;
+                    if (string.IsNullOrWhiteSpace(SearchBox.Text))
+                    {
+                        return;
+                    }
+                
+                    var tabs = core.MainWindows.ActiveWindow.CurrentValue.WindowTabs;
+                    await tabs.LoadFromFileAsync(SearchBox.Text).ConfigureAwait(false);
                 }
-
-                if (uint.TryParse(SearchBox.Text, out var result))
+                else
                 {
-                    e.Handled = true;
-                    var desiredIndex = result <= 0 ? 0 : Math.Min(NavigationManager.GetCount - 1, result - 1);
-                    await ImageLoader.CheckCancellationAndStartIterateToIndex((int)desiredIndex,
-                            NavigationManager.ImageIterator, CancellationToken.None)
-                        .ConfigureAwait(false);
-                }
+                    if (TopLevel.GetTopLevel(this) is not { FocusManager: { } focusManager })
+                    {
+                        return;
+                    }
 
+                    var focused = focusManager.GetFocusedElement();
+                    if (focused is not Button button)
+                    {
+                        return;
+                    }
+                    button.Command.Execute(button.CommandParameter);
+                }
+                e.Handled = true;
                 break;
         }
     }
@@ -76,15 +106,7 @@ public partial class FileSearchDialog : AnimatedPopUp
         {
             return;
         }
-
-        var focused = focusManager.GetFocusedElement();
-        if (focused is null)
-        {
-            return;
-        }
-
-        var next = KeyboardNavigationHandler.GetNext(focused, direction);
-        next?.Focus();
+        focusManager.TryMoveFocus(direction);
     }
 
     protected override void OnDetachedFromLogicalTree(LogicalTreeAttachmentEventArgs e)
@@ -96,11 +118,11 @@ public partial class FileSearchDialog : AnimatedPopUp
 
     private void SetupSearchSubscription()
     {
-        if (DataContext is not MainViewModel vm)
+        if (Application.Current.DataContext is not CoreViewModel core)
         {
             return;
         }
-
+        
         // Create an observable that emits a value whenever SearchQuery changes.
         Observable.EveryValueChanged(SearchBox, x => x.Text)
             .Skip(1)
@@ -111,18 +133,20 @@ public partial class FileSearchDialog : AnimatedPopUp
             {
                 if (string.IsNullOrWhiteSpace(text))
                 {
-                    vm.PicViewer.FilteredFileInfos.Value?.Clear();
+                    core.SharedNavigationService.FilteredFileInfos.Value?.Clear();
                     return;
                 }
 
                 const int batchSize = 25;
 
+                var tabs = core.MainWindows.ActiveWindow.CurrentValue.WindowTabs;
+                var tab = tabs.ActiveTab.CurrentValue;
                 IEnumerable<FileSearchResult>? results = null;
                 await Task.Run(
-                    () => { results = FileSearcher.GetFileSearchResults(NavigationManager.GetCollection, text); }, ct);
+                    () => { results = FileSearcher.GetFileSearchResults(tab.ImageIterator.Files, text); }, ct);
 
                 var fileSearchResults = results as FileSearchResult[] ?? results.ToArray();
-                vm.PicViewer.FilteredFileInfos.Value =
+                core.SharedNavigationService.FilteredFileInfos.Value = 
                     new ObservableCollection<FileSearchResult>(fileSearchResults.Take(batchSize));
                 if (fileSearchResults.Length < batchSize)
                 {
@@ -141,19 +165,13 @@ public partial class FileSearchDialog : AnimatedPopUp
                         ct.ThrowIfCancellationRequested();
                         if (!ct.IsCancellationRequested)
                         {
-                            vm.PicViewer.FilteredFileInfos.Value.Add(item);
+                            core.SharedNavigationService.FilteredFileInfos.Value.Add(item);
                         }
                     }
                 }
-            }, AwaitOperation.Switch, false)
-            // Add the subscription to our disposable manager for cleanup.
-            .AddTo(_disposables);
-
-        // Close when changing picture
-        Observable.EveryValueChanged(vm.PicViewer, x => x.FileInfo.CurrentValue)
-            .Skip(1)
-            .SubscribeAwait(async (_, _) => { await AnimatedClosing(); })
-            .AddTo(_disposables);
+            }, DebugHelper.LogError(nameof(FileSearchDialog), nameof(SetupSearchSubscription)),
+                AwaitOperation.Switch, false)
+            .AddTo(ref _disposables);
     }
 
     public void Dispose()
@@ -161,9 +179,16 @@ public partial class FileSearchDialog : AnimatedPopUp
         _disposables.Dispose();
         RemoveHandler(KeyDownEvent, KeysDownAsync);
         
-        if (DataContext is MainViewModel vm)
+        if (Application.Current.DataContext is not CoreViewModel core)
         {
-            vm.PicViewer.FilteredFileInfos.Value.Clear();
+            return;
         }
+        
+        core.SharedNavigationService?.FilteredFileInfos?.CurrentValue?.Clear();
+    }
+
+    private void CloseMenu(object? sender, RoutedEventArgs e)
+    {
+        _ = AnimatedClosing();
     }
 }

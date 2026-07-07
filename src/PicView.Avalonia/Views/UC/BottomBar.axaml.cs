@@ -2,146 +2,241 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Media;
+using Avalonia.Interactivity;
 using PicView.Avalonia.CustomControls;
 using PicView.Avalonia.DragAndDrop;
 using PicView.Avalonia.UI;
-using PicView.Avalonia.ViewModels;
 using PicView.Avalonia.WindowBehavior;
+using PicView.Core.Sizing;
+using PicView.Core.ViewModels;
 
 namespace PicView.Avalonia.Views.UC;
 
-public partial class BottomBar : UserControl
+public partial class BottomBar : UserControl, IDisposable
 {
     public BottomBar()
     {
         InitializeComponent();
 
-        Loaded += delegate
+        Loaded += OnLoaded;
+    }
+
+    private void OnLoaded(object? sender, RoutedEventArgs e)
+    {
+        PointerPressed += OnPointerPressed;
+        PointerExited += OnPointerExited;
+
+        PreviousButton.Click += OnPreviousButtonClick;
+        NextButton.Click += OnNextButtonClick;
+        RotateRightButton.Click += OnRotateRightButtonClick;
+        RotateLeftButton.Click += OnRotateLeftButtonClick;
+        FileMenuButton.Click += OnFileMenuButtonClick;
+        ZoomInButton.Click += OnZoomInButtonClick;
+        ZoomOutButton.Click += OnZoomOutButtonClick;
+        ResetZoomButton.Click += OnResetZoomButtonClick;
+        FlipButton.Click += OnFlipButtonClick;
+        SettingsMenuButton.Click += OnSettingsMenuButtonClick;
+
+        if (Settings.Theme.GlassTheme)
         {
-            PointerPressed += (_, e) => MoveWindow(e);
-            PointerExited += (_, _) => { DragAndDropHelper.RemoveDragDropView(); };
+            ApplyGlassTheme();
+        }
+        else if (!Settings.Theme.Dark)
+        {
+            ApplyLightTheme();
+        }
+    }
 
-            if (DataContext is not MainViewModel vm)
-            {
-                return;
-            }
+    private void OnPointerPressed(object? sender, PointerPressedEventArgs e) => MoveWindow(e);
 
-            PreviousButton.Click += (_, _) =>
-            {
-                vm.MainWindow.IsNavigationButtonLeftClicked = true;
-                UIHelper.SetButtonInterval((IconButton?)PreviousButton);
-            };
-            NextButton.Click += (_, _) =>
-            {
-                vm.MainWindow.IsNavigationButtonRightClicked = true;
-                UIHelper.SetButtonInterval((IconButton?)NextButton);
-            };
+    private void OnPointerExited(object? sender, PointerEventArgs e)
+    {
+        if (TopLevel.GetTopLevel(this) is not MainWindow mainWindow)
+        {
+            return;
+        }
+        DragAndDropManager.RemoveDragDropView(mainWindow);
+    }
 
-            RotateRightButton.Click += (_, _) => { vm.MainWindow.IsBottomToolbarRotationClicked = true; };
+    private void OnPreviousButtonClick(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is not MainWindowViewModel vm)
+        {
+            return;
+        }
 
-            if (!Application.Current.TryGetResource("SecondaryTextColor",
-                    Application.Current.RequestedThemeVariant, out var textColor))
-            {
-                return;
-            }
+        vm.IsNavigationButtonLeftClicked = true;
+        vm.TopTitlebarViewModel.CloseDropDownMenu();
+        UIHelper.SetButtonInterval((IconButton?)PreviousButton);
+    }
 
-            if (textColor is not Color color)
-            {
-                return;
-            }
+    private void OnNextButtonClick(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is not MainWindowViewModel vm)
+        {
+            return;
+        }
 
-            if (Settings.Theme.GlassTheme)
-            {
-                var alphaBrush = new SolidColorBrush(Color.FromArgb(15, 100, 100, 100));
+        vm.IsNavigationButtonRightClicked = true;
+        vm.TopTitlebarViewModel.CloseDropDownMenu();
+        UIHelper.SetButtonInterval((IconButton?)NextButton);
+    }
+
+    private void OnRotateRightButtonClick(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is not MainWindowViewModel vm)
+        {
+            return;
+        }
+
+        vm.TopTitlebarViewModel.CloseDropDownMenu();
+        vm.IsBottomToolbarRightRotationClicked = true;
+    }
+
+    private void OnRotateLeftButtonClick(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is not MainWindowViewModel vm)
+        {
+            return;
+        }
+
+        vm.TopTitlebarViewModel.CloseDropDownMenu();
+        vm.IsBottomToolbarLeftRotationClicked = true;
+    }
+
+    private void OnFileMenuButtonClick(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is MainWindowViewModel vm)
+        {
+            vm.TopTitlebarViewModel.CloseDropDownMenu();
+        }
+    }
+
+    private void OnZoomInButtonClick(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is MainWindowViewModel vm)
+        {
+            vm.TopTitlebarViewModel.CloseDropDownMenu();
+        }
+    }
+
+    private void OnZoomOutButtonClick(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is MainWindowViewModel vm)
+        {
+            vm.TopTitlebarViewModel.CloseDropDownMenu();
+        }
+    }
+
+    private void OnResetZoomButtonClick(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is MainWindowViewModel vm)
+        {
+            vm.TopTitlebarViewModel.CloseDropDownMenu();
+        }
+    }
+
+    private void OnFlipButtonClick(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is MainWindowViewModel vm)
+        {
+            vm.TopTitlebarViewModel.CloseDropDownMenu();
+        }
+    }
+
+    private void OnSettingsMenuButtonClick(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is MainWindowViewModel vm)
+        {
+            vm.TopTitlebarViewModel.CloseDropDownMenu();
+        }
+    }
+    
+    private void ApplyGlassTheme()
+    {
+        if (!Application.Current.TryGetResource("SecondaryTextColor",
+                Application.Current.RequestedThemeVariant, out var textColor))
+        {
+            return;
+        }
+        
+        if (textColor is not Color color)
+        {
+            return;
+        }
+        var alphaBrush = new SolidColorBrush(Color.FromArgb(15, 100, 100, 100));
                 
-                MainBottomBorder.Background = Brushes.Transparent;
-                MainBottomBorder.BorderThickness = new Thickness(0);
+        MainBottomBorder.Background = Brushes.Transparent;
+        MainBottomBorder.BorderThickness = new Thickness(0);
 
-                FileMenuButton.Background = Brushes.Transparent;
-                FileMenuButton.Classes.Remove("noBorderHover");
-                FileMenuButton.Classes.Add("hover");
+        FileMenuButton.Background = Brushes.Transparent;
+        FileMenuButton.Classes.Remove("noBorderHover");
+        FileMenuButton.Classes.Add("hover");
 
-                ImageMenuButton.Background = Brushes.Transparent;
-                ImageMenuButton.Classes.Remove("noBorderHover");
-                ImageMenuButton.Classes.Add("hover");
+        ResetZoomButton.Background = Brushes.Transparent;
+        ResetZoomButton.Classes.Remove("noBorderHover");
+        ResetZoomButton.Classes.Add("hover");
 
-                ToolsMenuButton.Background = Brushes.Transparent;
-                ToolsMenuButton.Classes.Remove("noBorderHover");
-                ToolsMenuButton.Classes.Add("hover");
+        SettingsMenuButton.Background = Brushes.Transparent;
+        SettingsMenuButton.Classes.Remove("noBorderHover");
+        SettingsMenuButton.Classes.Add("hover");
 
-                SettingsMenuButton.Background = Brushes.Transparent;
-                SettingsMenuButton.Classes.Remove("noBorderHover");
-                SettingsMenuButton.Classes.Add("hover");
+        ZoomInButton.Background = alphaBrush;
+        ZoomInButton.Classes.Remove("noBorderHover");
+        ZoomInButton.Classes.Add("hover");
 
-                ZoomInButton.Background = alphaBrush;
-                ZoomInButton.Classes.Remove("noBorderHover");
-                ZoomInButton.Classes.Add("hover");
+        ZoomOutButton.Background = alphaBrush;
+        ZoomOutButton.Classes.Remove("noBorderHover");
+        ZoomOutButton.Classes.Add("hover");
 
-                ZoomOutButton.Background = alphaBrush;
-                ZoomOutButton.Classes.Remove("noBorderHover");
-                ZoomOutButton.Classes.Add("hover");
+        NextButton.Background = alphaBrush;
 
-                NextButton.Background = alphaBrush;
+        PreviousButton.Background = alphaBrush;
 
-                PreviousButton.Background = alphaBrush;
+        RotateRightButton.Background = alphaBrush;
+        RotateRightButton.Classes.Remove("noBorderHover");
+        RotateRightButton.Classes.Add("hover");
+                
+        RotateLeftButton.Background = Brushes.Transparent;
+        RotateLeftButton.Classes.Remove("noBorderHover");
+        RotateLeftButton.Classes.Add("hover");
 
-                RotateRightButton.Background = alphaBrush;
-                RotateRightButton.Classes.Remove("noBorderHover");
-                RotateRightButton.Classes.Add("hover");
+        FlipButton.Background = alphaBrush;
+        FlipButton.Classes.Remove("noBorderHover");
+        FlipButton.Classes.Add("hover");
 
-                FlipButton.Background = alphaBrush;
-                FlipButton.Classes.Remove("noBorderHover");
-                FlipButton.Classes.Add("hover");
+        FileMenuButton.Foreground = new SolidColorBrush(color);
+        RotateLeftButton.Foreground = new SolidColorBrush(color);
+        ResetZoomButton.Foreground = new SolidColorBrush(color);
+        SettingsMenuButton.Foreground = new SolidColorBrush(color);
 
-                FileMenuButton.Foreground = new SolidColorBrush(color);
-                ImageMenuButton.Foreground = new SolidColorBrush(color);
-                ToolsMenuButton.Foreground = new SolidColorBrush(color);
-                SettingsMenuButton.Foreground = new SolidColorBrush(color);
+        NextButton.Foreground = new SolidColorBrush(color);
+        PreviousButton.Foreground = new SolidColorBrush(color);
+    }
 
-                NextButton.Foreground = new SolidColorBrush(color);
-                PreviousButton.Foreground = new SolidColorBrush(color);
-            }
-            else if (!Settings.Theme.Dark)
-            {
-                FileMenuButton.Classes.Remove("noBorderHover");
-                FileMenuButton.Classes.Add("noBorderHoverAlt");
+    private void ApplyLightTheme()
+    {
+        FileMenuButton.Classes.Remove("noBorderHover");
+        FileMenuButton.Classes.Add("noBorderHoverAlt");
 
-                ImageMenuButton.Classes.Remove("noBorderHover");
-                ImageMenuButton.Classes.Add("noBorderHoverAlt");
-                if (TryGetResource("ImageMenuBrush", Application.Current.RequestedThemeVariant,
-                        out var imageMenuBrush))
-                {
-                    if (imageMenuBrush is SolidColorBrush brush)
-                    {
-                        UIHelper.SetButtonHover(ImageMenuButton, brush);
-                    }
-                }
+        RotateLeftButton.Classes.Remove("noBorderHover");
+        RotateLeftButton.Classes.Add("noBorderHoverAlt");
 
-                ToolsMenuButton.Classes.Remove("noBorderHover");
-                ToolsMenuButton.Classes.Add("noBorderHoverAlt");
-                if (TryGetResource("ToolsMenuBrush", Application.Current.RequestedThemeVariant,
-                        out var toolsMenuBrush))
-                {
-                    if (toolsMenuBrush is SolidColorBrush brush)
-                    {
-                        UIHelper.SetButtonHover(ToolsMenuButton, brush);
-                    }
-                }
+        ResetZoomButton.Classes.Remove("noBorderHover");
+        ResetZoomButton.Classes.Add("noBorderHoverAlt");
 
-                SettingsMenuButton.Classes.Remove("noBorderHover");
-                SettingsMenuButton.Classes.Add("noBorderHoverAlt");
+        SettingsMenuButton.Classes.Remove("noBorderHover");
+        SettingsMenuButton.Classes.Add("noBorderHoverAlt");
 
-                ZoomOutButton.Classes.Remove("noBorderHover");
-                ZoomInButton.Classes.Remove("noBorderHover");
-                ZoomOutButton.Classes.Add("noBorderHoverAlt");
-                ZoomInButton.Classes.Add("noBorderHoverAlt");
+        ZoomOutButton.Classes.Remove("noBorderHover");
+        ZoomInButton.Classes.Remove("noBorderHover");
+        ZoomOutButton.Classes.Add("noBorderHoverAlt");
+        ZoomInButton.Classes.Add("noBorderHoverAlt");
 
-                RotateRightButton.Classes.Remove("noBorderHover");
-                FlipButton.Classes.Remove("noBorderHover");
-                RotateRightButton.Classes.Add("noBorderHoverAlt");
-                FlipButton.Classes.Add("noBorderHoverAlt");
-            }
-        };
+        RotateRightButton.Classes.Remove("noBorderHover");
+        FlipButton.Classes.Remove("noBorderHover");
+        RotateRightButton.Classes.Add("noBorderHoverAlt");
+        FlipButton.Classes.Add("noBorderHoverAlt");
     }
 
     private void MoveWindow(PointerPressedEventArgs e)
@@ -153,11 +248,67 @@ public partial class BottomBar : UserControl
 
         if (e.GetCurrentPoint(this).Properties.IsRightButtonPressed)
         {
-            // Context menu doesn't want to be opened normally
-            MainContextMenu.Open();
             return;
         }
 
-        WindowFunctions.WindowDragBehavior((Window)VisualRoot, e);
+        if (DataContext is MainWindowViewModel vm)
+        {
+            vm.TopTitlebarViewModel.CloseDropDownMenu();
+        }
+
+        if (TopLevel.GetTopLevel(this) is MainWindow mainWindow)
+        {
+            WindowFunctions.WindowDragBehavior(mainWindow, e);
+        }
+    }
+
+    public void ResponsiveNavigationBtnSize(double width)
+    {
+        switch (width)
+        {
+            case > SizeDefaults.FullBtnBp:
+                ResetZoomButton.IsVisible = RotateLeftButton.IsVisible = true;
+                PreviousButton.Width = NextButton.Width = 80;
+                return;
+            case < SizeDefaults.FullBtnBp and > SizeDefaults.SearchResetAndRotateBtnBp:
+                PreviousButton.Width = NextButton.Width = 65;
+                break;
+            case < SizeDefaults.SearchResetAndRotateBtnBp and > SizeDefaults.SmallNavBtnBp:
+                PreviousButton.Width = NextButton.Width = 60;
+                break;
+            default:
+                ZoomInButton.Width = ZoomOutButton.Width = FlipButton.Width = RotateRightButton.Width = 33;
+                PreviousButton.Width = NextButton.Width = 50;
+                break;
+        }
+
+        if (width < SizeDefaults.SearchResetAndRotateBtnBp)
+        {
+            ResetZoomButton.IsVisible = RotateLeftButton.IsVisible = false;
+        }
+        else
+        {
+            ZoomInButton.Width = ZoomOutButton.Width = FlipButton.Width = RotateRightButton.Width = 38;
+        }
+    }   
+    
+    public void Dispose()
+    {
+        Loaded -= OnLoaded;
+        PointerPressed -= OnPointerPressed;
+        PointerExited -= OnPointerExited;
+
+        PreviousButton.Click -= OnPreviousButtonClick;
+        NextButton.Click -= OnNextButtonClick;
+        RotateRightButton.Click -= OnRotateRightButtonClick;
+        RotateLeftButton.Click -= OnRotateLeftButtonClick;
+        FileMenuButton.Click -= OnFileMenuButtonClick;
+        ZoomInButton.Click -= OnZoomInButtonClick;
+        ZoomOutButton.Click -= OnZoomOutButtonClick;
+        ResetZoomButton.Click -= OnResetZoomButtonClick;
+        FlipButton.Click -= OnFlipButtonClick;
+        SettingsMenuButton.Click -= OnSettingsMenuButtonClick;
+
+        GC.SuppressFinalize(this);
     }
 }

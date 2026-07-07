@@ -20,12 +20,9 @@ public static class FileListRetriever
             return [];
         }
 
-        var recurseSubdirectories =
-            Settings.Sorting.IncludeSubDirectories && string.IsNullOrWhiteSpace(TempFileHelper.TempFilePath);
-
         try
         {
-            if (recurseSubdirectories)
+            if (Settings.Sorting.IncludeSubDirectories)
             {
                 var recurseList = new DirectoryInfo(directoryPath)
                     .DescendantsAndSelf()

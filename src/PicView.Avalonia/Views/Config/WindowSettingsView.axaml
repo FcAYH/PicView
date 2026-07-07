@@ -1,158 +1,118 @@
 ﻿<UserControl
-    d:DesignHeight="450"
-    d:DesignWidth="800"
-    mc:Ignorable="d"
     x:Class="PicView.Avalonia.Views.Config.WindowSettingsView"
-    x:DataType="viewModels:MainViewModel"
     xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:customControls="clr-namespace:PicView.Avalonia.CustomControls"
-    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    xmlns:viewModels="clr-namespace:PicView.Avalonia.ViewModels"
-    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
-    <Design.DataContext>
-        <viewModels:MainViewModel />
-    </Design.DataContext>
-    <StackPanel HorizontalAlignment="Center" Orientation="Vertical">
+    xmlns:ui="clr-namespace:PicView.Avalonia.UI"
+    xmlns:viewModels="clr-namespace:PicView.Core.ViewModels;assembly=PicView.Core"
+    x:DataType="viewModels:CoreViewModel">
 
-        <TextBlock
-            Classes="txt"
-            FontFamily="/Assets/Fonts/Roboto-Bold.ttf#Roboto"
-            FontSize="14"
-            Foreground="{StaticResource SecondaryTextColor}"
-            Margin="0,20,0,20"
-            Text="{CompiledBinding Translation.WindowScaling.Value,
-                                   Mode=OneWay}" />
+    <StackPanel HorizontalAlignment="Center">
 
-        <ToggleButton
-            Background="Transparent"
-            BorderThickness="0"
-            Classes="altHover changeColor"
-            Command="{CompiledBinding Tools.ChangeAutoFitCommand}"
-            IsChecked="{CompiledBinding GlobalSettings.IsAutoFit.Value}"
-            Margin="0,0,0,10"
-            Width="300">
+        <StackPanel Classes="searchHeader">
+            <Image
+                Width="18"
+                Height="18"
+                Source="{StaticResource WindowImage}" />
             <TextBlock
-                Classes="txt"
-                Foreground="{StaticResource SecondaryTextColor}"
-                Margin="0"
-                MaxWidth="240"
-                Padding="0,1,5,0"
-                Text="{CompiledBinding Translation.AutoFitWindow.Value,
+                Margin="0,20,0,20"
+                Classes="txt bold"
+                Text="{CompiledBinding Translation.Window.Value,
                                        Mode=OneWay}" />
-        </ToggleButton>
+        </StackPanel>
+
+        <Border ui:SearchProperties.Keywords="{CompiledBinding SettingsViewModel.SearchData.WindowScalingSearchTags}" Classes="searchBorder">
+            <StackPanel>
+                <TextBlock
+                    Margin="0,20,0,20"
+                    Classes="txt bold"
+                    Text="{CompiledBinding Translation.WindowScaling.Value,
+                                           Mode=OneWay}" />
+
+                <!--  Auto fit  -->
+                <customControls:TextToggleButton
+                    x:Name="AutoFitToggleButton"
+                    Classes="altHover settingsToggleButton"
+                    Command="{CompiledBinding MainWindows.ActiveWindow.Value.AutoFitWindowCommand}"
+                    IsChecked="{CompiledBinding MainWindows.ActiveWindow.Value.IsAutoFit.Value}"
+                    Text="{CompiledBinding Translation.AutoFitWindow.Value,
+                                           Mode=OneWay}" />
+
+                <!--  Window spacing  -->
+                <TextBlock
+                    MaxWidth="300"
+                    Margin="0,10,0,10"
+                    Classes="txt bold"
+                    IsEnabled="{CompiledBinding MainWindows.ActiveWindow.Value.IsAutoFit.Value}"
+                    Text="{CompiledBinding Translation.WindowMargin.Value,
+                                           Mode=OneWay}" />
+                <customControls:CustomSlider
+                    Width="300"
+                    Height="30"
+                    Margin="0,1,0,1"
+                    HorizontalAlignment="Center"
+                    IsEnabled="{CompiledBinding MainWindows.ActiveWindow.Value.IsAutoFit.Value}"
+                    IsSnapToTickEnabled="True"
+                    Maximum="100"
+                    Minimum="0"
+                    TickFrequency="1"
+                    TickPlacement="BottomRight"
+                    Value="{CompiledBinding SettingsViewModel.WindowMargin.Value}" />
+                <TextBlock
+                    Margin="0,0,0,15"
+                    Classes="txt"
+                    FontFamily="/Assets/Fonts/Roboto-Bold.ttf#Roboto"
+                    Foreground="{StaticResource MainTextColorFaded}"
+                    IsEnabled="{CompiledBinding MainWindows.ActiveWindow.Value.IsAutoFit.Value}"
+                    Text="{CompiledBinding SettingsViewModel.WindowMargin.Value,
+                                           Mode=OneWay}" />
+            </StackPanel>
+        </Border>
 
         <TextBlock
-            Classes="txt"
-            FontFamily="/Assets/Fonts/Roboto-Bold.ttf#Roboto"
-            FontSize="12"
-            Foreground="{StaticResource SecondaryTextColor}"
-            IsEnabled="{CompiledBinding GlobalSettings.IsAutoFit.Value}"
-            Margin="0,10,0,10"
-            MaxWidth="300"
-            Text="{CompiledBinding Translation.WindowMargin.Value,
-                                   Mode=OneWay}" />
-        <customControls:CustomSlider
-            Height="30"
-            HorizontalAlignment="Center"
-            IsEnabled="{CompiledBinding GlobalSettings.IsAutoFit.Value}"
-            IsSnapToTickEnabled="True"
-            Margin="0,1,0,1"
-            Maximum="100"
-            Minimum="0"
-            TickFrequency="1"
-            TickPlacement="BottomRight"
-            Value="{CompiledBinding SettingsViewModel.WindowMargin.Value}"
-            Width="300" />
-        <TextBlock
-            Classes="txt"
-            FontFamily="/Assets/Fonts/Roboto-Bold.ttf#Roboto"
-            Foreground="{StaticResource MainTextColorFaded}"
-            IsEnabled="{CompiledBinding GlobalSettings.IsAutoFit.Value}"
-            Margin="0,0,0,15"
-            Text="{CompiledBinding SettingsViewModel.WindowMargin.Value,
-                                   Mode=OneWay}" />
-
-        <TextBlock
-            Classes="txt"
-            FontFamily="/Assets/Fonts/Roboto-Bold.ttf#Roboto"
-            FontSize="14"
-            Foreground="{StaticResource SecondaryTextColor}"
             Margin="0,20,0,20"
+            Classes="txt bold searchHeader"
             Text="{CompiledBinding Translation.WindowManagement.Value,
                                    Mode=OneWay}" />
 
-        <ToggleButton
-            Background="Transparent"
-            BorderThickness="0"
-            Classes="altHover alt changeColor"
-            Command="{CompiledBinding Tools.ChangeTopMostCommand}"
-            IsChecked="{CompiledBinding GlobalSettings.IsTopMost.Value}"
-            Margin="0,0,0,10"
-            Width="300">
-            <TextBlock
-                Classes="txt"
-                Foreground="{StaticResource SecondaryTextColor}"
-                Margin="0"
-                MaxWidth="240"
-                Padding="0,1,5,0"
+        <Border ui:SearchProperties.Keywords="{CompiledBinding SettingsViewModel.SearchData.WindowTopMostSearchTags}" Classes="searchBorder">
+            <customControls:TextToggleButton
+                x:Name="TopMostToggleButton"
+                Classes="altHover settingsToggleButton"
+                Command="{CompiledBinding MainWindows.ActiveWindow.Value.SetTopMostCommand}"
+                IsChecked="{CompiledBinding MainWindows.ActiveWindow.Value.IsTopMost.Value}"
                 Text="{CompiledBinding Translation.StayTopMost.Value,
                                        Mode=OneWay}" />
-        </ToggleButton>
+        </Border>
 
-        <ToggleButton
-            Background="Transparent"
-            BorderThickness="0"
-            Classes="altHover changeColor"
-            IsChecked="{CompiledBinding SettingsViewModel.IsStayingCentered.Value}"
-            IsEnabled="{CompiledBinding GlobalSettings.IsAutoFit.Value}"
-            Margin="0,0,0,10"
-            Width="300">
-            <TextBlock
-                Classes="txt"
-                Foreground="{StaticResource SecondaryTextColor}"
-                IsEnabled="{CompiledBinding GlobalSettings.IsAutoFit.Value}"
-                Margin="0"
-                MaxWidth="240"
-                Padding="0,1,5,0"
+        <Border ui:SearchProperties.Keywords="{CompiledBinding SettingsViewModel.SearchData.WindowCenteredSearchTags}" Classes="searchBorder">
+            <customControls:TextToggleButton
+                x:Name="StayCenteredToggleButton"
+                Classes="altHover settingsToggleButton"
+                IsChecked="{CompiledBinding SettingsViewModel.IsStayingCentered.Value}"
+                IsEnabled="{CompiledBinding MainWindows.ActiveWindow.Value.IsAutoFit.Value}"
                 Text="{CompiledBinding Translation.StayCentered.Value,
                                        Mode=OneWay}" />
-        </ToggleButton>
+        </Border>
 
-        <ToggleButton
-            Background="Transparent"
-            BorderThickness="0"
-            Classes="altHover changeColor"
-            Command="{CompiledBinding Tools.ToggleOpeningInSameWindowCommand}"
-            IsChecked="{CompiledBinding SettingsViewModel.IsOpeningInSameWindow.Value}"
-            Margin="0,0,0,10"
-            Width="300">
-            <TextBlock
-                Classes="txt"
-                Foreground="{StaticResource SecondaryTextColor}"
-                Margin="0"
-                MaxWidth="240"
-                Padding="0,1,5,0"
+        <Border ui:SearchProperties.Keywords="{CompiledBinding SettingsViewModel.SearchData.WindowSameWindowSearchTags}" Classes="searchBorder">
+            <customControls:TextToggleButton
+                x:Name="OpenInSameWindowToggleButton"
+                Classes="altHover settingsToggleButton"
+                Command="{CompiledBinding MainWindows.ActiveWindow.Value.ToggleOpeningInSameWindowCommand}"
+                IsChecked="{CompiledBinding SettingsViewModel.IsOpeningInSameWindow.Value}"
                 Text="{CompiledBinding Translation.OpenInSameWindow.Value,
                                        Mode=OneWay}" />
-        </ToggleButton>
+        </Border>
 
-        <ToggleButton
-            Background="Transparent"
-            BorderThickness="0"
-            Classes="altHover changeColor"
-            IsChecked="{CompiledBinding SettingsViewModel.IsShowingConfirmationOnEsc.Value}"
-            Margin="0,0,0,10"
-            Width="300">
-            <TextBlock
-                Classes="txt"
-                Foreground="{StaticResource SecondaryTextColor}"
-                Margin="0"
-                MaxWidth="240"
-                Padding="0,1,5,0"
+        <Border ui:SearchProperties.Keywords="{CompiledBinding SettingsViewModel.SearchData.WindowEscSearchTags}" Classes="searchBorder">
+            <customControls:TextToggleButton
+                x:Name="ShowConfirmationEscToggleButton"
+                Classes="altHover settingsToggleButton"
+                IsChecked="{CompiledBinding SettingsViewModel.IsShowingConfirmationOnEsc.Value}"
                 Text="{CompiledBinding Translation.ShowConfirmationOnEsc.Value,
                                        Mode=OneWay}" />
-        </ToggleButton>
+        </Border>
 
     </StackPanel>
 </UserControl>

@@ -1,18 +1,26 @@
 ﻿using Avalonia;
-using Avalonia.Controls;
-using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Media;
+using PicView.Avalonia.CustomControls;
 using PicView.Avalonia.UI;
+using PicView.Core.Extensions;
 using PicView.Core.Localization;
+using PicView.Core.ViewModels;
 
 namespace PicView.Avalonia.Win32.Views;
 
-public partial class SingleImageResizeWindow : Window
+public partial class SingleImageResizeWindow : GenericWindow
 {
-    public SingleImageResizeWindow()
+    public SingleImageResizeWindow(MainWindowViewModel viewModel)
     {
+        DataContext = viewModel;
         InitializeComponent();
+        GenericWindowHelper.GenericWindowInitialize(this, StringExtensions.CombineWithAppName(TranslationManager.Translation.Resize));
+        Loaded += OnLoaded;
+    }
+
+    private void OnLoaded(object? sender, RoutedEventArgs e)
+    {
         StartUp();
     }
 
@@ -45,21 +53,6 @@ public partial class SingleImageResizeWindow : Window
             CloseButton.Foreground = new SolidColorBrush(color);
         }
 
-        GenericWindowHelper.GenericWindowInitialize(this, $"{TranslationManager.Translation.Resize}  - PicView");
+        GenericWindowHelper.GenericWindowInitialize(this, StringExtensions.CombineWithAppName(TranslationManager.Translation.Resize));
     }
-
-    private void MoveWindow(object? sender, PointerPressedEventArgs e)
-    {
-        if (VisualRoot is null)
-        {
-            return;
-        }
-
-        var hostWindow = (Window)VisualRoot;
-        hostWindow?.BeginMoveDrag(e);
-    }
-
-    private void Close(object? sender, RoutedEventArgs e) => Close();
-
-    private void Minimize(object? sender, RoutedEventArgs e) => WindowState = WindowState.Minimized;
 }

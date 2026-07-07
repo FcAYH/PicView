@@ -1,7 +1,6 @@
 <Window
     BorderBrush="{StaticResource MainBorderColor}"
     BorderThickness="1"
-    ExtendClientAreaChromeHints="NoChrome"
     ExtendClientAreaTitleBarHeightHint="-1"
     Height="320"
     MinHeight="320"
@@ -10,12 +9,12 @@
     Width="400"
     WindowStartupLocation="CenterOwner"
     x:Class="PicView.Avalonia.Win32.Views.ImageInfoWindow"
-    x:DataType="viewModels:MainViewModel"
+    x:DataType="coreVm:MainWindowViewModel"
     xmlns="https://github.com/avaloniaui"
     xmlns:buttons="clr-namespace:PicView.Avalonia.Views.UC.Buttons;assembly=PicView.Avalonia"
+    xmlns:coreVm="clr-namespace:PicView.Core.ViewModels;assembly=PicView.Core"
     xmlns:customControls="clr-namespace:PicView.Avalonia.CustomControls;assembly=PicView.Avalonia"
     xmlns:main="clr-namespace:PicView.Avalonia.Views.Main;assembly=PicView.Avalonia"
-    xmlns:viewModels="clr-namespace:PicView.Avalonia.ViewModels;assembly=PicView.Avalonia"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
     <Border
@@ -81,17 +80,15 @@
                     BorderBrush="{DynamicResource MainBorderColor}"
                     BorderThickness="0,0,1,0"
                     Classes="noBorderHover"
-                    Command="{CompiledBinding Exif.SetExifRating0Command}"
-                    CommandParameter="{CompiledBinding PicViewer.FileInfo.Value.FullName}"
+                    Command="{Binding Exif.SetExifRating0Command}"
+                    CommandParameter="{Binding WindowTabs.ActiveTab.Value.Model.FileInfo.FullName}"
                     DockPanel.Dock="Right"
                     Foreground="{DynamicResource MainTextColor}"
                     Icon="{StaticResource StarOffImage}"
                     IconHeight="17"
                     IconWidth="17"
-                    IsEnabled="{CompiledBinding Exif.IsExifAvailable.Value,
-                                                FallbackValue=False}"
-                    ToolTip.Tip="{CompiledBinding Translation.RemoveStarRating.Value,
-                                                  Mode=OneWay}"
+                    IsEnabled="{Binding Exif.IsExifAvailable.Value, FallbackValue=False}"
+                    ToolTip.Tip="{Binding Translation.RemoveStarRating.Value, Mode=OneWay}"
                     Width="35"
                     x:Name="RemoveRatingButton" />
 
@@ -107,9 +104,7 @@
                     BorderThickness="0,0,1,0"
                     Classes="errorHover"
                     ClickMode="Release"
-                    Command="{CompiledBinding Tools.RecycleFileCommand}"
-                    CommandParameter="{CompiledBinding PicViewer.FileInfo.Value.FullName,
-                                                       FallbackValue=''}"
+                    Command="{CompiledBinding DeleteFileCommand}"
                     Data="{StaticResource RecycleGeometry}"
                     DockPanel.Dock="Right"
                     Foreground="{DynamicResource MainTextColor}"
@@ -117,7 +112,7 @@
                     IconHeight="17"
                     IconMargin="10,0,5,0"
                     IconWidth="17"
-                    IsEnabled="{CompiledBinding PicViewer.FileInfo.Value,
+                    IsEnabled="{CompiledBinding WindowTabs.ActiveTab.Value.FileInfo.Value,
                                                 Converter={x:Static ObjectConverters.IsNotNull}}"
                     IsVisible="{CompiledBinding InfoWindow.IsExtraButtonsEnabled.Value}"
                     Text="{CompiledBinding Translation.DeleteFile.Value,
@@ -155,9 +150,7 @@
                     BorderBrush="{DynamicResource MainBorderColor}"
                     BorderThickness="0,0,1,0"
                     Classes="noBorderHover"
-                    Command="{Binding Tools.OptimizeImageCommand}"
-                    CommandParameter="{CompiledBinding PicViewer.FileInfo.Value.FullName,
-                                                       FallbackValue=''}"
+                    Command="{Binding OptimizeImageCommand}"
                     DockPanel.Dock="Right"
                     Foreground="{DynamicResource MainTextColor}"
                     Height="28"
@@ -165,7 +158,7 @@
                     IconHeight="17"
                     IconMargin="10,0,5,0"
                     IconWidth="17"
-                    IsEnabled="{CompiledBinding PicViewer.ShouldOptimizeImageBeEnabled.Value,
+                    IsEnabled="{CompiledBinding WindowTabs.ActiveTab.Value.Image.Value,
                                                 Mode=OneWay}"
                     IsVisible="{CompiledBinding InfoWindow.IsExtraButtonsEnabled.Value}"
                     Text="{CompiledBinding Translation.OptimizeImage.Value,
@@ -180,9 +173,7 @@
                     BorderBrush="{DynamicResource MainBorderColor}"
                     BorderThickness="0,0,1,0"
                     Classes="noBorderHover"
-                    Command="{CompiledBinding Tools.OpenWithCommand}"
-                    CommandParameter="{CompiledBinding PicViewer.FileInfo.Value.FullName,
-                                                       FallbackValue=''}"
+                    Command="{CompiledBinding OpenWithCommand}"
                     DockPanel.Dock="Right"
                     Foreground="{DynamicResource MainTextColor}"
                     Height="28"
@@ -190,7 +181,7 @@
                     IconHeight="17"
                     IconMargin="10,0,5,0"
                     IconWidth="17"
-                    IsEnabled="{CompiledBinding PicViewer.FileInfo.Value,
+                    IsEnabled="{CompiledBinding WindowTabs.ActiveTab.Value.FileInfo.Value,
                                                 Converter={x:Static ObjectConverters.IsNotNull}}"
                     IsVisible="{CompiledBinding InfoWindow.IsExtraButtonsEnabled.Value}"
                     Text="{CompiledBinding Translation.OpenWith.Value,
@@ -205,8 +196,8 @@
                     BorderBrush="{DynamicResource MainBorderColor}"
                     BorderThickness="0,0,1,0"
                     Classes="noBorderHover"
-                    Command="{CompiledBinding Tools.DuplicateFileCommand}"
-                    CommandParameter="{CompiledBinding PicViewer.FileInfo.Value.FullName,
+                    Command="{CompiledBinding DuplicateFileCommand}"
+                    CommandParameter="{CompiledBinding WindowTabs.ActiveTab.Value.FileInfo.Value.FullName,
                                                        FallbackValue=''}"
                     Data="{StaticResource DuplicateGeometry}"
                     DockPanel.Dock="Right"
@@ -215,7 +206,7 @@
                     IconHeight="17"
                     IconMargin="10,0,5,0"
                     IconWidth="17"
-                    IsEnabled="{CompiledBinding PicViewer.FileInfo.Value,
+                    IsEnabled="{CompiledBinding WindowTabs.ActiveTab.Value.FileInfo.Value,
                                                 Converter={x:Static ObjectConverters.IsNotNull}}"
                     IsVisible="{CompiledBinding InfoWindow.IsExtraButtonsEnabled.Value}"
                     Text="{CompiledBinding Translation.DuplicateFile.Value,
@@ -230,8 +221,8 @@
                     BorderBrush="{DynamicResource MainBorderColor}"
                     BorderThickness="1,0,1,0"
                     Classes="noBorderHover"
-                    Command="{CompiledBinding Tools.LocateOnDiskCommand}"
-                    CommandParameter="{CompiledBinding PicViewer.FileInfo.Value.FullName,
+                    Command="{CompiledBinding OpenInExplorerCommand}"
+                    CommandParameter="{CompiledBinding WindowTabs.ActiveTab.Value.FileInfo.Value.FullName,
                                                        FallbackValue=''}"
                     Data="{StaticResource ShowInFolderGeometry}"
                     DockPanel.Dock="Right"
@@ -240,7 +231,7 @@
                     IconHeight="17"
                     IconMargin="10,0,5,0"
                     IconWidth="17"
-                    IsEnabled="{CompiledBinding PicViewer.FileInfo.Value,
+                    IsEnabled="{CompiledBinding WindowTabs.ActiveTab.Value.FileInfo.Value,
                                                 Converter={x:Static ObjectConverters.IsNotNull}}"
                     IsVisible="{CompiledBinding InfoWindow.IsExtraButtonsEnabled.Value}"
                     Text="{CompiledBinding Translation.DuplicateFile.Value,

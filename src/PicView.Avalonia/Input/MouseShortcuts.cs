@@ -3,40 +3,29 @@ using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Controls.Primitives;
 using Avalonia.Input;
+using Avalonia.Threading;
 using PicView.Avalonia.CustomControls;
-using PicView.Avalonia.Functions;
-using PicView.Avalonia.Navigation;
-using PicView.Avalonia.UI;
-using PicView.Avalonia.ViewModels;
+using PicView.Avalonia.Views.UC;
+using PicView.Core.Navigation;
+using PicView.Core.ViewModels;
 
 namespace PicView.Avalonia.Input;
 
 public static class MouseShortcuts
 {
-    private static AutoScrollViewer? _imageScrollViewer;
-    private static Func<PointerWheelEventArgs, Task>? _zoomIn;
-    private static Func<PointerWheelEventArgs, Task>? _zoomOut;
-
-    public static void InitializeMouseShortcuts(
+    public static async ValueTask HandlePointerWheelChanged(
+        PointerWheelEventArgs e,
+        MainWindowViewModel mainViewModel,
+        MainWindow mainWindow,
         AutoScrollViewer imageScrollViewer,
-        Func<PointerWheelEventArgs, Task> zoomIn,
-        Func<PointerWheelEventArgs, Task> zoomOut)
+        Func<PointerWheelEventArgs, ValueTask>? zoomIn,
+        Func<PointerWheelEventArgs, ValueTask>? zoomOut)
     {
-        _imageScrollViewer = imageScrollViewer;
-        _zoomIn = zoomIn;
-        _zoomOut = zoomOut;
-    }
-
-    public static async Task HandlePointerWheelChanged(PointerWheelEventArgs e)
-    {
-        if (UIHelper.GetMainView.DataContext is not MainViewModel vm)
-        {
-            return;
-        }
-
         // Don't handle mouse wheel if the view is not the image viewer
         // or a dialog is opened
-        if (vm.MainWindow.CurrentView.Value != vm.ImageViewer || DialogManager.IsDialogOpen)
+        var shouldReturn = await Dispatcher.UIThread.InvokeAsync(() =>
+            mainViewModel.WindowTabs.ActiveTab.Value.CurrentView.Value is not ImageViewer || mainWindow.IsDialogOpen);
+        if (shouldReturn)
         {
             return;
         }
@@ -58,17 +47,17 @@ public static class MouseShortcuts
                         return;
                     }
 
-                    await LoadNextPicAsync(reverse, vm);
+                    await LoadNextPicAsync(reverse, mainViewModel);
                     return;
                 }
 
-                if (IsVerticalScrollBarVisible())
+                if (IsVerticalScrollBarVisible(imageScrollViewer))
                 {
-                    ScrollVertically(reverse);
+                    ScrollVertically(reverse, imageScrollViewer);
                 }
                 else
                 {
-                    await LoadNextPicAsync(reverse, vm);
+                    await LoadNextPicAsync(reverse, mainViewModel);
                 }
 
                 return;
@@ -86,44 +75,44 @@ public static class MouseShortcuts
 
                 if (reverse)
                 {
-                    if (_zoomOut is not null)
+                    if (zoomOut is not null)
                     {
-                        await _zoomOut(e);
+                        await zoomOut(e);
                     }
                 }
                 else
                 {
-                    if (_zoomIn is not null)
+                    if (zoomIn is not null)
                     {
-                        await _zoomIn(e);
+                        await zoomIn(e);
                     }
                 }
             }
             else
             {
-                await ScrollOrNavigateAsync(e, reverse, vm);
+                await ScrollOrNavigateAsync(e, reverse, mainViewModel, imageScrollViewer);
             }
         }
         else
         {
             if (ctrl)
             {
-                await ScrollOrNavigateAsync(e, reverse, vm);
+                await ScrollOrNavigateAsync(e, reverse, mainViewModel, imageScrollViewer);
             }
             else
             {
                 if (reverse)
                 {
-                    if (_zoomOut is not null)
+                    if (zoomOut is not null)
                     {
-                        await _zoomOut(e);
+                        await zoomOut(e);
                     }
                 }
                 else
                 {
-                    if (_zoomIn is not null)
+                    if (zoomIn is not null)
                     {
-                        await _zoomIn(e);
+                        await zoomIn(e);
                     }
                 }
             }
@@ -133,22 +122,26 @@ public static class MouseShortcuts
     private static bool IsTouchPadOrTouch(PointerEventArgs e)
         => Settings.Zoom.IsUsingTouchPad || e.Pointer.Type == PointerType.Touch;
 
-    private static bool IsVerticalScrollBarVisible()
-        => _imageScrollViewer.VerticalScrollBarVisibility is ScrollBarVisibility.Visible or ScrollBarVisibility.Auto;
+    private static bool IsVerticalScrollBarVisible(AutoScrollViewer imageScrollViewer)
+        => imageScrollViewer.VerticalScrollBarVisibility is ScrollBarVisibility.Visible or ScrollBarVisibility.Auto;
 
-    private static void ScrollVertically(bool reverse)
+    private static void ScrollVertically(bool reverse, AutoScrollViewer imageScrollViewer)
     {
         if (reverse)
         {
-            _imageScrollViewer.LineDown();
+            imageScrollViewer.LineDown();
         }
         else
         {
-            _imageScrollViewer.LineUp();
+            imageScrollViewer.LineUp();
         }
     }
 
-    private static async Task ScrollOrNavigateAsync(PointerWheelEventArgs e, bool reverse, MainViewModel mainViewModel)
+    private static async ValueTask ScrollOrNavigateAsync(
+        PointerWheelEventArgs e,
+        bool reverse,
+        MainWindowViewModel mainViewModel,
+        AutoScrollViewer imageScrollViewer)
     {
         if (!Settings.Zoom.ScrollEnabled || e.KeyModifiers == KeyModifiers.Shift)
         {
@@ -161,9 +154,9 @@ public static class MouseShortcuts
         }
         else
         {
-            if (IsVerticalScrollBarVisible())
+            if (IsVerticalScrollBarVisible(imageScrollViewer))
             {
-                ScrollVertically(reverse);
+                ScrollVertically(reverse, imageScrollViewer);
             }
             else
             {
@@ -172,7 +165,7 @@ public static class MouseShortcuts
         }
     }
 
-    private static async Task LoadNextPicAsync(bool reverse, MainViewModel mainViewModel)
+    private static async ValueTask LoadNextPicAsync(bool reverse, MainWindowViewModel mainViewModel)
     {
         if (Settings.Zoom.IsUsingTouchPad)
         {
@@ -180,10 +173,18 @@ public static class MouseShortcuts
         }
 
         var next = reverse ? Settings.Zoom.HorizontalReverseScroll : !Settings.Zoom.HorizontalReverseScroll;
-        await NavigationManager.Navigate(next, mainViewModel, CancellationToken.None).ConfigureAwait(false);
+        if (next)
+        {
+            await mainViewModel.WindowTabs.NextFile().ConfigureAwait(false);
+        }
+        else
+        {
+            await mainViewModel.WindowTabs.PrevFile().ConfigureAwait(false);
+
+        }
     }
     
-    public static async Task MainWindow_PointerPressed(PointerPressedEventArgs e)
+    public static async Task MainWindow_PointerPressed(PointerPressedEventArgs e, Window window)
     {
         if (Application.Current?.ApplicationLifetime is not IClassicDesktopStyleApplicationLifetime desktop)
         {
@@ -192,26 +193,65 @@ public static class MouseShortcuts
         var topLevel = TopLevel.GetTopLevel(desktop.MainWindow);
         var prop = e.GetCurrentPoint(topLevel).Properties;
 
+        if (window.DataContext is not MainWindowViewModel windowViewModel)
+        {
+            return;
+        }
+
+        // Handle mouse side buttons
         if (prop.IsXButton1Pressed)
         {
-            if (Settings.Navigation.IsNavigatingFileHistory)
+            switch (Settings.Navigation.MouseSideButtonNavigationMode)
             {
-                await FunctionsMapper.OpenPreviousFileHistoryEntry().ConfigureAwait(false);
-            }
-            else if (Settings.Navigation.IsNavigatingBetweenDirectories)
-            {
-                await FunctionsMapper.PrevFolder().ConfigureAwait(false);
+                default:
+                case NavigationMode.None:
+                    return;
+                case NavigationMode.NavigatingFileHistory:
+                    await windowViewModel.Mapper.OpenPreviousFileHistoryEntry().ConfigureAwait(false);
+                    return;
+                case NavigationMode.NavigatingBetweenDirectories:
+                    await windowViewModel.WindowTabs.PrevFolder().ConfigureAwait(false);
+                    return;
+                case NavigationMode.NavigatingBetweenFiles:
+                    await windowViewModel.WindowTabs.PrevFile().ConfigureAwait(false);
+                    return;
+                case NavigationMode.NavigatingBetweenArchives:
+                    await windowViewModel.WindowTabs.PrevArchive().ConfigureAwait(false);
+                    return;
             }
         }
-        else if (prop.IsXButton2Pressed)
+        if (prop.IsXButton2Pressed)
         {
-            if (Settings.Navigation.IsNavigatingFileHistory)
+            switch (Settings.Navigation.MouseSideButtonNavigationMode)
             {
-                await FunctionsMapper.OpenNextFileHistoryEntry().ConfigureAwait(false);
+                default:
+                case NavigationMode.None:
+                    return;
+                case NavigationMode.NavigatingFileHistory:
+                    await windowViewModel.Mapper.OpenNextFileHistoryEntry().ConfigureAwait(false);
+                    return;
+                case NavigationMode.NavigatingBetweenDirectories:
+                    await windowViewModel.WindowTabs.NextFolder().ConfigureAwait(false);
+                    return;
+                case NavigationMode.NavigatingBetweenFiles:
+                    await windowViewModel.WindowTabs.NextFile().ConfigureAwait(false);
+                    return;
+                case NavigationMode.NavigatingBetweenArchives:
+                    await windowViewModel.WindowTabs.NextArchive().ConfigureAwait(false);
+                    return;
             }
-            else if (Settings.Navigation.IsNavigatingBetweenDirectories)
+        }
+        // Handle double click
+        if (e.ClickCount is 2)
+        {
+            switch (Settings.UIProperties.DoubleClickBehavior)
             {
-                await FunctionsMapper.NextFolder().ConfigureAwait(false);
+                case 1:
+                    await windowViewModel.Mapper.ResetZoom();
+                    break;
+                case 2:
+                    await windowViewModel.Mapper.ToggleFullscreen();
+                    break;
             }
         }
     }

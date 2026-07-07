@@ -10,7 +10,7 @@ public static class FileSearcher
     private const int ContainsInPathScore = 10;
     private const int NoMatchScore = 0;
 
-    public static IEnumerable<FileSearchResult> GetFileSearchResults(List<FileInfo> files, string userInput)
+    public static IEnumerable<FileSearchResult> GetFileSearchResults(IReadOnlyList<FileInfo> files, string userInput)
     {
         if (string.IsNullOrWhiteSpace(userInput))
         {

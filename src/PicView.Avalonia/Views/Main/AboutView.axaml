@@ -1,17 +1,11 @@
 <UserControl
-    mc:Ignorable="d"
     x:Class="PicView.Avalonia.Views.Main.AboutView"
-    x:DataType="viewModels:MainViewModel"
+    x:DataType="viewModels:CoreViewModel"
     xmlns="https://github.com/avaloniaui"
     xmlns:customControls="clr-namespace:PicView.Avalonia.CustomControls"
-    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:uc="clr-namespace:PicView.Avalonia.Views.UC"
-    xmlns:viewModels="clr-namespace:PicView.Avalonia.ViewModels"
+    xmlns:viewModels="clr-namespace:PicView.Core.ViewModels;assembly=PicView.Core"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
-    <Design.DataContext>
-        <viewModels:MainViewModel />
-    </Design.DataContext>
     <UserControl.Resources>
         <DrawingImage x:Key="kofi_button_strokeDrawingImage">
             <DrawingGroup>
@@ -121,9 +115,7 @@
             VerticalAlignment="Center"
             x:Name="SpinWaiter" />
         <TextBlock
-            Classes="txt"
-            FontFamily="/Assets/Fonts/Roboto-Bold.ttf#Roboto"
-            FontSize="14"
+            Classes="txt bold"
             HorizontalAlignment="Center"
             IsVisible="{Binding IsVisible, ElementName=SpinWaiter}"
             Margin="0,75,0,0"
@@ -178,7 +170,7 @@
                 Foreground="{StaticResource SecondaryTextColor}"
                 HorizontalAlignment="Center"
                 Margin="0,7,0,7"
-                Text="2017 - 2025 © Ruben Hyldgaard Negendahl" />
+                Text="2017 - 2026 © Ruben Hyldgaard Negendahl" />
 
             <HyperlinkButton
                 HorizontalAlignment="Center"

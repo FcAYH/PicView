@@ -6,9 +6,9 @@ using System.Runtime.InteropServices;
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Threading;
-using PicView.Avalonia.ViewModels;
 using PicView.Core.DebugTools;
 using PicView.Core.ProcessHandling;
+using PicView.Core.ViewModels;
 
 namespace PicView.Avalonia.Navigation;
 
@@ -105,14 +105,13 @@ public static class IPC
     /// Starts a named pipe server to listen for incoming arguments from other instances of the application.
     /// Processes incoming arguments (e.g., file paths) by instructing the main view model to open the specified picture.
     /// </summary>
-    /// <param name="vm">The main view model that processes the received argument, typically loading a picture.</param>
     /// <returns>A task that represents the asynchronous operation. The method runs indefinitely to handle multiple connections.</returns>
     /// <remarks>
     /// This method runs continuously, waiting for incoming connections on the specified named pipe. When a connection is made, 
     /// it reads the incoming arguments and processes them. The arguments can include file paths or commands, 
     /// and they are passed to the main view model to update the UI accordingly.
     /// </remarks>
-    public static async Task StartListeningForArguments(MainViewModel vm)
+    public static async Task StartListeningForArguments()
     {
         if (_isRunning.HasValue && !_isRunning.Value)
         {
@@ -145,9 +144,14 @@ public static class IPC
 #if DEBUG
                     Trace.WriteLine("Received argument: " + line);
 #endif
+
+                    if (Application.Current.DataContext is not CoreViewModel core)
+                    {
+                        return;
+                    }
                     // Need to stop taskbar progress if it's running
                     // Otherwise the new taskbar progress will not be updated
-                    vm.PlatformService.StopTaskbarProgress();
+                    core.PlatformService.StopTaskbarProgress();
                     await Dispatcher.UIThread.InvokeAsync(() => 
                     {
                         if (Application.Current?.ApplicationLifetime is not IClassicDesktopStyleApplicationLifetime desktop)
@@ -157,8 +161,7 @@ public static class IPC
                         // Activating the window works fine in debug mode, but not in AOT release mode 
                         desktop.MainWindow.Activate();
                     });
-                    await NavigationManager.LoadPicFromStringAsync(line, vm).ConfigureAwait(false);
-
+                    await core.MainWindows.ActiveWindow.CurrentValue.WindowTabs.LoadFromStringAsync(line).ConfigureAwait(false);
                 }
             }
             catch (Exception ex)

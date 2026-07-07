@@ -1,104 +1,74 @@
 ﻿<UserControl
-    d:DesignHeight="450"
-    d:DesignWidth="800"
-    mc:Ignorable="d"
     x:Class="PicView.Avalonia.Views.Config.ImageSettingsView"
-    x:DataType="viewModels:MainViewModel"
     xmlns="https://github.com/avaloniaui"
-    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    xmlns:viewModels="clr-namespace:PicView.Avalonia.ViewModels"
-    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
-    <Design.DataContext>
-        <viewModels:MainViewModel />
-    </Design.DataContext>
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:customControls="clr-namespace:PicView.Avalonia.CustomControls"
+    xmlns:ui="clr-namespace:PicView.Avalonia.UI"
+    xmlns:viewModels="clr-namespace:PicView.Core.ViewModels;assembly=PicView.Core"
+    x:DataType="viewModels:CoreViewModel">
+
     <StackPanel HorizontalAlignment="Center" Orientation="Vertical">
-        <TextBlock
-            Classes="txt"
-            FontFamily="/Assets/Fonts/Roboto-Bold.ttf#Roboto"
-            FontSize="14"
-            Foreground="{StaticResource SecondaryTextColor}"
-            Margin="0,20,0,20"
-            Text="{CompiledBinding Translation.Image.Value,
-                                   Mode=OneWay}" />
 
-        <ToggleButton
-            Background="Transparent"
-            BorderThickness="0"
-            Classes="altHover changeColor"
-            IsChecked="{CompiledBinding GlobalSettings.IsStretched.Value}"
-            Margin="0,0,0,10"
-            ToolTip.Tip="{CompiledBinding Translation.Stretch.Value,
-                                          Mode=OneWay}"
-            Width="300">
+        <StackPanel Classes="searchHeader">
+            <Image
+                Width="18"
+                Height="18"
+                Source="{StaticResource ImageSettingImage}" />
             <TextBlock
-                Classes="txt"
-                Foreground="{StaticResource SecondaryTextColor}"
-                Margin="0"
-                MaxWidth="240"
-                Padding="0,1,5,0"
-                Text="{CompiledBinding Translation.Stretch.Value,
+                Margin="0,20,0,20"
+                Classes="txt bold"
+                Text="{CompiledBinding Translation.Image.Value,
                                        Mode=OneWay}" />
-        </ToggleButton>
+        </StackPanel>
 
-        <ToggleButton
-            Background="Transparent"
-            BorderThickness="0"
-            Classes="altHover changeColor"
-            Command="{CompiledBinding Tools.ToggleScrollCommand}"
-            IsChecked="{CompiledBinding GlobalSettings.IsScrollingEnabled.Value}"
-            Margin="0,0,0,10"
-            Width="300">
-            <TextBlock
-                Classes="txt"
-                Foreground="{StaticResource SecondaryTextColor}"
-                Margin="0"
-                MaxWidth="240"
-                Padding="0,1,5,0"
+        <!--  Scroll  -->
+        <Border ui:SearchProperties.Keywords="{CompiledBinding SettingsViewModel.SearchData.ImageScrollingSearchTags}" Classes="searchBorder">
+            <customControls:TextToggleButton
+                x:Name="ScrollToggleButton"
+                Classes="altHover settingsToggleButton"
+                Command="{CompiledBinding MainWindows.ActiveWindow.Value.ToggleScrollCommand}"
+                IsChecked="{CompiledBinding MainWindows.ActiveWindow.Value.IsScrollingEnabled.Value}"
                 Text="{CompiledBinding Translation.IsScrolling.Value,
                                        Mode=OneWay}" />
-        </ToggleButton>
+        </Border>
 
-
-        <ToggleButton
-            Background="Transparent"
-            BorderThickness="0"
-            Classes="altHover changeColor"
-            Command="{CompiledBinding Tools.ShowSideBySideCommand}"
-            IsChecked="{CompiledBinding PicViewer.IsShowingSideBySide.Value}"
-            Margin="0,0,0,10"
-            Width="300">
-            <TextBlock
-                Classes="txt"
-                Foreground="{StaticResource SecondaryTextColor}"
-                Margin="0"
-                MaxWidth="240"
-                Padding="0,1,5,0"
+        <!--  Side by side  -->
+        <Border ui:SearchProperties.Keywords="{CompiledBinding SettingsViewModel.SearchData.ImageSideBySideSearchTags}" Classes="searchBorder">
+            <customControls:TextToggleButton
+                x:Name="SideBySideToggleButton"
+                Classes="altHover settingsToggleButton"
+                Command="{CompiledBinding MainWindows.ActiveWindow.Value.SideBySideCommand}"
+                IsChecked="{Binding MainWindows.ActiveWindow.Value.IsSideBySide.Value, Mode=TwoWay}"
                 Text="{CompiledBinding Translation.SideBySide.Value,
                                        Mode=OneWay}" />
-        </ToggleButton>
 
-        <TextBlock
-            Classes="txt"
-            FontFamily="/Assets/Fonts/Roboto-Bold.ttf#Roboto"
-            FontSize="14"
-            Foreground="{StaticResource SecondaryTextColor}"
-            Margin="0,20,0,20"
-            Text="{CompiledBinding Translation.ImageAliasing.Value,
-                                   Mode=OneWay}" />
-        <ComboBox
-            Background="{DynamicResource SecondaryBackgroundColor}"
-            BorderBrush="{DynamicResource MainBorderColor}"
-            BorderThickness="1"
-            FontFamily="/Assets/Fonts/Roboto-Medium.ttf#Roboto"
-            Foreground="{DynamicResource MainTextColor}"
-            Margin="0,6,0,10"
-            Padding="5,7,0,7"
-            Width="300"
-            x:Name="ImageAliasingBox">
-            <ComboBoxItem Content="{CompiledBinding Translation.HighQuality.Value, Mode=OneWay}" Foreground="{DynamicResource MainTextColor}" />
-            <ComboBoxItem Content="{CompiledBinding Translation.None.Value, Mode=OneWay}" Foreground="{DynamicResource MainTextColor}" />
-        </ComboBox>
+        </Border>
+
+        <!--  Aliasing  -->
+        <Border ui:SearchProperties.Keywords="{CompiledBinding SettingsViewModel.SearchData.ImageScalingSearchTags}" Classes="searchBorder">
+            <StackPanel>
+                <TextBlock
+                    Margin="0,20,0,20"
+                    Classes="txt bold"
+                    Text="{CompiledBinding Translation.ImageAliasing.Value,
+                                           Mode=OneWay}" />
+                <ComboBox
+                    x:Name="ImageAliasingBox"
+                    Width="300"
+                    Margin="0,6,0,10"
+                    Padding="5,7,0,7"
+                    Background="{DynamicResource SecondaryBackgroundColor}"
+                    BorderBrush="{DynamicResource MainBorderColor}"
+                    BorderThickness="1"
+                    FontFamily="/Assets/Fonts/Roboto-Medium.ttf#Roboto"
+                    Foreground="{DynamicResource MainTextColor}"
+                    SelectedIndex="{CompiledBinding SettingsViewModel.ImageScalingIndex.Value,
+                                                    Mode=TwoWay}">
+                    <ComboBoxItem Content="{CompiledBinding Translation.HighQuality.Value, Mode=OneWay}" Foreground="{DynamicResource MainTextColor}" />
+                    <ComboBoxItem Content="{CompiledBinding Translation.None.Value, Mode=OneWay}" Foreground="{DynamicResource MainTextColor}" />
+                </ComboBox>
+            </StackPanel>
+        </Border>
 
     </StackPanel>
 </UserControl>

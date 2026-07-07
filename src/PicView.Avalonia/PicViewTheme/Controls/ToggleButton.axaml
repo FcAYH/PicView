@@ -3,7 +3,6 @@
     xmlns="https://github.com/avaloniaui"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
     <ControlTheme TargetType="ToggleButton" x:Key="{x:Type ToggleButton}">
-        <Setter Property="Padding" Value="4" />
         <Setter Property="HorizontalContentAlignment" Value="Center" />
         <Setter Property="VerticalContentAlignment" Value="Center" />
         <Setter Property="Template">
@@ -18,7 +17,7 @@
                     <StackPanel Orientation="Horizontal">
                         <Decorator
                             HorizontalAlignment="Center"
-                            Margin="{TemplateBinding Padding}"
+                            Margin="8"
                             VerticalAlignment="Center">
 
                             <Canvas Height="20" Width="20">

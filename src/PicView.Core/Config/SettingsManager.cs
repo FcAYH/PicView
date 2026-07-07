@@ -1,10 +1,11 @@
-﻿using System.Globalization;
+using System.Globalization;
 using System.Runtime.InteropServices;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using PicView.Core.Config.ConfigFileManagement;
 using PicView.Core.DebugTools;
 using PicView.Core.FileHandling;
+using PicView.Core.Gallery;
 
 namespace PicView.Core.Config;
 
@@ -164,7 +165,18 @@ public static class SettingsManager
         }
         else
         {
-            uiProperties = new UIProperties();
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+            {
+                uiProperties = new UIProperties
+                {
+                    BgColorChoice = 3
+                };
+            }
+            else
+            {
+                uiProperties = new UIProperties();
+            }
+            
         }
 
         return uiProperties;
@@ -228,6 +240,12 @@ public static class SettingsManager
     {
         existingSettings.UIProperties ??= GetDefaultUIProperties();
         existingSettings.Gallery ??= new Gallery();
+
+        if (existingSettings.Version < 2.0)
+        {
+            existingSettings.Gallery.DockPosition = GalleryDockPosition.Bottom;
+        }
+
         existingSettings.Theme ??= new Theme();
         existingSettings.Sorting ??= new Sorting();
         existingSettings.ImageScaling ??= new ImageScaling();

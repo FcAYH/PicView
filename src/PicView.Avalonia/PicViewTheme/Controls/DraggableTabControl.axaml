@@ -1,0 +1,49 @@
+﻿<ResourceDictionary
+    x:ClassModifier="internal"
+    xmlns="https://github.com/avaloniaui"
+    xmlns:customControls="clr-namespace:PicView.Avalonia.CustomControls"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <ControlTheme TargetType="customControls:DraggableTabControl" x:Key="{x:Type customControls:DraggableTabControl}">
+        <Setter Property="Template">
+            <ControlTemplate>
+                <DockPanel>
+                    <Border
+                        Background="{TemplateBinding Background}"
+                        BorderBrush="{TemplateBinding BorderBrush}"
+                        BorderThickness="{TemplateBinding BorderThickness}"
+                        CornerRadius="{TemplateBinding CornerRadius}"
+                        DockPanel.Dock="Top"
+                        HorizontalAlignment="{TemplateBinding HorizontalAlignment}"
+                        Name="border"
+                        Padding="{TemplateBinding Padding}"
+                        VerticalAlignment="{TemplateBinding VerticalAlignment}">
+                        <customControls:AutoScrollViewer
+                            DockPanel.Dock="Top"
+                            HorizontalScrollBarVisibility="Auto"
+                            Theme="{StaticResource ClickableMenuScrollButtons}"
+                            VerticalScrollBarVisibility="Disabled">
+                            <ItemsPresenter ItemsPanel="{TemplateBinding ItemsPanel}" Name="PART_ItemsPresenter" />
+                        </customControls:AutoScrollViewer>
+                    </Border>
+                    <ContentPresenter
+                        Content="{TemplateBinding SelectedContent}"
+                        ContentTemplate="{TemplateBinding SelectedContentTemplate}"
+                        HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
+                        Name="PART_SelectedContentHost"
+                        VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}" />
+                </DockPanel>
+            </ControlTemplate>
+        </Setter>
+
+        <!--  Default horizontal layout for tabs  -->
+        <Setter Property="ItemsPanel">
+            <ItemsPanelTemplate>
+                <customControls:ResponsiveTabPanel MinTabWidth="140" />
+            </ItemsPanelTemplate>
+        </Setter>
+
+        <Style Selector="^:singleitem  /template/ Border#border">
+            <Setter Property="IsVisible" Value="False" />
+        </Style>
+    </ControlTheme>
+</ResourceDictionary>

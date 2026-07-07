@@ -1,0 +1,46 @@
+﻿<UserControl
+    x:Class="PicView.Avalonia.Views.Config.KeybindingsView"
+    x:DataType="viewModels:CoreViewModel"
+    xmlns="https://github.com/avaloniaui"
+    xmlns:customControls="clr-namespace:PicView.Avalonia.CustomControls"
+    xmlns:ui="clr-namespace:PicView.Avalonia.UI"
+    xmlns:viewModels="clr-namespace:PicView.Core.ViewModels;assembly=PicView.Core"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <StackPanel HorizontalAlignment="Center">
+
+        <Border Classes="searchBorder" ui:SearchProperties.Keywords="{CompiledBinding SettingsViewModel.SearchData.KeybindingsSearchTags}">
+            <StackPanel>
+                <StackPanel Orientation="Horizontal" Spacing="12">
+                    <Image
+                        Height="18"
+                        Source="{StaticResource KeyImage}"
+                        Width="18" />
+                    <TextBlock
+                        Classes="txt bold searchHeader"
+                        Margin="0,20,0,20"
+                        Text="{CompiledBinding Translation.ApplicationShortcuts.Value,
+                                               Mode=OneWay}" />
+                </StackPanel>
+                <customControls:TextIconButton
+                    Background="{DynamicResource SecondaryBackgroundColor}"
+                    BorderBrush="{DynamicResource MainBorderColor}"
+                    BorderThickness="1"
+                    Classes="altHover"
+                    Command="{Binding MainWindows.ActiveWindow.Value.KeybindingsWindowCommand}"
+                    CornerRadius="4"
+                    HorizontalAlignment="Center"
+                    Icon="{StaticResource KeyImage}"
+                    IconHeight="18"
+                    IconMargin="5,5,10,5"
+                    IconWidth="18"
+                    Padding="6"
+                    Text="{Binding Translation.ApplicationShortcuts.Value}"
+                    Width="300"
+                    x:Name="KeyBindingsButton" />
+            </StackPanel>
+        </Border>
+    </StackPanel>
+
+
+</UserControl>

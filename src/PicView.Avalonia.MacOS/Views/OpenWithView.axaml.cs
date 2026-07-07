@@ -5,9 +5,10 @@ using Avalonia.Interactivity;
 using Avalonia.Layout;
 using Avalonia.Threading;
 using PicView.Avalonia.UI;
-using PicView.Avalonia.ViewModels;
+using PicView.Avalonia.Views.UC;
 using PicView.Core.MacOS.AppLauncher;
 using PicView.Core.MacOS.FileAssociation;
+using PicView.Core.ViewModels;
 
 namespace PicView.Avalonia.MacOS.Views;
 
@@ -51,18 +52,21 @@ public partial class OpenWithView : Window
     {
         if (_filePath is null)
         {
-            if (DataContext is not MainViewModel vm)
+            if (DataContext is not MainWindowViewModel vm)
             {
                 return;
             }
-            _filePath = vm.PicViewer?.FileInfo?.CurrentValue.FullName;
+            _filePath = vm.WindowTabs.ActiveTab.CurrentValue.FileInfo.CurrentValue?.FullName;
         }
 
 
         // Focus the window
         Focus();
         
-        CancelButton.Click += (_, _) => (VisualRoot as Window)?.Close();
+        CancelButton.Click += (_, _) =>
+        {
+            Close();
+        };
 
         Task.Run(async () =>
         {

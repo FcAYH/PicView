@@ -1,5 +1,6 @@
 ﻿using Microsoft.Win32;
 using PicView.Core.DebugTools;
+using PicView.Core.Extensions;
 using PicView.Core.Titles;
 #if DEBUG
 using System.Diagnostics;
@@ -19,7 +20,7 @@ public static class WindowsFileAssociation
                 extension = extension[1..];
             }
 
-            var progId = $"{ImageTitleFormatter.AppName}.{extension}";
+            var progId = $"{StringExtensions.AppName}.{extension}";
             var executablePath = Environment.ProcessPath;
 
             // Associate extension with progID
@@ -66,7 +67,7 @@ public static class WindowsFileAssociation
             if (extension.StartsWith('.'))
                 extension = extension[1..];
                 
-            var progId = $"{ImageTitleFormatter.AppName}.{extension}";
+            var progId = $"{StringExtensions.AppName}.{extension}";
                 
             // Delete the extension association
             Registry.CurrentUser.DeleteSubKeyTree($@"Software\Classes\.{extension}", false);
@@ -94,7 +95,7 @@ public static class WindowsFileAssociation
             if (extension.StartsWith("."))
                 extension = extension[1..];
                 
-            var progId = $"{ImageTitleFormatter.AppName}.{extension}";
+            var progId = $"{StringExtensions.AppName}.{extension}";
 
             using var extKey = Registry.CurrentUser.OpenSubKey($@"Software\Classes\.{extension}");
             return extKey != null && string.Equals(extKey.GetValue("") as string, progId, StringComparison.OrdinalIgnoreCase);

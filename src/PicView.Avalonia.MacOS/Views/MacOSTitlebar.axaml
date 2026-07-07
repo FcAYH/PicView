@@ -1,94 +1,76 @@
-<UserControl
-    IsVisible="{CompiledBinding MainWindow.IsTopToolbarShown.Value,
-                                Mode=OneWay}"
-    mc:Ignorable="d"
+<customControls:MainTitleBar
     x:Class="PicView.Avalonia.MacOS.Views.MacOSTitlebar"
-    x:DataType="viewModels:MainViewModel"
-    x:Name="Titlebar"
     xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:customControls="clr-namespace:PicView.Avalonia.CustomControls;assembly=PicView.Avalonia"
-    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:uc="clr-namespace:PicView.Avalonia.Views.UC;assembly=PicView.Avalonia"
-    xmlns:viewModels="clr-namespace:PicView.Avalonia.ViewModels;assembly=PicView.Avalonia"
-    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
-    <Design.DataContext>
-        <viewModels:MainViewModel />
-    </Design.DataContext>
+    xmlns:viewModels="clr-namespace:PicView.Core.ViewModels;assembly=PicView.Core"
+    x:Name="Titlebar"
+    x:DataType="viewModels:MainWindowViewModel"
+    IsVisible="{CompiledBinding IsTopToolbarShown.Value,
+                                Mode=OneWay}">
 
     <DockPanel
+        x:Name="TopWindowBorder"
         Background="{DynamicResource MainBackgroundColor}"
-        LastChildFill="True"
-        x:Name="TopWindowBorder">
-        <Rectangle DockPanel.Dock="Left" Width="70" />
+        LastChildFill="True">
+
+        <!--  Traffic lights reserved  -->
+        <Rectangle Width="70" DockPanel.Dock="Left" />
 
         <customControls:IconButton
-            Background="Transparent"
-            BorderBrush="{DynamicResource MainBorderColor}"
-            BorderThickness="0"
-            Classes="hover"
-            Command="{CompiledBinding Tools.FlipCommand}"
-            Data="{StaticResource FlipGeometry}"
-            DockPanel.Dock="Right"
-            Foreground="{DynamicResource MainTextColor}"
-            IconHeight="12"
-            IconWidth="12"
-            IsEnabled="{CompiledBinding PicViewer.FileInfo.Value,
-                                        Converter={x:Static ObjectConverters.IsNotNull}}"
-            IsRepeatEnabled="False"
-            IsTabStop="False"
-            Margin="0"
-            ToolTip.Tip="{CompiledBinding Translation.IsFlipped.Value,
-                                          Mode=OneWay}"
+            x:Name="DropDownMenuButton"
             Width="30"
-            x:Name="FlipButton">
-            <Button.RenderTransform>
-                <ScaleTransform ScaleX="{CompiledBinding PicViewer.ScaleX.Value}" />
-            </Button.RenderTransform>
-        </customControls:IconButton>
-
-        <customControls:IconButton
             Background="Transparent"
             BorderBrush="{DynamicResource MainBorderColor}"
             BorderThickness="0"
-            Classes="hover"
-            Command="{CompiledBinding Tools.RotateRightCommand}"
-            DockPanel.Dock="Right"
-            Foreground="{DynamicResource MainTextColor}"
-            Icon="{StaticResource RefreshCcwDot}"
-            IconHeight="13"
-            IconWidth="13"
-            IsEnabled="{CompiledBinding PicViewer.FileInfo.Value,
-                                        Converter={x:Static ObjectConverters.IsNotNull}}"
-            IsRepeatEnabled="False"
-            IsTabStop="False"
-            Margin="0"
-            ToolTip.Tip="{CompiledBinding Translation.RotateRight.Value,
-                                          Mode=OneWay}"
-            Width="30"
-            x:Name="RotateRightButton" />
-
-        <customControls:IconButton
-            Background="Transparent"
-            BorderBrush="{DynamicResource MainBorderColor}"
-            BorderThickness="0"
-            Classes="hover"
-            Command="{CompiledBinding Gallery.ToggleGalleryCommand}"
-            Data="{StaticResource GalleryGeometry}"
+            Classes="altHover"
+            Command="{CompiledBinding TopTitlebarViewModel.ToggleDropDownMenuCommand}"
+            Data="{StaticResource FilledArrowDownGeometry}"
             DockPanel.Dock="Right"
             Foreground="{DynamicResource MainTextColor}"
             IconHeight="17"
             IconWidth="17"
-            IsEnabled="{CompiledBinding PicViewer.FileInfo.Value,
-                                        Converter={x:Static ObjectConverters.IsNotNull}}"
+            IsRepeatEnabled="False"
+            IsTabStop="False" />
+
+        <customControls:IconButton
+            x:Name="CreateTabButton"
+            Width="30"
+            Margin="0"
+            Background="Transparent"
+            BorderBrush="{DynamicResource MainBorderColor}"
+            BorderThickness="0"
+            Classes="altHover"
+            Command="{CompiledBinding WindowTabs.CreateTab}"
+            Data="{StaticResource AddGeometry}"
+            DockPanel.Dock="Right"
+            Foreground="{DynamicResource MainTextColor}"
+            IconHeight="13"
+            IconWidth="13"
             IsRepeatEnabled="False"
             IsTabStop="False"
-            Name="GalleryButton"
-            Width="30" />
+            IsVisible="{Binding !WindowTabs.ActiveTab.Value.Gallery.IsGalleryDocked.Value}" />
+
+        <customControls:IconButton
+            x:Name="SearchButton"
+            Width="30"
+            Margin="0"
+            Background="Transparent"
+            BorderBrush="{DynamicResource MainBorderColor}"
+            BorderThickness="0"
+            Classes="altHover"
+            DockPanel.Dock="Right"
+            Foreground="{DynamicResource MainTextColor}"
+            Icon="{StaticResource SearchImage}"
+            IconHeight="13"
+            IconWidth="13"
+            IsRepeatEnabled="False"
+            IsTabStop="False" />
 
         <uc:EditableTitlebar
+            x:Name="EditableTitlebar"
             Background="Transparent"
-            Foreground="{DynamicResource MainTextColor}"
-            x:Name="EditableTitlebar" />
+            Foreground="{DynamicResource MainTextColor}" />
     </DockPanel>
-</UserControl>
+</customControls:MainTitleBar>

@@ -1,52 +1,58 @@
-﻿using Avalonia.Interactivity;
+﻿using Avalonia;
+using Avalonia.Interactivity;
 using Avalonia.LogicalTree;
 using PicView.Avalonia.CustomControls;
 using PicView.Avalonia.Functions;
-using PicView.Avalonia.UI;
-using PicView.Avalonia.ViewModels;
+using PicView.Core.DebugTools;
+using PicView.Core.ViewModels;
 using R3;
 
 namespace PicView.Avalonia.Views.UC.PopUps;
 
 public partial class QuickSettingsDialog : AnimatedPopUp
 {
-    private readonly CompositeDisposable _subscriptions = new();
+    private DisposableBag _disposables;
     public QuickSettingsDialog()
     {
-        DataContext = UIHelper.GetMainView.DataContext as MainViewModel;
         InitializeComponent();
         Loaded += OnLoaded;
     }
 
     private void OnLoaded(object? sender, RoutedEventArgs e)
     {
-        // Ensure we don't double-subscribe if Loaded fires multiple times
-        _subscriptions.Clear();
-
         Observable.FromEventHandler<RoutedEventArgs>(h => AllSettingsButton.Click += h,
                 h => AllSettingsButton.Click -= h)
             .SubscribeAwait(async (_, _) =>
             {
                 _ = AnimatedClosing();
-                await FunctionsMapper.SettingsWindow();
-            })
-            .AddTo(_subscriptions);
+                if (Application.Current.DataContext is not CoreViewModel core)
+                {
+                    return;
+                }
+
+                await core.MainWindows.ActiveWindow.CurrentValue.Mapper.SettingsWindow();
+            }, DebugHelper.LogError(nameof(QuickSettingsDialog), nameof(FunctionsMapper.SettingsWindow)))
+            .AddTo(ref _disposables);
         
         Observable.FromEventHandler<RoutedEventArgs>(h => AboutButton.Click += h,
                 h => AboutButton.Click -= h)
             .SubscribeAwait(async (_, _) =>
             {
                 _ = AnimatedClosing();
-                await FunctionsMapper.AboutWindow();
-            })
-            .AddTo(_subscriptions);
+                if (Application.Current.DataContext is not CoreViewModel core)
+                {
+                    return;
+                }
+
+                await core.MainWindows.ActiveWindow.CurrentValue.Mapper.AboutWindow();
+            }, DebugHelper.LogError(nameof(QuickSettingsDialog), nameof(FunctionsMapper.AboutWindow)))
+            .AddTo(ref _disposables);
     }
 
     protected override void OnDetachedFromLogicalTree(LogicalTreeAttachmentEventArgs e)
     {
         base.OnDetachedFromLogicalTree(e);
         Loaded -= OnLoaded;
-        // Dispose current subscriptions but keep the CompositeDisposable reusable
-        _subscriptions.Clear();
+        _disposables.Dispose();
     }
 }

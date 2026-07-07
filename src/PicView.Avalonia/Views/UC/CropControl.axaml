@@ -1,12 +1,13 @@
 ﻿<UserControl
     x:Class="PicView.Avalonia.Views.UC.CropControl"
-    x:DataType="viewModels:MainViewModel"
     xmlns="https://github.com/avaloniaui"
-    xmlns:viewModels="clr-namespace:PicView.Avalonia.ViewModels"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:customControls="clr-namespace:PicView.Avalonia.CustomControls"
+    xmlns:viewModels="clr-namespace:PicView.Core.ViewModels;assembly=PicView.Core"
+    x:DataType="viewModels:TabViewModel"
     ClipToBounds="False">
     <UserControl.Resources>
-        <SolidColorBrush Color="{DynamicResource MainTextColor}" x:Key="Brush0" />
+        <SolidColorBrush x:Key="Brush0" Color="{DynamicResource MainTextColor}" />
     </UserControl.Resources>
     <UserControl.Styles>
         <Styles>
@@ -23,63 +24,65 @@
     </UserControl.Styles>
     <UserControl.ContextMenu>
         <ContextMenu x:Name="CropContextMenu">
-            <MenuItem Command="{CompiledBinding Crop.CropImageCommand}" Header="{CompiledBinding Translation.Crop.Value, Mode=OneWay}">
+            <MenuItem Command="{CompiledBinding Crop.CropImageCommand}" Header="{CompiledBinding $parent[Window].((viewModels:MainWindowViewModel)DataContext).Translation.Crop.Value, Mode=OneWay}">
                 <MenuItem.Icon>
-                    <Path
-                        Data="{StaticResource CropGeometry}"
-                        Fill="{StaticResource Brush0}"
+                    <Image
+                        Width="12"
                         Height="12"
-                        Stretch="Fill"
-                        Width="12" />
+                        Source="{StaticResource CropImage}" />
                 </MenuItem.Icon>
             </MenuItem>
-            <MenuItem Command="{CompiledBinding Crop.CopyCropImageCommand}" Header="{CompiledBinding Translation.Copy.Value, Mode=OneWay}">
+            <MenuItem Command="{CompiledBinding Crop.CopyCropImageCommand}" Header="{CompiledBinding $parent[Window].((viewModels:MainWindowViewModel)DataContext).Translation.Copy.Value, Mode=OneWay}">
                 <MenuItem.Icon>
                     <Path
+                        Width="12"
+                        Height="12"
                         Data="{StaticResource CopyGeometry}"
                         Fill="{StaticResource Brush0}"
-                        Height="12"
-                        Stretch="Fill"
-                        Width="12" />
+                        Stretch="Fill" />
                 </MenuItem.Icon>
             </MenuItem>
-            <MenuItem Command="{CompiledBinding Crop.CloseCropCommand}" Header="{CompiledBinding Translation.Close.Value, Mode=OneWay}">
+            <MenuItem Command="{CompiledBinding Crop.CloseCropCommand}" Header="{CompiledBinding $parent[Window].((viewModels:MainWindowViewModel)DataContext).Translation.Close.Value, Mode=OneWay}">
                 <MenuItem.Icon>
                     <Path
+                        Width="12"
+                        Height="12"
                         Data="{StaticResource CloseGeometry}"
                         Fill="{StaticResource Brush0}"
-                        Height="12"
-                        Stretch="Fill"
-                        Width="12" />
+                        Stretch="Fill" />
                 </MenuItem.Icon>
             </MenuItem>
         </ContextMenu>
     </UserControl.ContextMenu>
     <Panel>
         <!--  Image control to display the bitmap  -->
-        <Image Source="{Binding Crop.Bitmap.Value}" x:Name="ImageControl" />
+        <customControls:PicBox
+            x:Name="ImageControl"
+            CurrentFileInfo="{Binding FileInfo.Value}"
+            ImageType="{Binding ImageType.Value}"
+            Source="{Binding Image.Value}" />
 
-        <Canvas Background="Transparent" x:Name="RootCanvas">
+        <Canvas x:Name="RootCanvas" Background="Transparent">
 
             <!--  Size Border  -->
             <Border
+                x:Name="SizeBorder"
+                Padding="8,5"
                 Background="{DynamicResource SecondaryButtonBackgroundColor}"
                 BorderBrush="{DynamicResource MainBorderColor}"
                 BorderThickness="1"
                 CornerRadius="4"
                 IsHitTestVisible="False"
-                Padding="8,5"
-                ZIndex="2"
-                x:Name="SizeBorder">
+                ZIndex="2">
                 <TextBlock
                     Classes="txt"
                     FontSize="14"
                     Foreground="{DynamicResource MainTextColor}">
-                    <Run Text="{CompiledBinding Translation.Width.Value, Mode=OneWay}" />
+                    <Run Text="{CompiledBinding $parent[Window].((viewModels:MainWindowViewModel)DataContext).Translation.Width.Value, Mode=OneWay}" />
                     <Run Text=": " />
                     <Run Text="{CompiledBinding Crop.PixelSelectionWidth.Value, Mode=OneWay}" />
                     <Run Text=" x " />
-                    <Run Text="{CompiledBinding Translation.Height.Value, Mode=OneWay}" />
+                    <Run Text="{CompiledBinding $parent[Window].((viewModels:MainWindowViewModel)DataContext).Translation.Height.Value, Mode=OneWay}" />
                     <Run Text=": " />
                     <Run Text="{CompiledBinding Crop.PixelSelectionHeight.Value, Mode=OneWay}" />
                 </TextBlock>
@@ -87,66 +90,67 @@
 
             <!--  Main Rectangle  -->
             <Border
+                x:Name="MainRectangle"
+                Width="{CompiledBinding Crop.SelectionWidth.Value}"
+                Height="{CompiledBinding Crop.SelectionHeight.Value}"
                 Background="Transparent"
                 BorderBrush="#fff"
                 BorderThickness="2"
-                Height="{CompiledBinding Crop.SelectionHeight.Value}"
-                Width="{CompiledBinding Crop.SelectionWidth.Value}"
-                x:Name="MainRectangle" />
+                Cursor="Hand" />
 
             <!--  Top Left  -->
             <Border
+                x:Name="TopLeftButton"
                 Classes="x"
-                Cursor="TopLeftCorner"
-                x:Name="TopLeftButton" />
+                Cursor="TopLeftCorner" />
 
             <!--  Top Right  -->
             <Border
+                x:Name="TopRightButton"
                 Classes="x"
-                Cursor="TopRightCorner"
-                x:Name="TopRightButton" />
+                Cursor="TopRightCorner" />
 
             <!--  Top Middle  -->
             <Border
+                x:Name="TopMiddleButton"
                 Classes="x"
-                Cursor="SizeNorthSouth"
-                x:Name="TopMiddleButton" />
+                Cursor="SizeNorthSouth" />
 
             <!--  Bottom Right  -->
             <Border
+                x:Name="BottomRightButton"
                 Classes="x"
-                Cursor="BottomRightCorner"
-                x:Name="BottomRightButton" />
+                Cursor="BottomRightCorner" />
 
             <!--  Bottom Middle  -->
             <Border
+                x:Name="BottomMiddleButton"
                 Classes="x"
-                Cursor="SizeNorthSouth"
-                x:Name="BottomMiddleButton" />
+                Cursor="SizeNorthSouth" />
 
             <!--  Bottom Left  -->
             <Border
+                x:Name="BottomLeftButton"
                 Classes="x"
-                Cursor="BottomLeftCorner"
-                x:Name="BottomLeftButton" />
+                Cursor="BottomLeftCorner" />
 
             <!--  Left Middle  -->
             <Border
+                x:Name="LeftMiddleButton"
                 Classes="x"
-                Cursor="SizeWestEast"
-                x:Name="LeftMiddleButton" />
+                Cursor="SizeWestEast" />
 
             <!--  Right Middle  -->
             <Border
+                x:Name="RightMiddleButton"
                 Classes="x"
-                Cursor="SizeWestEast"
-                x:Name="RightMiddleButton" />
+                Cursor="SizeWestEast" />
 
             <!--  Surrounding rectangles  -->
-            <Rectangle Fill="#80000000" x:Name="TopRectangle" />
-            <Rectangle Fill="#80000000" x:Name="BottomRectangle" />
-            <Rectangle Fill="#80000000" x:Name="LeftRectangle" />
-            <Rectangle Fill="#80000000" x:Name="RightRectangle" />
+            <Rectangle x:Name="TopRectangle" Fill="#80000000" />
+            <Rectangle x:Name="BottomRectangle" Fill="#80000000" />
+            <Rectangle x:Name="LeftRectangle" Fill="#80000000" />
+            <Rectangle x:Name="RightRectangle" Fill="#80000000" />
         </Canvas>
     </Panel>
 </UserControl>

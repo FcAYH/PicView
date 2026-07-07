@@ -2,112 +2,122 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Media;
-using Avalonia.Threading;
+using PicView.Avalonia.CustomControls;
 using PicView.Avalonia.Input;
 using PicView.Avalonia.UI;
-using PicView.Avalonia.ViewModels;
-using PicView.Avalonia.WindowBehavior;
 using PicView.Core.Config;
+using PicView.Core.Extensions;
 using PicView.Core.FileAssociations;
 using PicView.Core.Localization;
 using PicView.Core.MacOS.FileAssociation;
-using PicView.Core.Sizing;
+using PicView.Core.ViewModels;
 using R3;
 
 namespace PicView.Avalonia.MacOS.Views;
 
-public partial class SettingsWindow : Window
+public partial class SettingsWindow : GenericWindow
 {
     private readonly SettingsWindowConfig _config;
+    private readonly IDisposable? _disposable;
     
     public SettingsWindow(SettingsWindowConfig config)
     {
         _config = config;
         InitializeComponent();
-        Task.Run(async () =>
+
+        if (_config.WindowProperties.Maximized)
         {
-            await _config.LoadAsync();
-            await Dispatcher.UIThread.InvokeAsync(() =>
+            WindowState = WindowState.Maximized;
+        }
+        else
+        {
+            var left = _config.WindowProperties.Left;
+            var top = _config.WindowProperties.Top;
+            if (left.HasValue && top.HasValue)
             {
-                if (_config.WindowProperties.Maximized)
-                {
-                    WindowState = WindowState.Maximized;
-                }
-                else
-                {
-                    var left = _config.WindowProperties.Left;
-                    var top = _config.WindowProperties.Top;
-                    if (left.HasValue && top.HasValue)
-                    {
-                        Position = new PixelPoint(left.Value, top.Value);
-                    }
-                }
-            });
-        });
-        MinHeight = ScreenHelper.ScreenSize.WorkingAreaHeight switch
-        {
-            < 650 => 600,
-            >= 650 => 700,
-            _ => SizeDefaults.WindowMinSize
-        };
+                Position = new PixelPoint(left.Value, top.Value);
+            }
+
+            var width = _config.WindowProperties.Width;
+            var height = _config.WindowProperties.Height;
+            if (width.HasValue && height.HasValue)
+            {
+                Width = width.Value;
+                Height = height.Value;
+            }
+        }
         if (!Settings.Theme.Dark || Settings.Theme.GlassTheme)
         {
             TitleText.Background = Brushes.Transparent;
             SettingsView.Background = Brushes.Transparent;
             SettingsButton.Background = Brushes.Transparent;
+            
+            HomeButton.Classes.Remove("noBorderHover");
+            HomeButton.Classes.Add("hover");
+            GoBackButton.Classes.Remove("noBorderHover");
+            GoBackButton.Classes.Add("hover");
+            GoForwardButton.Classes.Remove("noBorderHover");
+            GoForwardButton.Classes.Add("hover");
+        }
+
+        if (!Settings.Theme.Dark)
+        {
+            MainBorder.Background = UIHelper.GetMenuBackgroundColor();
         }
         Loaded += delegate
         {
-            MinWidth = MaxWidth = Bounds.Width;
-            Height = 500;
-            Title = TranslationManager.Translation.Settings + " - PicView";
-
-            if (DataContext is not MainViewModel vm)
+            if (DataContext is not CoreViewModel core)
             {
                 return;
             }
+            core.SettingsViewModel.RestoreLastTab(_config.WindowProperties.LastTab);
 
-            PositionChanged += (_, _) => UpdateWindowPosition();
-            
-            GoForwardButton.Command = vm.SettingsViewModel.GoForwardCommand;
-            GoBackButton.Command = vm.SettingsViewModel.GoBackCommand;
+            Title = StringExtensions.CombineWithAppName(TranslationManager.Translation.Settings);
+            SettingsView.Focus();
+
+            GoForwardButton.Command = core.SettingsViewModel?.GoForwardCommand;
+            GoBackButton.Command = core.SettingsViewModel?.GoBackCommand;
+            HomeButton.Command = core.SettingsViewModel?.GoHomeCommand;
         };
         KeyDown += (_, e) =>
         {
-            if (e.Key is Key.Escape)
+            var ctrl = e.KeyModifiers.HasFlag(KeyModifiers.Control) || e.KeyModifiers.HasFlag(KeyModifiers.Meta);
+            switch (e.Key)
             {
-                e.Handled = true;
-                MainKeyboardShortcuts.IsEscKeyEnabled = false;
-                Close();
+                case Key.Escape:
+                    MainKeyboardShortcuts.IsEscKeyEnabled = false;
+                    Close();
+                    break;
+                case Key.F when ctrl:
+                    break;
             }
         };
-        
+
         Closing += async delegate
         {
             Hide();
-            if (VisualRoot is null)
+            if (DataContext is CoreViewModel vm)
             {
-                return;
+                _config.WindowProperties.LastTab = vm.SettingsViewModel.GetLastTabId();
             }
-
-            var hostWindow = (Window)VisualRoot;
-            hostWindow?.Focus();
             await _config.SaveAsync();
             await SaveSettingsAsync();
+            _disposable?.Dispose();
         };
-        
+
+        _disposable = ClientSizeProperty.Changed.ToObservable()
+            .Subscribe(UpdateWindowSizeAndPosition);
+
         InitializeFileAssociationManager();
     }
-
-    private void MoveWindow(object? sender, PointerPressedEventArgs e)
-    {
-        BeginMoveDrag(e);
-    }
     
-    private void UpdateWindowPosition()
+    private void UpdateWindowSizeAndPosition(AvaloniaPropertyChangedEventArgs<Size> size)
     {
         _config.WindowProperties.Left = Position.X;
         _config.WindowProperties.Top = Position.Y;
+
+        _config.WindowProperties.Width = Bounds.Width;
+        _config.WindowProperties.Height = Bounds.Height;
     }
     
     private static void InitializeFileAssociationManager()

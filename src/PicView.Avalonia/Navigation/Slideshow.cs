@@ -1,19 +1,17 @@
-﻿using PicView.Avalonia.Gallery;
+using Avalonia;
 using PicView.Avalonia.Input;
-using PicView.Avalonia.UI;
-using PicView.Avalonia.ViewModels;
 using PicView.Avalonia.WindowBehavior;
-using PicView.Core.Gallery;
+using PicView.Core.ViewModels;
 using Timer = System.Timers.Timer;
 
 namespace PicView.Avalonia.Navigation;
 
 public static class Slideshow
 {
-    public static bool IsRunning => _timer is not null && _timer.Enabled;
+    public static bool IsRunning { get; private set; }
     
     private static Timer? _timer;
-    public static async Task StartSlideshow(MainViewModel vm)
+    public static async Task StartSlideshow(MainWindowViewModel vm)
     {
         if (!InitiateAndStart(vm))
         {
@@ -23,7 +21,7 @@ public static class Slideshow
         await Start(vm, TimeSpan.FromSeconds(Settings.UIProperties.SlideShowTimer).TotalMilliseconds);
     }
 
-    public static async Task StartSlideshow(MainViewModel vm, int milliseconds)
+    public static async Task StartSlideshow(MainWindowViewModel vm, int milliseconds)
     {
         if (!InitiateAndStart(vm))
         {
@@ -40,8 +38,10 @@ public static class Slideshow
         }
     }
     
-    public static void StopSlideshow(MainViewModel vm)
+    public static void StopSlideshow(MainWindowViewModel vm)
     {
+        IsRunning = false;
+        
         if (_timer is null)
         {
             return;
@@ -55,20 +55,18 @@ public static class Slideshow
                 WindowFunctions.CenterWindowOnScreen();
             }
         }
-
-        if (Settings.Gallery.IsBottomGalleryShown)
-        {
-            vm.Gallery.GalleryMode.Value = GalleryMode.ClosedToBottom;
-        }
         
         _timer.Stop();
         _timer = null;
-        vm.PlatformService.EnableScreensaver();
+        if (Application.Current.DataContext is CoreViewModel core)
+        {
+            core.PlatformService.EnableScreensaver();
+        }
     }
 
-    private static bool InitiateAndStart(MainViewModel vm)
+    private static bool InitiateAndStart(MainWindowViewModel vm)
     {
-        if (!NavigationManager.CanNavigate(vm))
+        if (!vm.WindowTabs.ActiveTab.CurrentValue.CanNavigateForwards.CurrentValue)
         {
             return false;
         }
@@ -86,7 +84,7 @@ public static class Slideshow
                 // https://docs.avaloniaui.net/docs/guides/graphics-and-animation/page-transitions/how-to-create-a-custom-page-transition
                 // https://docs.avaloniaui.net/docs/guides/graphics-and-animation/page-transitions/page-slide-transition
                 // https://docs.avaloniaui.net/docs/reference/controls/transitioningcontentcontrol
-                await NavigationManager.Navigate(true, vm, CancellationToken.None).ConfigureAwait(false);
+                await vm.WindowTabs.NextFile();
             };
         }
         else if (_timer.Enabled)
@@ -102,23 +100,20 @@ public static class Slideshow
         return true;
     }
 
-    private static async Task Start(MainViewModel vm, double seconds)
+    private static async Task Start(MainWindowViewModel vm, double seconds)
     {
         _timer.Interval = seconds;
         _timer.Start();
-        vm.PlatformService.DisableScreensaver();
-
-        MenuManager.CloseMenus(vm);
+        IsRunning = true;
+        if (Application.Current.DataContext is CoreViewModel core)
+        {
+            core.PlatformService.DisableScreensaver();
+        }
 
         if (!Settings.WindowProperties.Fullscreen)
         {
             await vm.PlatformWindowService.ToggleFullscreen();
             Settings.WindowProperties.Fullscreen = false;
-        }
-
-        if (GalleryFunctions.IsFullGalleryOpen || Settings.Gallery.IsBottomGalleryShown)
-        {
-            vm.Gallery.GalleryMode.Value = GalleryMode.BottomToClosed;
         }
     }
 }

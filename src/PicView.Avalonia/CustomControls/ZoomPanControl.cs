@@ -3,10 +3,7 @@ using Avalonia.Animation;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
-using Avalonia.Layout;
 using Avalonia.Media;
-using PicView.Avalonia.UI;
-using PicView.Avalonia.ViewModels;
 using PicView.Avalonia.Views.UC;
 
 namespace PicView.Avalonia.CustomControls;
@@ -19,6 +16,9 @@ public class ZoomPanControl : Decorator
     public static readonly StyledProperty<double> DeadzoneToleranceProperty =
         AvaloniaProperty.Register<ZoomPanControl, double>(nameof(DeadzoneTolerance), 0.05);
 
+    public static readonly StyledProperty<double> FittingScaleProperty =
+        AvaloniaProperty.Register<ZoomPanControl, double>(nameof(FittingScale), 1.0);
+
     /// <summary>
     /// The tolerance range around 1.0 where zoom will snap to reset (1.0).
     /// For example, 0.05 means zoom values between 0.95 and 1.05 will snap to 1.0.
@@ -27,6 +27,16 @@ public class ZoomPanControl : Decorator
     {
         get => GetValue(DeadzoneToleranceProperty);
         set => SetValue(DeadzoneToleranceProperty, Math.Max(0, value));
+    }
+
+    /// <summary>
+    /// The initial scaling factor used to fit the image.
+    /// Used to calculate ZoomLevel relative to pixel dimensions.
+    /// </summary>
+    public double FittingScale
+    {
+        get => GetValue(FittingScaleProperty);
+        set => SetValue(FittingScaleProperty, value);
     }
 
     // Transform Properties
@@ -56,32 +66,21 @@ public class ZoomPanControl : Decorator
     private Point _panStartTranslate;
 
     // UI Components
-    private ZoomPreviewer? _zoomPreviewer;
+    public ZoomPreviewer? ZoomPreviewer;
 
     #endregion
 
     #region Initialization and Lifecycle
 
-    public void Initialize()
+    public void Initialize(ZoomPreviewer zoomPreviewer)
     {
         // Pointer handling for panning
         AddHandler(PointerPressedEvent, HandleResetZoomOrStartPanning, RoutingStrategies.Tunnel);
         AddHandler(PointerMovedEvent, HandlePanning, RoutingStrategies.Tunnel);
         AddHandler(PointerReleasedEvent, StopPanning, RoutingStrategies.Tunnel);
 
-        _zoomPreviewer = new ZoomPreviewer
-        {
-            DataContext = DataContext,
-            HorizontalAlignment = HorizontalAlignment.Right,
-            VerticalAlignment = VerticalAlignment.Bottom,
-            Margin = new Thickness(0, 0, 25, 25),
-            ZIndex = 90,
-            IsVisible = false
-        };
-        _zoomPreviewer.SetZoomPanControl(this);
-
-        // TODO: should figure out how to make a more self-contained approach, for ZoomPreviewer, for possible future tab-based layout
-        UIHelper.GetMainView.MainGrid.Children.Add(_zoomPreviewer);
+        zoomPreviewer.SetZoomPanControl(this);
+        ZoomPreviewer = zoomPreviewer;
     }
 
     protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
@@ -89,12 +88,12 @@ public class ZoomPanControl : Decorator
         base.OnAttachedToVisualTree(e);
 
         // Show preview window when attached
-        if (_zoomPreviewer is not { IsVisible: false })
+        if (ZoomPreviewer is not { IsVisible: false })
         {
             return;
         }
 
-        _zoomPreviewer.SetVisible();
+        ZoomPreviewer.SetVisible();
         UpdatePreviewWindow();
     }
 
@@ -115,9 +114,7 @@ public class ZoomPanControl : Decorator
         RemoveHandler(PointerPressedEvent, HandleResetZoomOrStartPanning);
         RemoveHandler(PointerMovedEvent, HandlePanning);
         RemoveHandler(PointerReleasedEvent, StopPanning);
-
-        UIHelper.GetMainView.MainGrid.Children.Remove(_zoomPreviewer);
-        _zoomPreviewer = null;
+        
         base.OnDetachedFromVisualTree(e);
     }
 
@@ -174,10 +171,10 @@ public class ZoomPanControl : Decorator
             return;
         }
 
-        _zoomPreviewer?.IsVisible = false;
+        ZoomPreviewer?.IsVisible = false;
 
-        ApplyZoomAndTitle(1.0, CenterPoint(), animated);
-        SetZoomValue(100);
+        SetTransitionsAndScale(1.0, CenterPoint(), animated);
+        UpdateZoomLevel();
     }
 
     /// <summary>
@@ -185,13 +182,17 @@ public class ZoomPanControl : Decorator
     /// </summary>
     public void ResetZoomSlim()
     {
+        if (Scale is 1.0)
+        {
+            return;
+        }
         SetTransitions(false);
         Scale = 1.0;
         TranslateX = 0;
         TranslateY = 0;
         SetScaleImmediate(1.0, CenterPoint());
 
-        SetZoomValue(100);
+        UpdateZoomLevel();
     }
 
     /// <summary>
@@ -212,7 +213,7 @@ public class ZoomPanControl : Decorator
         ConstrainTranslationToBounds();
         UpdateChildTransform();
 
-        SetZoomValue(newScale * 100);
+        UpdateZoomLevel();
     }
 
     /// <summary>
@@ -341,22 +342,11 @@ public class ZoomPanControl : Decorator
         // Check if target scale is within deadzone
         if (!(targetScale >= lowerBound) || !(targetScale <= upperBound))
         {
-            ApplyZoomAndTitle(targetScale, center, animated);
+            SetTransitionsAndScale(targetScale, center, animated);
         }
         else
         {
             ResetZoom(animated);
-        }
-    }
-
-    private void ApplyZoomAndTitle(double targetScale, Point center, bool animated)
-    {
-        SetTransitionsAndScale(targetScale, center, animated);
-        TitleManager.SetTitle(DataContext as MainViewModel);
-        if (Settings.Zoom.IsShowingZoomPercentagePopup)
-        {
-            _ = TooltipHelper.ShowTooltipMessageContinuallyAsync($"{Math.Floor(ZoomLevel)}%", true,
-                TimeSpan.FromSeconds(1));
         }
     }
 
@@ -366,13 +356,14 @@ public class ZoomPanControl : Decorator
         SetScaleImmediate(targetScale, center);
     }
 
-    private void SetZoomValue(double zoomValue)
+    private void UpdateZoomLevel()
     {
-        ZoomLevel = zoomValue;
-        if (DataContext is MainViewModel vm)
-        {
-            vm.PicViewer.ZoomValue.Value = zoomValue;
-        }
+        ZoomLevel = Scale * FittingScale * 100;
+        // if (DataContext is TabViewModel vm)
+        // {
+        //     vm.PicViewer.ZoomValue.Value = ZoomLevel;
+        //     vm.ZoomLevel.Value = ZoomLevel;
+        // }
     }
 
     /// <summary>
@@ -576,16 +567,16 @@ public class ZoomPanControl : Decorator
 
     private void UpdatePreviewWindow()
     {
-        if (_zoomPreviewer == null)
+        if (ZoomPreviewer == null)
         {
             return;
         }
 
         // Update visibility based on zoom state
-        _zoomPreviewer.UpdateVisibility();
+        ZoomPreviewer.UpdateVisibility();
 
         // Update viewport rectangle
-        _zoomPreviewer.UpdateViewportRect();
+        ZoomPreviewer.UpdateViewportRect();
     }
 
     private Point CenterPoint() => new(Bounds.Width / 2.0, Bounds.Height / 2.0);

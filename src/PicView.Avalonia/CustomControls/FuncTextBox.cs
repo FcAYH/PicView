@@ -1,6 +1,10 @@
-﻿using Avalonia;
+﻿using System.ComponentModel;
+using System.Windows.Input;
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
+using Avalonia.Interactivity;
+using Avalonia.LogicalTree;
 using Avalonia.Media;
 using PicView.Core.Localization;
 using Path = Avalonia.Controls.Shapes.Path;
@@ -16,31 +20,78 @@ public class FuncTextBox : TextBox
 {
     private bool _contextMenuLoaded;
     private bool _initialFocus;
+
+    public static readonly StyledProperty<ICommand?> CommandProperty =
+        AvaloniaProperty.Register<FuncTextBox, ICommand?>(nameof(Command));
+
+    public static readonly StyledProperty<object?> CommandParameterProperty =
+        AvaloniaProperty.Register<FuncTextBox, object?>(nameof(CommandParameter));
+
+    public ICommand? Command
+    {
+        get => GetValue(CommandProperty);
+        set => SetValue(CommandProperty, value);
+    }
+
+    public object? CommandParameter
+    {
+        get => GetValue(CommandParameterProperty);
+        set => SetValue(CommandParameterProperty, value);
+    }
     public FuncTextBox()
     {
         ContextMenu = new ContextMenu();
 
-        ContextMenu.Opening += (_, _) =>
-        {
-            if (!_contextMenuLoaded)
-            {
-                LoadContextMenu();
-            }
-        };
-
-        ContextMenu.Opened += (_, _) =>
-        {
-            Classes.Add("active");
-        };
-
-        ContextMenu.Closed += (_, _) =>
-        {
-            Classes.Remove("active");
-        };
+        ContextMenu.Opening += ContextMenuOnOpening;
+        ContextMenu.Opened += ContextMenuOnOpened;
+        ContextMenu.Closed += ContextMenuOnClosed;
         
-        GotFocus += (_, _) => _initialFocus = true;
-        LostFocus += (_, _) => _initialFocus = false;
+        GotFocus += OnGotFocus;
+        LostFocus += OnLostFocus;
+        KeyDown += OnKeyDown;
     }
+
+    private void ContextMenuOnClosed(object? sender, RoutedEventArgs e)
+    {
+        Classes.Remove("active");
+    }
+
+    private void ContextMenuOnOpened(object? sender, RoutedEventArgs e)
+    {
+        Classes.Add("active");
+    }
+
+    private void OnLostFocus(object? sender, FocusChangedEventArgs e)
+    {
+        _initialFocus = false;
+    }
+
+    private void OnGotFocus(object? sender, FocusChangedEventArgs e)
+    {
+        _initialFocus = true;
+    }
+
+    private void ContextMenuOnOpening(object? sender, CancelEventArgs e)
+    {
+        if (!_contextMenuLoaded)
+        {
+            LoadContextMenu();
+        }
+    }
+
+    private void OnKeyDown(object? sender, KeyEventArgs e)
+    {
+        if (e.Key is not (Key.Enter or Key.Tab))
+        {
+            return;
+        }
+
+        if (Command?.CanExecute(CommandParameter) == true)
+        {
+            Command.Execute(CommandParameter);
+        }
+    }
+
     protected override void OnPointerPressed(PointerPressedEventArgs e)
     {
         base.OnPointerPressed(e);
@@ -57,6 +108,22 @@ public class FuncTextBox : TextBox
     }
 
     protected override Type StyleKeyOverride => typeof(TextBox);
+    
+    protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
+    {
+        if (change.Property == IsReadOnlyProperty)
+        {
+            if (IsReadOnly)
+            {
+                PseudoClasses.Add(":readonly");
+            }
+            else
+            {
+                PseudoClasses.Remove(":readonly");
+            }
+        }
+        base.OnPropertyChanged(change);
+    }
 
     private void LoadContextMenu()
     {
@@ -182,5 +249,16 @@ public class FuncTextBox : TextBox
         };
             
         _contextMenuLoaded = true;
+    }
+
+    protected override void OnDetachedFromLogicalTree(LogicalTreeAttachmentEventArgs e)
+    {
+        base.OnDetachedFromLogicalTree(e);
+        GotFocus -= OnGotFocus;
+        LostFocus -= OnLostFocus;
+        KeyDown -= OnKeyDown;
+        ContextMenu.Opened -= ContextMenuOnOpened;
+        ContextMenu.Closed -= ContextMenuOnClosed;
+        ContextMenu.Opening -= ContextMenuOnOpening;
     }
 }

@@ -39,10 +39,45 @@ public static class GalleryThumbInfo
 
             var fileLocation = fileInfo.FullName;
             var fileName = Path.GetFileNameWithoutExtension(fileInfo.Name);
-            var fileSize =
-                $"{TranslationManager.Translation.FileSize}: {fileInfo.Length.GetReadableFileSize()}";
-            var fileDate =
-                $"{TranslationManager.Translation.Modified}: {fileInfo.LastWriteTimeUtc.ToString(CultureInfo.CurrentCulture)}";
+
+            // --- Optimization for File Size ---
+            var sizeLabel = TranslationManager.Translation.FileSize;
+            var sizeValue = fileInfo.Length.GetReadableFileSize(); 
+
+            // Calculate exact length: Label + ": " (2 chars) + Value
+            var sizeLen = sizeLabel.Length + 2 + sizeValue.Length;
+
+            var fileSize = string.Create(sizeLen, (sizeLabel, sizeValue), (span, state) =>
+            {
+                var (label, value) = state;
+        
+                // Copy Label
+                label.AsSpan().CopyTo(span);
+        
+                // Write ": "
+                span[label.Length] = ':';
+                span[label.Length + 1] = ' ';
+        
+                // Copy Value
+                value.AsSpan().CopyTo(span.Slice(label.Length + 2));
+            });
+
+            // --- Optimization for File Date ---
+            var dateLabel = TranslationManager.Translation.Modified;
+            // Formatting date to string first is necessary to know the exact length for String.Create
+            var dateValue = fileInfo.LastWriteTimeUtc.ToString(CultureInfo.CurrentCulture);
+
+            var dateLen = dateLabel.Length + 2 + dateValue.Length;
+
+            var fileDate = string.Create(dateLen, (dateLabel, dateValue), (span, state) =>
+            {
+                var (label, value) = state;
+        
+                label.AsSpan().CopyTo(span);
+                span[label.Length] = ':';
+                span[label.Length + 1] = ' ';
+                value.AsSpan().CopyTo(span.Slice(label.Length + 2));
+            });
 
             return new GalleryThumbHolder(fileLocation, fileName, fileSize, fileDate);
         }

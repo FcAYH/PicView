@@ -1,7 +1,5 @@
-﻿using PicView.Avalonia.Navigation;
-using PicView.Avalonia.UI;
-using PicView.Avalonia.ViewModels;
-using PicView.Core.DebugTools;
+﻿using PicView.Core.DebugTools;
+using PicView.Core.ViewModels;
 
 namespace PicView.Avalonia.ImageHandling;
 
@@ -14,37 +12,34 @@ public static class ImageOptimizer
     /// Optimizes the current image in the view model
     /// </summary>
     /// <param name="vm">The main view model</param>
-    public static async Task OptimizeImageAsync(MainViewModel vm)
+    public static async Task OptimizeImageAsync(MainWindowViewModel vm)
     {
-        if (!NavigationManager.CanNavigate(vm) || vm.PicViewer.FileInfo == null)
+        var tab = vm.WindowTabs.ActiveTab.CurrentValue;
+        if (tab.FileInfo?.CurrentValue is null || !tab.CanNavigateBackwards.Value || !tab.CanNavigateForwards.Value)
         {
             return;
         }
 
-        try
+        vm.IsLoadingIndicatorShown.Value = true;
+        await Task.Run(() =>
         {
-            vm.MainWindow.IsLoadingIndicatorShown.Value = true;
-            await Task.Run(() =>
+            var file = tab.FileInfo.CurrentValue;
+            try
             {
-                try
+                var optimizer = new ImageMagick.ImageOptimizer
                 {
-                    var optimizer = new ImageMagick.ImageOptimizer
-                    {
-                        OptimalCompression = true
-                    };
-                    optimizer.LosslessCompress(vm.PicViewer.FileInfo.CurrentValue.FullName);
-                }
-                catch (Exception ex)
-                {
-                    DebugHelper.LogDebug(nameof(ImageOptimizer), nameof(OptimizeImageAsync), ex);
-                }
-            });
-            await NavigationManager.QuickReload();
-        }
-        finally
-        {
-            TitleManager.SetTitle(vm);
-            vm.MainWindow.IsLoadingIndicatorShown.Value = false;
-        }
+                    OptimalCompression = true
+                };
+                optimizer.LosslessCompress(file.FullName);
+            }
+            catch (Exception ex)
+            {
+                DebugHelper.LogDebug(nameof(ImageOptimizer), nameof(OptimizeImageAsync), ex);
+            }
+        });
+        await tab.ImageIterator.ReloadAsync();
+        vm.IsLoadingIndicatorShown.Value = false;
+        
+        // TODO: have to create a new loading view, that blocks navigation until finished. With a cancel button.
     }
 }

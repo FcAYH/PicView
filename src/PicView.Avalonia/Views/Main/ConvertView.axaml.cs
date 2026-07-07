@@ -1,7 +1,9 @@
 ﻿using Avalonia.Controls;
+using Avalonia.Input;
+using ImageMagick;
+using PicView.Avalonia.CustomControls;
 using PicView.Avalonia.FileSystem;
-using PicView.Avalonia.ImageHandling;
-using PicView.Avalonia.ViewModels;
+using PicView.Core.ViewModels;
 
 namespace PicView.Avalonia.Views.Main;
 
@@ -10,63 +12,59 @@ public partial class ConvertView : UserControl
     public ConvertView()
     {
         InitializeComponent();
-
+        
         Loaded += delegate
         {
-            if (DataContext is not MainViewModel vm)
+            if (DataContext is not MainWindowViewModel vm)
             {
                 return;
             }
-
-            SaveButton.Click += async (_, _) =>
+        
+            SaveButton.Click += (_, _) =>
             {
-                var destination = vm.PicViewer.FileInfo.CurrentValue.FullName;
-                var ext = DetermineFileExtension(vm, ref destination);
-
-                await SaveImageHandler.SaveImageWithPossibleNavigation(vm, vm.PicViewer.FileInfo.CurrentValue.FullName,
-                    destination, true, ext);
+                var source = vm.WindowTabs.ActiveTab.CurrentValue.FileInfo.CurrentValue.FullName;
+                using var magick = new MagickImage(source);
+                var destination = GetDestinationWithChangedExtension(source);
+                magick.Write(destination);
             };
-
+        
             SaveAsButton.Click += async (_, _) =>
             {
-                var ext = GetExtension();
-                var destination =
-                    await FilePicker.PickFileForSavingAsync(vm.PicViewer.FileInfo?.CurrentValue.FullName, ext);
-                if (destination is null)
+                var source = vm.WindowTabs.ActiveTab.CurrentValue.FileInfo.CurrentValue.FullName;
+                var suggestedFileName = GetDestinationWithChangedExtension(source);
+                var file =  await FilePicker.PickFileForSavingAsync(suggestedFileName);
+                if (file is null)
                 {
                     return;
                 }
-
-                var sameFile = destination.Equals(vm.PicViewer.FileInfo.CurrentValue.FullName,
-                    StringComparison.OrdinalIgnoreCase);
-
-                await SaveImageHandler.SaveImageWithPossibleNavigation(vm, vm.PicViewer.FileInfo.CurrentValue.FullName,
-                    destination, sameFile, ext);
+                using var magick = new MagickImage(source);
+                magick.Write(file);
             };
-
-            CancelButton.Click += (_, _) => (VisualRoot as Window)?.Close();
+        
+            CancelButton.Click += (_, _) => SafeClose();
         };
     }
-
-    private string GetExtension() => ConversionComboBox.SelectedIndex switch
+    
+    private void SafeClose()
     {
-        1 => ".png",
-        2 => ".jpg",
-        3 => ".webp",
-        4 => ".avif",
-        5 => ".heic",
-        6 => ".jxl",
-        _ => ""
-    };
+        Dispatcher.Invoke(() =>
+        {
+            if (TopLevel.GetTopLevel(this) is not Window window)
+            {
+                return;
+            }
+            window.Close();
+        });
+    }
 
-    private string DetermineFileExtension(MainViewModel vm, ref string destination)
+    private string GetDestinationWithChangedExtension(string source)
     {
-        var ext = vm.PicViewer.FileInfo.CurrentValue.Extension;
         if (NoConversion.IsSelected)
         {
-            return ext;
+            return source;
         }
-
+        string ext;
+        
         if (PngItem.IsSelected)
         {
             ext = ".png";
@@ -91,8 +89,21 @@ public partial class ConvertView : UserControl
         {
             ext = ".jxl";
         }
+        else
+        {
+            return source;
+        }
+        
+        source = Path.ChangeExtension(source, ext);
+        return source;
+    }
 
-        destination = Path.ChangeExtension(destination, ext);
-        return ext;
+    private void BottomBorder_OnPointerPressed(object? sender, PointerPressedEventArgs e)
+    {
+        if (TopLevel.GetTopLevel(this) is not GenericWindow window)
+        {
+            return;
+        }
+        window.MoveWindow(sender,e);
     }
 }

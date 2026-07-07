@@ -1,9 +1,7 @@
 ﻿using System.Globalization;
 using Avalonia.Controls;
-using PicView.Avalonia.ViewModels;
 using PicView.Core.DebugTools;
 using PicView.Core.Extensions;
-using PicView.Core.Localization;
 
 namespace PicView.Avalonia.Resizing;
 
@@ -16,9 +14,10 @@ public static class AspectRatioHelper
     /// <param name="heightTextBox">The TextBox that contains the height value.</param>
     /// <param name="isWidth">Indicates whether the width is being adjusted. If false, height is adjusted.</param>
     /// <param name="aspectRatio">The aspect ratio to maintain between width and height.</param>
-    /// <param name="vm">The MainViewModel instance containing relevant data.</param>
+    /// <param name="pixelWidth">The current pixel width of the image.</param>
+    /// <param name="pixelHeight">The current pixel height of the image.</param>
     public static void SetAspectRatioForTextBox(TextBox widthTextBox, TextBox heightTextBox, bool isWidth,
-        double aspectRatio, MainViewModel vm)
+        double aspectRatio, int pixelWidth, int pixelHeight)
     {
         try
         {
@@ -26,10 +25,10 @@ public static class AspectRatioHelper
             if (percentage > 0)
             {
                 // Clamp the calculated value to prevent overflow
-                var newWidth = (uint)Math.Clamp(vm.PicViewer.PixelWidth.CurrentValue * (percentage / 100),
+                var newWidth = (uint)Math.Clamp(pixelWidth * (percentage / 100),
                     uint.MinValue,
                     uint.MaxValue);
-                var newHeight = (uint)Math.Clamp(vm.PicViewer.PixelHeight.CurrentValue * (percentage / 100),
+                var newHeight = (uint)Math.Clamp(pixelHeight * (percentage / 100),
                     uint.MinValue,
                     uint.MaxValue);
 

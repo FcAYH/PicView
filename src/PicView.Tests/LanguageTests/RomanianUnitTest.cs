@@ -1,4 +1,4 @@
-﻿using PicView.Core.Localization;
+using PicView.Core.Localization;
 
 namespace PicView.Tests.LanguageTests;
 
@@ -43,8 +43,8 @@ public static class RomanianUnitTest
         Assert.Equal(TranslationManager.Translation.BitDepth, "Adâncimea biților");
         Assert.Equal(TranslationManager.Translation.BlackAndWhite, "Negru și alb");
         Assert.Equal(TranslationManager.Translation.Blur, "Estompare");
-        Assert.Equal(TranslationManager.Translation.BottomGalleryItemSize, "Elemente galerie inferioară");
-        Assert.Equal(TranslationManager.Translation.BottomGalleryThumbnailStretch,
+        Assert.Equal(TranslationManager.Translation.DockedGalleryItemSize, "Elemente galerie inferioară");
+        Assert.Equal(TranslationManager.Translation.DockedGalleryThumbnailStretch,
             "Întinderea miniaturilor galeriei de jos");
         Assert.Equal(TranslationManager.Translation.Brightness, "Luminozitate");
         Assert.Equal(TranslationManager.Translation.CameraMaker, "Producătorul camerei");
@@ -174,7 +174,7 @@ public static class RomanianUnitTest
         Assert.Equal(TranslationManager.Translation.GoBackBy10Images, "Mergi înapoi cu 10 imagini");
         Assert.Equal(TranslationManager.Translation.Hard, "Tare");
         Assert.Equal(TranslationManager.Translation.Height, "Înălțime");
-        Assert.Equal(TranslationManager.Translation.HideBottomGallery, "Ascunde galeria de jos");
+        Assert.Equal(TranslationManager.Translation.HideDockedGallery, "Ascunde galeria de jos");
         Assert.Equal(TranslationManager.Translation.HideBottomToolbar, "Ascunde bara de unelte inferioară");
         Assert.Equal(TranslationManager.Translation.HideUI, "Ascunde interfața");
         Assert.Equal(TranslationManager.Translation.High, "Înalt");
@@ -317,8 +317,8 @@ public static class RomanianUnitTest
         Assert.Equal(TranslationManager.Translation.Sharpness, "Claritate");
         Assert.Equal(TranslationManager.Translation.Shift, "Shift");
         Assert.Equal(TranslationManager.Translation.ShowAllSettingsWindow, "Arată fereastra cu toate setările");
-        Assert.Equal(TranslationManager.Translation.ShowBottomGallery, "Afișează galeria de jos");
-        Assert.Equal(TranslationManager.Translation.ShowBottomGalleryWhenUiIsHidden,
+        Assert.Equal(TranslationManager.Translation.ShowDockedGallery, "Afișează galeria de jos");
+        Assert.Equal(TranslationManager.Translation.ShowDockedGalleryWhenUiIsHidden,
             "Afișează galeria de jos când interfața utilizatorului este ascunsă");
         Assert.Equal(TranslationManager.Translation.ShowBottomToolbar, "Afișează bara de instrumente de jos");
         Assert.Equal(TranslationManager.Translation.ShowConfirmationOnEsc,
@@ -349,7 +349,7 @@ public static class RomanianUnitTest
         Assert.Equal(TranslationManager.Translation.StayCentered, "Păstrează fereastra centrată");
         Assert.Equal(TranslationManager.Translation.StayTopMost, "Rămâi deasupra celorlalte ferestre");
         Assert.Equal(TranslationManager.Translation.Stretch, "Întindere");
-        Assert.Equal(TranslationManager.Translation.StretchImage, "Întinde imaginea");
+        Assert.Equal(TranslationManager.Translation.ZoomToFit, "Zoom pentru potrivire");
         Assert.Equal(TranslationManager.Translation.StrobeReturnLightDetected,
             "Lumină de întoarcere a blițului detectată");
         Assert.Equal(TranslationManager.Translation.StrobeReturnLightNotDetected,

@@ -1,8 +1,8 @@
 <ResourceDictionary
-    x:ClassModifier="internal"
     xmlns="https://github.com/avaloniaui"
-    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
-    <ControlTheme TargetType="ScrollBar" x:Key="{x:Type ScrollBar}">
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    x:ClassModifier="internal">
+    <ControlTheme x:Key="{x:Type ScrollBar}" TargetType="ScrollBar">
         <Setter Property="Cursor" Value="Arrow" />
 
         <Style Selector="^:horizontal">
@@ -10,76 +10,73 @@
             <Setter Property="Focusable" Value="False" />
             <Setter Property="Template">
                 <ControlTemplate>
-                    <Border Background="Transparent" UseLayoutRounding="False">
+                    <Border
+                        Background="Transparent"
+                        CornerRadius="4"
+                        UseLayoutRounding="False">
                         <Grid ColumnDefinitions="Auto,*,Auto">
                             <RepeatButton
+                                Name="PART_LineUpButton"
+                                Grid.Row="0"
+                                Grid.Column="0"
+                                Width="16"
+                                Height="16"
+                                MinWidth="30"
+                                VerticalAlignment="Center"
                                 Background="Transparent"
                                 Classes="repeat"
                                 Focusable="False"
-                                Grid.Column="0"
-                                Grid.Row="0"
-                                Height="16"
-                                Interval="55"
-                                MinWidth="30"
-                                Name="PART_LineUpButton"
-                                VerticalAlignment="Center"
-                                Width="16">
-                                <Path
-                                    Data="{StaticResource FilledArrowLeftGeometry}"
-                                    Fill="{TemplateBinding Foreground}"
+                                Interval="55">
+                                <PathIcon
+                                    Width="12"
                                     Height="12"
-                                    HorizontalAlignment="Center"
-                                    Stretch="Fill"
-                                    VerticalAlignment="Center"
-                                    Width="12" />
+                                    Data="{StaticResource FilledChevronLeftGeometry}"
+                                    Foreground="{TemplateBinding Foreground}" />
                             </RepeatButton>
                             <Track
-                                DeferThumbDrag="{TemplateBinding ScrollViewer.IsDeferredScrollingEnabled}"
-                                Grid.Column="1"
                                 Grid.Row="1"
+                                Grid.Column="1"
+                                DeferThumbDrag="{TemplateBinding ScrollViewer.IsDeferredScrollingEnabled}"
                                 Maximum="{TemplateBinding Maximum}"
                                 Minimum="{TemplateBinding Minimum}"
                                 Orientation="{TemplateBinding Orientation}"
+                                ViewportSize="{TemplateBinding ViewportSize}"
                                 Value="{TemplateBinding Value,
-                                                        Mode=TwoWay}"
-                                ViewportSize="{TemplateBinding ViewportSize}">
+                                                        Mode=TwoWay}">
                                 <Track.DecreaseButton>
                                     <RepeatButton
+                                        Name="PART_PageUpButton"
                                         Background="Transparent"
                                         Classes="repeattrack"
                                         Focusable="False"
-                                        Interval="55"
-                                        Name="PART_PageUpButton" />
+                                        Interval="55" />
                                 </Track.DecreaseButton>
                                 <Track.IncreaseButton>
                                     <RepeatButton
+                                        Name="PART_PageDownButton"
                                         Background="Transparent"
                                         Classes="repeattrack"
                                         Focusable="False"
-                                        Interval="55"
-                                        Name="PART_PageDownButton" />
+                                        Interval="55" />
                                 </Track.IncreaseButton>
                                 <Thumb Name="thumb" />
                             </Track>
                             <RepeatButton
+                                Name="PART_LineDownButton"
+                                Grid.Column="2"
+                                Width="16"
+                                Height="16"
+                                MinWidth="30"
+                                VerticalAlignment="Center"
                                 Background="Transparent"
                                 Classes="repeat"
                                 Focusable="False"
-                                Grid.Column="2"
-                                Height="16"
-                                Interval="55"
-                                MinWidth="30"
-                                Name="PART_LineDownButton"
-                                VerticalAlignment="Center"
-                                Width="16">
-                                <Path
-                                    Data="{StaticResource FilledArrowRightGeometry}"
-                                    Fill="{TemplateBinding Foreground}"
+                                Interval="55">
+                                <PathIcon
+                                    Width="12"
                                     Height="12"
-                                    HorizontalAlignment="Center"
-                                    Stretch="Fill"
-                                    VerticalAlignment="Center"
-                                    Width="12" />
+                                    Data="{StaticResource FilledChevronRightGeometry}"
+                                    Foreground="{TemplateBinding Foreground}" />
                             </RepeatButton>
                         </Grid>
                     </Border>
@@ -92,77 +89,74 @@
             <Setter Property="Template">
                 <ControlTemplate>
                     <Border
+                        x:Name="Border"
                         Background="Transparent"
-                        UseLayoutRounding="False"
-                        x:Name="Border">
-                        <Grid RowDefinitions="Auto,*,Auto">
+                        UseLayoutRounding="False">
+                        <DockPanel>
                             <RepeatButton
+                                Name="PART_LineUpButton"
+                                MinHeight="25"
+                                HorizontalAlignment="Center"
                                 Background="Transparent"
                                 Classes="repeat"
+                                DockPanel.Dock="Top"
                                 Focusable="False"
-                                Grid.Row="0"
-                                HorizontalAlignment="Center"
-                                Interval="55"
-                                MinHeight="{StaticResource ScrollBarThickness}"
-                                Name="PART_LineUpButton">
-                                <Path
-                                    Data="{StaticResource FilledArrowUpGeometry}"
-                                    Fill="{TemplateBinding Foreground}"
+                                Interval="55">
+                                <PathIcon
+                                    Width="16"
                                     Height="16"
                                     HorizontalAlignment="Center"
-                                    Stretch="Fill"
                                     VerticalAlignment="Center"
-                                    Width="16" />
+                                    Data="{StaticResource FilledArrowUpGeometry}"
+                                    Foreground="{TemplateBinding Foreground}" />
                             </RepeatButton>
+
+                            <RepeatButton
+                                Name="PART_LineDownButton"
+                                MinHeight="25"
+                                HorizontalAlignment="Center"
+                                Background="Transparent"
+                                Classes="repeat"
+                                DockPanel.Dock="Bottom"
+                                Focusable="False"
+                                Interval="55">
+                                <PathIcon
+                                    Width="16"
+                                    Height="16"
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center"
+                                    Data="{StaticResource FilledArrowDownGeometry}"
+                                    Foreground="{TemplateBinding Foreground}" />
+                            </RepeatButton>
+
                             <Track
                                 DeferThumbDrag="{TemplateBinding ScrollViewer.IsDeferredScrollingEnabled}"
-                                Grid.Column="1"
-                                Grid.Row="1"
                                 IsDirectionReversed="True"
                                 Maximum="{TemplateBinding Maximum}"
                                 Minimum="{TemplateBinding Minimum}"
                                 Orientation="{TemplateBinding Orientation}"
+                                ViewportSize="{TemplateBinding ViewportSize}"
                                 Value="{TemplateBinding Value,
-                                                        Mode=TwoWay}"
-                                ViewportSize="{TemplateBinding ViewportSize}">
+                                                        Mode=TwoWay}">
                                 <Track.DecreaseButton>
                                     <RepeatButton
+                                        Name="PART_PageUpButton"
                                         Background="Transparent"
                                         Classes="repeattrack"
                                         Focusable="False"
-                                        Interval="55"
-                                        Name="PART_PageUpButton" />
+                                        Interval="55" />
                                 </Track.DecreaseButton>
                                 <Track.IncreaseButton>
                                     <RepeatButton
+                                        Name="PART_PageDownButton"
                                         Background="Transparent"
                                         Classes="repeattrack"
                                         Focusable="False"
-                                        Interval="55"
-                                        Name="PART_PageDownButton" />
+                                        Interval="55" />
                                 </Track.IncreaseButton>
                                 <Thumb Name="thumb" />
                             </Track>
-                            <RepeatButton
-                                Background="Transparent"
-                                Classes="repeat"
-                                Focusable="False"
-                                Grid.Column="2"
-                                Grid.Row="2"
-                                HorizontalAlignment="Center"
-                                Interval="55"
-                                MinHeight="{StaticResource ScrollBarThickness}"
-                                Name="PART_LineDownButton">
-                                <Path
-                                    Data="{StaticResource FilledArrowDownGeometry}"
-                                    Fill="{TemplateBinding Foreground}"
-                                    Height="16"
-                                    HorizontalAlignment="Center"
-                                    Stretch="Fill"
-                                    VerticalAlignment="Center"
-                                    Width="16" />
-                            </RepeatButton>
-                        </Grid>
+                        </DockPanel>
                     </Border>
                 </ControlTemplate>
             </Setter>
@@ -171,13 +165,16 @@
         <Style Selector="^ /template/ Thumb#thumb">
             <Setter Property="Background" Value="{DynamicResource MainBackgroundColor}" />
             <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="BorderBrush" Value="{DynamicResource TertiaryBorderColor}" />
+            <Setter Property="CornerRadius" Value="4" />
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate>
                         <Border
                             Background="{TemplateBinding Background}"
-                            BorderBrush="{DynamicResource TertiaryBorderColor}"
-                            BorderThickness="1" />
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="{TemplateBinding CornerRadius}" />
                     </ControlTemplate>
                 </Setter.Value>
             </Setter>
@@ -209,19 +206,15 @@
             </Setter>
         </Style>
 
-        <Style Selector="^ /template/ RepeatButton &gt; Path">
-            <Setter Property="Fill" Value="{TemplateBinding Foreground}" />
-        </Style>
-
-        <Style Selector="^ /template/ RepeatButton:pointerover &gt; Path">
-            <Setter Property="Fill" Value="{DynamicResource AccentColor}" />
+        <Style Selector="^ /template/ RepeatButton:pointerover &gt; PathIcon">
+            <Setter Property="Foreground" Value="{DynamicResource AccentColor}" />
         </Style>
 
     </ControlTheme>
 
 
 
-    <ControlTheme TargetType="ScrollBar" x:Key="Floating">
+    <ControlTheme x:Key="Floating" TargetType="ScrollBar">
         <Setter Property="Cursor" Value="Arrow" />
 
         <Style Selector="^:horizontal">
@@ -229,13 +222,12 @@
                 <ControlTemplate>
                     <Track
                         DeferThumbDrag="{TemplateBinding ScrollViewer.IsDeferredScrollingEnabled}"
-                        IsDirectionReversed="True"
                         Maximum="{TemplateBinding Maximum}"
                         Minimum="{TemplateBinding Minimum}"
                         Orientation="{TemplateBinding Orientation}"
+                        ViewportSize="{TemplateBinding ViewportSize}"
                         Value="{TemplateBinding Value,
-                                                Mode=TwoWay}"
-                        ViewportSize="{TemplateBinding ViewportSize}">
+                                                Mode=TwoWay}">
                         <Thumb Name="thumb" />
                     </Track>
                 </ControlTemplate>
@@ -245,31 +237,112 @@
         <Style Selector="^:vertical">
             <Setter Property="Template">
                 <ControlTemplate>
+                    <!--  Setting reversed direction to true fixes the scrollbar starting at the bottom  -->
                     <Track
                         DeferThumbDrag="{TemplateBinding ScrollViewer.IsDeferredScrollingEnabled}"
                         IsDirectionReversed="True"
                         Maximum="{TemplateBinding Maximum}"
                         Minimum="{TemplateBinding Minimum}"
                         Orientation="{TemplateBinding Orientation}"
+                        ViewportSize="{TemplateBinding ViewportSize}"
                         Value="{TemplateBinding Value,
-                                                Mode=TwoWay}"
-                        ViewportSize="{TemplateBinding ViewportSize}">
+                                                Mode=TwoWay}">
                         <Thumb Name="thumb" />
                     </Track>
                 </ControlTemplate>
             </Setter>
         </Style>
+
         <Style Selector="^ /template/ Thumb#thumb">
             <Setter Property="Background" Value="{DynamicResource MainBackgroundColor}" />
             <Setter Property="BorderBrush" Value="{DynamicResource TertiaryBorderColor}" />
             <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="4" />
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate>
                         <Border
                             Background="{TemplateBinding Background}"
                             BorderBrush="{TemplateBinding BorderBrush}"
-                            BorderThickness="{TemplateBinding BorderThickness}" />
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="{TemplateBinding CornerRadius}" />
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style Selector="^ /template/ Thumb#thumb:pointerover">
+            <Setter Property="Background" Value="{DynamicResource AccentColor}" />
+        </Style>
+        <Style Selector="^ /template/ Thumb#thumb:pressed">
+            <Setter Property="Background" Value="{DynamicResource SecondaryAccentColor}" />
+        </Style>
+        <Style Selector="^:horizontal /template/ Thumb#thumb">
+            <Setter Property="MinWidth" Value="{StaticResource ScrollBarThickness}" />
+            <Setter Property="Height" Value="16" />
+        </Style>
+        <Style Selector="^:vertical /template/ Thumb#thumb">
+            <Setter Property="MinHeight" Value="{DynamicResource ScrollBarThickness}" />
+            <Setter Property="Width" Value="12" />
+        </Style>
+
+    </ControlTheme>
+
+    <ControlTheme x:Key="FloatingSlim" TargetType="ScrollBar">
+        <Setter Property="Cursor" Value="Arrow" />
+
+        <Style Selector="^:horizontal">
+            <Setter Property="Template">
+                <ControlTemplate>
+                    <Panel>
+                        <Track
+                            DeferThumbDrag="{TemplateBinding ScrollViewer.IsDeferredScrollingEnabled}"
+                            Maximum="{TemplateBinding Maximum}"
+                            Minimum="{TemplateBinding Minimum}"
+                            Orientation="{TemplateBinding Orientation}"
+                            ViewportSize="{TemplateBinding ViewportSize}"
+                            Value="{TemplateBinding Value,
+                                                    Mode=TwoWay}">
+                            <Thumb
+                                Name="thumb"
+                                Margin="0,0,0,2"
+                                VerticalAlignment="Bottom" />
+                        </Track>
+                    </Panel>
+                </ControlTemplate>
+            </Setter>
+        </Style>
+
+        <Style Selector="^:vertical">
+            <Setter Property="Template">
+                <ControlTemplate>
+                    <Track
+                        DeferThumbDrag="{TemplateBinding ScrollViewer.IsDeferredScrollingEnabled}"
+                        Maximum="{TemplateBinding Maximum}"
+                        Minimum="{TemplateBinding Minimum}"
+                        Orientation="{TemplateBinding Orientation}"
+                        ViewportSize="{TemplateBinding ViewportSize}"
+                        Value="{TemplateBinding Value,
+                                                Mode=TwoWay}">
+                        <Thumb Name="thumb" />
+                    </Track>
+                </ControlTemplate>
+            </Setter>
+        </Style>
+
+        <Style Selector="^ /template/ Thumb#thumb">
+            <Setter Property="Background" Value="{DynamicResource MainBackgroundColor}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource TertiaryBorderColor}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="4" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate>
+                        <Border
+                            Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="{TemplateBinding CornerRadius}" />
                     </ControlTemplate>
                 </Setter.Value>
             </Setter>
@@ -282,7 +355,7 @@
         </Style>
         <Style Selector="^:horizontal /template/ Thumb#thumb">
             <Setter Property="MinWidth" Value="{StaticResource ScrollBarThickness}" />
-            <Setter Property="Height" Value="16" />
+            <Setter Property="Height" Value="6" />
         </Style>
         <Style Selector="^:vertical /template/ Thumb#thumb">
             <Setter Property="MinHeight" Value="{DynamicResource ScrollBarThickness}" />

@@ -1,4 +1,4 @@
-﻿using PicView.Core.Localization;
+using PicView.Core.Localization;
 
 namespace PicView.Tests.LanguageTests;
 
@@ -42,8 +42,8 @@ public static class RussianUnitTest
         Assert.Equal(TranslationManager.Translation.BitDepth, "Битовая глубина");
         Assert.Equal(TranslationManager.Translation.BlackAndWhite, "Черно-белый");
         Assert.Equal(TranslationManager.Translation.Blur, "Размытие");
-        Assert.Equal(TranslationManager.Translation.BottomGalleryItemSize, "Количество элементов нижней галереи");
-        Assert.Equal(TranslationManager.Translation.BottomGalleryThumbnailStretch,
+        Assert.Equal(TranslationManager.Translation.DockedGalleryItemSize, "Количество элементов нижней галереи");
+        Assert.Equal(TranslationManager.Translation.DockedGalleryThumbnailStretch,
             "Растягивание миниатюр в нижней галерее");
         Assert.Equal(TranslationManager.Translation.Brightness, "Яркость");
         Assert.Equal(TranslationManager.Translation.CameraMaker, "Производитель камеры");
@@ -173,7 +173,7 @@ public static class RussianUnitTest
         Assert.Equal(TranslationManager.Translation.GoBackBy10Images, "Вернуться на 10 изображений назад");
         Assert.Equal(TranslationManager.Translation.Hard, "Жесткий");
         Assert.Equal(TranslationManager.Translation.Height, "Высота");
-        Assert.Equal(TranslationManager.Translation.HideBottomGallery, "Скрыть нижнюю галерею");
+        Assert.Equal(TranslationManager.Translation.HideDockedGallery, "Скрыть нижнюю галерею");
         Assert.Equal(TranslationManager.Translation.HideBottomToolbar, "Скрыть нижнюю панель инструментов");
         Assert.Equal(TranslationManager.Translation.HideUI, "Скрыть интерфейс");
         Assert.Equal(TranslationManager.Translation.High, "Высокий");
@@ -318,8 +318,8 @@ public static class RussianUnitTest
         Assert.Equal(TranslationManager.Translation.Sharpness, "Резкость");
         Assert.Equal(TranslationManager.Translation.Shift, "Shift");
         Assert.Equal(TranslationManager.Translation.ShowAllSettingsWindow, "Показать окно всех настроек");
-        Assert.Equal(TranslationManager.Translation.ShowBottomGallery, "Показать нижнюю галерею");
-        Assert.Equal(TranslationManager.Translation.ShowBottomGalleryWhenUiIsHidden,
+        Assert.Equal(TranslationManager.Translation.ShowDockedGallery, "Показать нижнюю галерею");
+        Assert.Equal(TranslationManager.Translation.ShowDockedGalleryWhenUiIsHidden,
             "Показывать нижнюю галерею при скрытом интерфейсе");
         Assert.Equal(TranslationManager.Translation.ShowBottomToolbar, "Показать нижнюю панель инструментов");
         Assert.Equal(TranslationManager.Translation.ShowConfirmationOnEsc,
@@ -350,7 +350,7 @@ public static class RussianUnitTest
         Assert.Equal(TranslationManager.Translation.StayCentered, "Зафиксировать окно по центру");
         Assert.Equal(TranslationManager.Translation.StayTopMost, "Оставаться поверх других окон");
         Assert.Equal(TranslationManager.Translation.Stretch, "Растянуть");
-        Assert.Equal(TranslationManager.Translation.StretchImage, "Растянуть изображение");
+        Assert.Equal(TranslationManager.Translation.ZoomToFit, "Масштаб по размеру");
         Assert.Equal(TranslationManager.Translation.StrobeReturnLightDetected, "Вспышка обнаружила возвратный свет");
         Assert.Equal(TranslationManager.Translation.StrobeReturnLightNotDetected,
             "Вспышка не обнаружила возвратного света");

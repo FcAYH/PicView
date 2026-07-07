@@ -1,0 +1,36 @@
+<Window
+    BorderThickness="1"
+    ExtendClientAreaChromeHints="SystemChrome"
+    ExtendClientAreaTitleBarHeightHint="-1"
+    MinHeight="500"
+    MinWidth="500"
+    x:Class="PicView.Avalonia.Linux.Views.BatchResizeWindow"
+    x:DataType="viewModels:MainViewModel"
+    xmlns="https://github.com/avaloniaui"
+    xmlns:main="clr-namespace:PicView.Avalonia.Views.Main;assembly=PicView.Avalonia"
+    xmlns:viewModels="clr-namespace:PicView.Avalonia.ViewModels;assembly=PicView.Avalonia"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Design.DataContext>
+        <viewModels:MainViewModel />
+    </Design.DataContext>
+    <Border
+        BorderBrush="{DynamicResource MainBorderColor}"
+        BorderThickness="1"
+        CornerRadius="8">
+        <DockPanel LastChildFill="True">
+            <DockPanel
+                Background="{DynamicResource WindowBackgroundColor}"
+                DockPanel.Dock="Top"
+                Height="28"
+                PointerPressed="MoveWindow"
+                VerticalAlignment="Top">
+                <TextBlock
+                    Classes="txt"
+                    Text="{CompiledBinding Translation.ResizeImage.Value,
+                                           Mode=OneWay}"
+                    TextAlignment="Center" />
+            </DockPanel>
+            <main:BatchResizeView Background="{DynamicResource NoisyTexture}" />
+        </DockPanel>
+    </Border>
+</Window>

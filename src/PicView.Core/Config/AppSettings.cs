@@ -1,4 +1,7 @@
-﻿namespace PicView.Core.Config;
+using PicView.Core.Gallery;
+using PicView.Core.Navigation;
+
+namespace PicView.Core.Config;
 
 public class AppSettings
 {
@@ -55,7 +58,7 @@ public class WindowProperties
     /// When set to <c>true</c>, the window automatically resizes to fit the content, disabling manual resizing.
     /// When set to <c>false</c> the image will be centered in the container, and manual resizing and window behavior is enabled
     /// </remarks>
-    public bool AutoFit { get; set; } = true;
+    public bool AutoFit { get; set; } = false;
 
     /// <summary>
     /// Determines whether the window should be displayed as the top-most window.
@@ -134,7 +137,7 @@ public class UIProperties
     /// </remarks>
     public bool ShowBottomNavBar { get; set; } = true;
 
-    public bool ShowHoverNavigationBar { get; set; } = true;
+    public bool ShowHoverNavigationBar { get; set; } = false;
 
     /// <summary>
     /// Indicates whether the taskbar progress is enabled when navigating pictures.
@@ -210,6 +213,8 @@ public class UIProperties
     /// 0 => None, 1 => Reset zoom, 2 => Toggle fullscreen
     /// </summary>
     public int DoubleClickBehavior { get; set; } = 1;
+    
+    public bool ShowFullPathInTitleBar { get; set; } = false;
 }
 
 public class Theme
@@ -235,42 +240,48 @@ public class Theme
 public class Gallery
 {
     /// <summary>
-    /// A property indicating whether the bottom gallery is currently visible in the application.
+    /// A property indicating whether the docked gallery is currently visible in the application.
     /// </summary>
-    public bool IsBottomGalleryShown { get; set; } = false;
+    public bool IsGalleryDocked { get; set; } = false;
 
     /// <summary>
-    /// Determines whether the bottom gallery is shown when the user interface is hidden.
+    /// Determines how images will be stretched or scaled, in docked mode.
     /// </summary>
-    public bool ShowBottomGalleryInHiddenUI { get; set; } = false;
-
-    /// <summary>
-    /// Specifies the height of the gallery items displayed at the bottom section of the gallery view.
-    /// </summary>
-    public double BottomGalleryItemSize { get; set; } = 37;
-
-    /// <summary>
-    /// Specifies the height of gallery thumbnails, when the gallery is in full/expanded mode.
-    /// </summary>
-    public double ExpandedGalleryItemSize { get; set; } = 23;
-
+    public GalleryDockPosition DockPosition { get; set; } = GalleryDockPosition.Closed;
     /// <summary>
     /// Determines how images will be stretched or scaled, when the gallery is in full/expanded mode.
     /// </summary>
-    public string FullGalleryStretchMode { get; set; } = "Uniform";
+    public GalleryStretchMode ExpandedGalleryStretchMode { get; set; } = GalleryStretchMode.UniformToFill;
+    public GalleryStretchMode DockedGalleryStretchMode { get; set; } = GalleryStretchMode.UniformToFill;
+    
+    /// <summary>
+    /// Determines whether the docked gallery is shown when the user interface is hidden.
+    /// </summary>
+    public bool ShowDockedGalleryInHiddenUI { get; set; } = false;
 
     /// <summary>
-    /// Determines how images will be stretched or scaled.
+    /// Specifies the height/width of the gallery items displayed at the docked section of the gallery view.
     /// </summary>
-    public string BottomGalleryStretchMode { get; set; } = "Uniform";
+    public double DockedGalleryItemSize { get; set; } = 37;
+
+    /// <summary>
+    /// Specifies the height of gallery thumbnails, when the gallery is in expanded mode.
+    /// </summary>
+    public double ExpandedGalleryItemSize { get; set; } = 23;
+
+    public double ItemSpacing { get; set; } = 25;
+
+    public double LineSpacing { get; set; } = 20;
+    
+    public GalleryMouseWheel GalleryMouseWheelBehavior { get; set; } = 0;
 }
 
 public class ImageScaling
 {
     /// <summary>
-    /// Indicates whether images should be stretched to fill the available space.
+    /// Indicates whether images should be stretched to fill the available space (height).
     /// </summary>
-    public bool StretchImage { get; set; } = false;
+    public bool ZoomToFit { get; set; } = false;
     /// Legacy setting, only used for switching between high quality image scaling. Set false for High Quality.
     public bool IsScalingSetToNearestNeighbor { get; set; } = false;
 
@@ -294,6 +305,8 @@ public class Zoom
     /// </summary>
     public bool AvoidZoomingOut { get; set; } = true;
 
+    public bool ResetZoomOnChange { get; set; } = true;
+
     /// <summary>
     /// Indicates whether the zoom operation is animated when performed.
     /// If set to true, zooming will include an animation effect; otherwise, it will occur instantly.
@@ -312,6 +325,8 @@ public class Zoom
     /// This setting can be changed dynamically during application runtime.
     /// </summary>
     public bool IsShowingZoomPercentagePopup { get; set; } = false;
+
+    public bool IsShowingZoomPreviewer { get; set; } = true;
 
     /// <summary>
     /// Determines whether to reverse the horizontal scrolling direction for navigation.
@@ -427,35 +442,24 @@ public class Navigation
     /// <summary>
     /// The number of iterations to process in the forward direction while navigating through items and preloading.
     /// </summary>
-    /// <remarks>
-    /// Experimental feature, it is recommended not to change.
-    /// </remarks>
-    public int PositiveIterations { get; set; } = 6;
+    public int PositiveIterations { get; set; } = 7;
 
     /// <summary>
     /// The number of iterations to process in the backwards direction while navigating through items and preloading.
     /// </summary>
-    ///     /// <remarks>
-    /// Experimental feature, it is recommended not to change.
-    /// </remarks>
-    public int NegativeIterations { get; set; } = 4;
+    public int NegativeIterations { get; set; } = 3;
 
     /// <summary>
-    /// Determines whether navigating through the file history is enabled, with the mouse side buttons.
-    /// When set to true, navigation will cycle through the historical entries of accessed files.
+    /// Defines the navigation behavior when using mouse side buttons.
+    /// Determines how the application handles interactions with side buttons
+    /// for tasks such as navigating files, directories, or other navigation contexts.
     /// </summary>
-    public bool IsNavigatingFileHistory { get; set; } = true;
+    public NavigationMode MouseSideButtonNavigationMode { get; set; }
     
     /// <summary>
     /// Determines if the file history should be saved.
     /// </summary>
     public bool IsFileHistoryEnabled { get; set; } = true;
-    
-    /// <summary>
-    /// Determines whether navigation between directories is enabled, with the mouse side buttons.
-    /// When set to true, navigation will cycle through the directories, next to the current file order.
-    /// </summary>
-    public bool IsNavigatingBetweenDirectories { get; set; } = false;
 
     /// <summary>
     /// Indicates whether navigation should move backward in the sequence when an image file is deleted.

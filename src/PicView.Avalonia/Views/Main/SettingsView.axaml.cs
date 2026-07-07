@@ -1,237 +1,173 @@
 using System.Runtime.InteropServices;
-using Avalonia;
 using Avalonia.Controls;
-using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Input;
-using Avalonia.Media;
-using PicView.Avalonia.Input;
-using PicView.Avalonia.UI;
-using PicView.Avalonia.ViewModels;
-using PicView.Avalonia.WindowBehavior;
-using PicView.Core.Keybindings;
-using PicView.Core.Sizing;
-using PicView.Core.ViewModels;
-using R3;
-
-// ReSharper disable CompareOfFloatsByEqualityOperator
+using Avalonia.Interactivity;
+using PicView.Avalonia.Controllers;
 
 namespace PicView.Avalonia.Views.Main;
 
 public partial class SettingsView : UserControl
-{ 
+{
+    private SettingsSearchController? _controller;
+
     public SettingsView()
     {
         InitializeComponent();
-        if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+
+        if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
         {
-            FileAssociationsTabItem.IsEnabled = false;
-        }
-
-        Loaded += OnLoaded;
-    }
-
-    #region Properties
-
-    private MainViewModel? ViewModel => DataContext as MainViewModel;
-
-    private void OnPointerPressed(object? sender, PointerPressedEventArgs e) => HandleMouseButtonNavigation(e);
-
-    private static CompositeDisposable? _marginSubscription;
-    private readonly Stack<TabItem?> _backStack = new();
-    private readonly Stack<TabItem?> _forwardStack = new();
-    private TabItem? _currentTab;
-
-    #endregion
-
-    #region Initialization
-
-    private void OnLoaded(object? sender, EventArgs e)
-    {
-        if (DataContext is not MainViewModel)
-        {
-            return;
+            FileAssociationsListBoxItem.IsVisible = FileAssociationsListBoxItem.IsVisible = false;
         }
         
-        InitializeViewModel();
-        SetupUI();
-        AttachEventHandlers();
-        LoadInitialSettings();
-    }
-    
-
-    private void InitializeViewModel()
-    {
-        if (ViewModel is not { } vm)
-        {
-            return;
-        }
-
-        SelectInitialTab(vm);
-        var settingsVm = vm.SettingsViewModel;
-        Task.Run(() =>
-        {
-            settingsVm.InitializeNavigation(GoBack, GoForward);
-            settingsVm.SubscriptionSettingsUpdate();
-        });
-        SubscribeToChanges(vm, settingsVm);
+        Loaded += OnLoaded;
+        Unloaded += OnUnloaded;
     }
 
-    private void SelectInitialTab(MainViewModel vm)
+    private void OnLoaded(object? sender, RoutedEventArgs e)
     {
-        MainTabControl.SelectedIndex = vm.Window.SettingsWindowConfig.WindowProperties.LastTab;
-    }
-    
-    private void SetLastTab(MainViewModel vm)
-    {
-        vm.Window.SettingsWindowConfig.WindowProperties.LastTab = MainTabControl.SelectedIndex;
-    }
+        _controller = new SettingsSearchController(this);
+        _controller.Initialize();
 
-    private static void SubscribeToChanges(MainViewModel vm, SettingsViewModel settingsVm)
-    {
-        _marginSubscription = new CompositeDisposable();
-        Observable.EveryValueChanged(settingsVm.WindowMargin, x => x.CurrentValue, UIHelper.GetFrameProvider)
-            .Skip(1)
-            .Subscribe(x =>
-            {
-                Settings.WindowProperties.Margin = x;
-                WindowResizing.SetSize(vm.PicViewer.PixelWidth.CurrentValue, vm.PicViewer.PixelHeight.CurrentValue, 0,
-                    0, vm.PicViewer.RotationAngle.CurrentValue, vm);
-                WindowFunctions.CenterWindowOnScreen();
-            }).AddTo(_marginSubscription);
-    }
+        ContentScrollViewer.ScrollChanged += OnScrollChanged;
+        KeyDown += OnKeyDown;
+        MainPanel.PointerPressed += MainPanelOnPointerPressed;
+        ContentScrollViewer.PointerPressed += MainPanelOnPointerPressed;
 
-    private static void LoadInitialSettings()
-    {
-        Task.Run(() =>
-        {
-            if (string.IsNullOrWhiteSpace(CurrentSettingsPath))
-            {
-                _ = SaveSettingsAsync();
-            }
-
-            if (string.IsNullOrWhiteSpace(KeybindingFunctions.CurrentKeybindingsPath))
-            {
-                _ = KeybindingManager.UpdateKeyBindingsFile();
-            }
-        });
-    }
-
-    private void SetupUI()
-    {
-        Height = MainTabControl.MaxHeight = ScreenHelper.GetWindowMaxHeight() - SizeDefaults.TopBorderHeight;
         if (!Settings.Theme.Dark)
         {
-            MainTabControl.Background = Brushes.Transparent;
+            SetLightTheme();
         }
     }
 
-    private void AttachEventHandlers()
+    private void SetLightTheme()
     {
-        CloseItem.Click += (_, _) => (VisualRoot as Window)?.Close();
-        MainTabControl.SelectionChanged += OnTabSelectionChanged;
-        PointerPressed += OnPointerPressed;
+        GeneralSection.DeletingToggleButton.Classes.Remove("altHover");
+        GeneralSection.DeletingToggleButton.Classes.Add("hover");
+        
+        GeneralSection.RecyclingToggleButton.Classes.Remove("altHover");
+        GeneralSection.RecyclingToggleButton.Classes.Add("hover");
+        
+        GeneralSection.SubdirectoriesToggleButton.Classes.Remove("altHover");
+        GeneralSection.SubdirectoriesToggleButton.Classes.Add("hover");
+        
+        GeneralSection.FileHistoryToggleButton.Classes.Remove("altHover");
+        GeneralSection.FileHistoryToggleButton.Classes.Add("hover");
+        
+        AppearanceSection.ConstrainingBackgroundColorToggleButton.Classes.Remove("altHover");
+        AppearanceSection.ConstrainingBackgroundColorToggleButton.Classes.Add("hover");
+
+        InterfaceSection.ShowBottomToolbarButton.Classes.Remove("altHover");
+        InterfaceSection.ShowBottomToolbarButton.Classes.Add("hover");
+        
+        InterfaceSection.ShowUIButton.Classes.Remove("altHover");
+        InterfaceSection.ShowUIButton.Classes.Add("hover");
+        
+        InterfaceSection.HideUIButton.Classes.Remove("altHover");
+        InterfaceSection.HideUIButton.Classes.Add("hover");
+        
+        InterfaceSection.ToggleFadeUIButton.Classes.Remove("altHover");
+        InterfaceSection.ToggleFadeUIButton.Classes.Add("hover");
+                
+        InterfaceSection.ToggleHoverButton.Classes.Remove("altHover");
+        InterfaceSection.ToggleHoverButton.Classes.Add("hover");
+        
+        ImageSection.ScrollToggleButton.Classes.Remove("altHover");
+        ImageSection.ScrollToggleButton.Classes.Add("hover");
+        
+        ImageSection.SideBySideToggleButton.Classes.Remove("altHover");
+        ImageSection.SideBySideToggleButton.Classes.Add("hover");
+        
+        WindowSection.AutoFitToggleButton.Classes.Remove("altHover");
+        WindowSection.AutoFitToggleButton.Classes.Add("hover");
+        
+        WindowSection.TopMostToggleButton.Classes.Remove("altHover");
+        WindowSection.TopMostToggleButton.Classes.Add("hover");
+        
+        WindowSection.StayCenteredToggleButton.Classes.Remove("altHover");
+        WindowSection.StayCenteredToggleButton.Classes.Add("hover");
+        
+        WindowSection.OpenInSameWindowToggleButton.Classes.Remove("altHover");
+        WindowSection.OpenInSameWindowToggleButton.Classes.Add("hover");
+        
+        WindowSection.ShowConfirmationEscToggleButton.Classes.Remove("altHover");
+        WindowSection.ShowConfirmationEscToggleButton.Classes.Add("hover");
+        
+        GallerySection.ShowBottomDockedGalleryButton.Classes.Remove("altHover");
+        GallerySection.ShowBottomDockedGalleryButton.Classes.Add("hover");
+        
+        GallerySection.ShowTopDockedGalleryButton.Classes.Remove("altHover");
+        GallerySection.ShowTopDockedGalleryButton.Classes.Add("hover");
+        
+        GallerySection.ShowLeftDockedGalleryButton.Classes.Remove("altHover");
+        GallerySection.ShowLeftDockedGalleryButton.Classes.Add("hover");
+        
+        GallerySection.ShowRightDockedGalleryButton.Classes.Remove("altHover");
+        GallerySection.ShowRightDockedGalleryButton.Classes.Add("hover");
+        
+        GallerySection.CloseDockedGalleryButton.Classes.Remove("altHover");
+        GallerySection.CloseDockedGalleryButton.Classes.Add("hover");
+        
+        GallerySection.UIHiddenDockedGalleryToggleButton.Classes.Remove("altHover");
+        GallerySection.UIHiddenDockedGalleryToggleButton.Classes.Add("hover");
+        
+        NavigationSection.LoopingToggleButton.Classes.Remove("altHover");
+        NavigationSection.LoopingToggleButton.Classes.Add("hover");   
+        
+        NavigationSection.TaskBarToggleButton.Classes.Remove("altHover");
+        NavigationSection.TaskBarToggleButton.Classes.Add("hover");
+        
+        NavigationSection.IncludeSubdirToggleButton.Classes.Remove("altHover");
+        NavigationSection.IncludeSubdirToggleButton.Classes.Add("hover");      
+        
+        ZoomSection.ZoomToFitToggleButton.Classes.Remove("altHover");
+        ZoomSection.ZoomToFitToggleButton.Classes.Add("hover");
+        
+        ZoomSection.ResetZoomToggleButton.Classes.Remove("altHover");
+        ZoomSection.ResetZoomToggleButton.Classes.Add("hover");
+        
+        ZoomSection.AllowZoomOutToggleButton.Classes.Remove("altHover");
+        ZoomSection.AllowZoomOutToggleButton.Classes.Add("hover");
+        
+        ZoomSection.UseAnimatedZoomToggleButton.Classes.Remove("altHover");
+        ZoomSection.UseAnimatedZoomToggleButton.Classes.Add("hover");
+        
+        ZoomSection.ShowZoomPercentageToggleButton.Classes.Remove("altHover");
+        ZoomSection.ShowZoomPercentageToggleButton.Classes.Add("hover");
+        
+        ZoomSection.ShowZoomPreviewerToggleButton.Classes.Remove("altHover");
+        ZoomSection.ShowZoomPreviewerToggleButton.Classes.Add("hover");
+        
+        MouseSection.TouchPadButton.Classes.Remove("altHover");
+        MouseSection.TouchPadButton.Classes.Add("hover");
+        
+        MouseSection.MouseButton.Classes.Remove("altHover");
+        MouseSection.MouseButton.Classes.Add("hover");
     }
 
-    protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
+    private void OnUnloaded(object? sender, RoutedEventArgs e)
     {
-        base.OnDetachedFromVisualTree(e);
-        Disposable.Dispose(_marginSubscription, ViewModel.SettingsViewModel);
-        ViewModel.SettingsViewModel = null;
+        ContentScrollViewer.ScrollChanged -= OnScrollChanged;
+        KeyDown -= OnKeyDown;
+        MainPanel.PointerPressed -= MainPanelOnPointerPressed;
+        ContentScrollViewer.PointerPressed -= MainPanelOnPointerPressed;
+
+        _controller?.Dispose();
+        _controller = null;
     }
-
-    #endregion
-
-    #region Navigation
-
-    private void HandleMouseButtonNavigation(PointerPressedEventArgs e)
+    
+    private void MainPanelOnPointerPressed(object? sender, PointerPressedEventArgs e)
     {
-        if (Application.Current?.ApplicationLifetime is not IClassicDesktopStyleApplicationLifetime desktop)
-        {
-            return;
-        }
-
-        var topLevel = TopLevel.GetTopLevel(desktop.MainWindow);
-        var properties = e.GetCurrentPoint(topLevel).Properties;
-
-        if (properties.IsXButton1Pressed)
-        {
-            GoBack();
-        }
-
-        if (properties.IsXButton2Pressed)
-        {
-            GoForward();
-        }
-
-        if (properties.IsRightButtonPressed)
-        {
-            ContextMenu.Open();
-        }
+        _controller?.ResetFilters();
+        _controller?.ClosePopup();
     }
 
-    private void OnTabSelectionChanged(object? sender, SelectionChangedEventArgs e)
+    private void OnKeyDown(object? sender, KeyEventArgs e)
     {
-        if (MainTabControl.SelectedItem is TabItem selectedTab && _currentTab != selectedTab)
-        {
-            HandleTabSelection(selectedTab);
-        }
+        _controller?.HandleKeyDown(e);
     }
 
-    private void HandleTabSelection(TabItem selectedTab)
+    private void OnScrollChanged(object? sender, ScrollChangedEventArgs e)
     {
-        if (_currentTab != null)
-        {
-            _backStack.Push(_currentTab);
-            _forwardStack.Clear(); // Clear forward history
-        }
-
-        _currentTab = selectedTab;
-        SelectTab(_currentTab);
-        UpdateNavigationButtons();
-        SetLastTab(ViewModel);
+        _controller?.HandleScrollChanged(ContentScrollViewer.Offset.Y, ContentPanel.Spacing * 2);
     }
-
-    public void GoBack()
-    {
-        if (!_backStack.TryPop(out var previousTab))
-        {
-            return;
-        }
-
-        _forwardStack.Push(_currentTab);
-        _currentTab = previousTab;
-        SelectTab(_currentTab);
-        UpdateNavigationButtons();
-    }
-
-    public void GoForward()
-    {
-        if (!_forwardStack.TryPop(out var nextTab))
-        {
-            return;
-        }
-
-        _backStack.Push(_currentTab);
-        _currentTab = nextTab;
-        SelectTab(_currentTab);
-        UpdateNavigationButtons();
-    }
-
-    private void SelectTab(TabItem? tab)
-    {
-        MainTabControl.SelectedItem = tab;
-    }
-
-    private void UpdateNavigationButtons()
-    {
-        if (ViewModel?.SettingsViewModel is not { } svm)
-        {
-            return;
-        }
-
-        svm.IsBackButtonEnabled.Value = _backStack.Count > 0;
-        svm.IsForwardButtonEnabled.Value = _forwardStack.Count > 0;
-    }
-
-    #endregion
 }

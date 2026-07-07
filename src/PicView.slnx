@@ -1,0 +1,34 @@
+<Solution>
+    <Configurations>
+        <Platform Name="x64"/>
+        <Platform Name="arm64"/>
+    </Configurations>
+    <Project Path="PicView.Avalonia.Linux/PicView.Avalonia.Linux.csproj">
+        <Platform Solution="*|x64" Project="x64"/>
+    </Project>
+    <Project Path="PicView.Avalonia.MacOS/PicView.Avalonia.MacOS.csproj">
+        <Platform Solution="*|x64" Project="x64"/>
+    </Project>
+    <Project Path="PicView.Avalonia.Win32/PicView.Avalonia.Win32.csproj">
+        <Platform Solution="*|x64" Project="x64"/>
+    </Project>
+    <Project Path="PicView.Avalonia/PicView.Avalonia.csproj">
+        <Platform Solution="*|x64" Project="x64"/>
+    </Project>
+    <Project Path="PicView.Benchmarks/PicView.Benchmarks.csproj"/>
+    <Project Path="PicView.Core.Linux/PicView.Core.Linux.csproj">
+        <Platform Solution="*|x64" Project="x64"/>
+    </Project>
+    <Project Path="PicView.Core.MacOS/PicView.Core.MacOS.csproj">
+        <Platform Solution="*|x64" Project="x64"/>
+    </Project>
+    <Project Path="PicView.Core.WindowsNT/PicView.Core.WindowsNT.csproj">
+        <Platform Solution="*|x64" Project="x64"/>
+    </Project>
+    <Project Path="PicView.Core/PicView.Core.csproj">
+        <Platform Solution="*|x64" Project="x64"/>
+    </Project>
+    <Project Path="PicView.Tests/PicView.Tests.csproj">
+        <Platform Solution="*|x64" Project="x64"/>
+    </Project>
+</Solution>

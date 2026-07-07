@@ -1,0 +1,57 @@
+<Window
+    CanResize="False"
+    ExtendClientAreaChromeHints="SystemChrome"
+    ExtendClientAreaTitleBarHeightHint="-1"
+    SizeToContent="WidthAndHeight"
+    SystemDecorations="BorderOnly"
+    d:DesignHeight="450"
+    d:DesignWidth="800"
+    mc:Ignorable="d"
+    x:Class="PicView.Avalonia.Linux.Views.OpenWithView"
+    x:DataType="viewModels:MainViewModel"
+    xmlns="https://github.com/avaloniaui"
+    xmlns:customControls="clr-namespace:PicView.Avalonia.CustomControls;assembly=PicView.Avalonia"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:uc="clr-namespace:PicView.Avalonia.Views.UC;assembly=PicView.Avalonia"
+    xmlns:viewModels="clr-namespace:PicView.Avalonia.ViewModels;assembly=PicView.Avalonia"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Design.DataContext>
+        <viewModels:MainViewModel />
+    </Design.DataContext>
+    <Panel
+        Background="#4D000000"
+        Height="400"
+        Width="300"
+        x:Name="MainPanel">
+        <uc:SpinWaiter x:Name="SpinWaiter" />
+        <TextBlock
+            Classes="txt"
+            FontFamily="avares://PicView.Avalonia/Assets/Fonts/Roboto-Medium.ttf#Roboto"
+            FontSize="13"
+            FontWeight="Medium"
+            Height="{CompiledBinding MainWindow.TitlebarHeight.Value,
+                                     Mode=OneWay}"
+            Padding="7"
+            Text="{CompiledBinding Translation.OpenWith.Value,
+                                   Mode=OneWay}"
+            TextAlignment="Center"
+            VerticalAlignment="Top" />
+        <customControls:AutoScrollViewer Margin="0,20,0,20" Theme="{StaticResource Inline}">
+            <StackPanel Margin="5,15,5,5" x:Name="ParentPanel" />
+        </customControls:AutoScrollViewer>
+        <Button
+            Classes=" altHover"
+            Height="{CompiledBinding MainWindow.TitlebarHeight.Value,
+                                     Mode=OneWay}"
+            Padding="7"
+            VerticalAlignment="Bottom"
+            x:Name="CancelButton">
+            <TextBlock
+                Classes="txt"
+                Text="{CompiledBinding Translation.Cancel.Value,
+                                       Mode=OneWay}"
+                TextAlignment="Center" />
+        </Button>
+    </Panel>
+</Window>

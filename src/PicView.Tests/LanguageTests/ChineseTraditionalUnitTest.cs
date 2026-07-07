@@ -1,4 +1,4 @@
-﻿using PicView.Core.Localization;
+using PicView.Core.Localization;
 
 namespace PicView.Tests.LanguageTests;
 
@@ -41,8 +41,8 @@ public static class ChineseTraditionalUnitTest
         Assert.Equal(TranslationManager.Translation.BitDepth, "色深");
         Assert.Equal(TranslationManager.Translation.BlackAndWhite, "黑白");
         Assert.Equal(TranslationManager.Translation.Blur, "模糊");
-        Assert.Equal(TranslationManager.Translation.BottomGalleryItemSize, "底部圖庫項目");
-        Assert.Equal(TranslationManager.Translation.BottomGalleryThumbnailStretch, "圖庫項目縮放");
+        Assert.Equal(TranslationManager.Translation.DockedGalleryItemSize, "底部圖庫項目");
+        Assert.Equal(TranslationManager.Translation.DockedGalleryThumbnailStretch, "圖庫項目縮放");
         Assert.Equal(TranslationManager.Translation.Brightness, "亮度");
         Assert.Equal(TranslationManager.Translation.CameraMaker, "相機製造商");
         Assert.Equal(TranslationManager.Translation.CameraModel, "相機型號");
@@ -164,7 +164,7 @@ public static class ChineseTraditionalUnitTest
         Assert.Equal(TranslationManager.Translation.GoBackBy10Images, "後退 10 張圖片");
         Assert.Equal(TranslationManager.Translation.Hard, "硬");
         Assert.Equal(TranslationManager.Translation.Height, "高度");
-        Assert.Equal(TranslationManager.Translation.HideBottomGallery, "收起底部圖");
+        Assert.Equal(TranslationManager.Translation.HideDockedGallery, "收起底部圖");
         Assert.Equal(TranslationManager.Translation.HideBottomToolbar, "隱藏底部工具列");
         Assert.Equal(TranslationManager.Translation.HideUI, "隱藏介面");
         Assert.Equal(TranslationManager.Translation.High, "高");
@@ -306,8 +306,8 @@ public static class ChineseTraditionalUnitTest
         Assert.Equal(TranslationManager.Translation.Sharpness, "銳度");
         Assert.Equal(TranslationManager.Translation.Shift, "Shift");
         Assert.Equal(TranslationManager.Translation.ShowAllSettingsWindow, "顯示設定視窗");
-        Assert.Equal(TranslationManager.Translation.ShowBottomGallery, "查看底部圖");
-        Assert.Equal(TranslationManager.Translation.ShowBottomGalleryWhenUiIsHidden, "當使用者介面隱藏時顯示底部圖庫");
+        Assert.Equal(TranslationManager.Translation.ShowDockedGallery, "查看底部圖");
+        Assert.Equal(TranslationManager.Translation.ShowDockedGalleryWhenUiIsHidden, "當使用者介面隱藏時顯示底部圖庫");
         Assert.Equal(TranslationManager.Translation.ShowBottomToolbar, "查看底部工具列");
         Assert.Equal(TranslationManager.Translation.ShowConfirmationOnEsc, "按下 'Esc' 時顯示確認對話框");
         Assert.Equal(TranslationManager.Translation.ShowFadeInButtonsOnHover, "將滑鼠懸停時顯示淡入按鈕");
@@ -335,7 +335,7 @@ public static class ChineseTraditionalUnitTest
         Assert.Equal(TranslationManager.Translation.StayCentered, "保持視窗居中");
         Assert.Equal(TranslationManager.Translation.StayTopMost, "視窗置頂");
         Assert.Equal(TranslationManager.Translation.Stretch, "拉伸");
-        Assert.Equal(TranslationManager.Translation.StretchImage, "拉伸圖片");
+        Assert.Equal(TranslationManager.Translation.ZoomToFit, "縮放以適合");
         Assert.Equal(TranslationManager.Translation.StrobeReturnLightDetected, "檢測到閃光燈反射");
         Assert.Equal(TranslationManager.Translation.StrobeReturnLightNotDetected, "未檢測到閃光燈反射");
         Assert.Equal(TranslationManager.Translation.Subject, "主題");

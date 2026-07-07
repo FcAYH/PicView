@@ -1,16 +1,11 @@
 ﻿<customControls:AnimatedPopUp
     ClickingOutsideCloses="True"
     Padding="20"
-    d:DesignHeight="450"
-    d:DesignWidth="800"
-    mc:Ignorable="d"
     x:Class="PicView.Avalonia.Views.UC.PopUps.NavigationDialog"
-    x:DataType="viewModels:MainViewModel"
+    x:DataType="viewModels:MainWindowViewModel"
     xmlns="https://github.com/avaloniaui"
     xmlns:customControls="clr-namespace:PicView.Avalonia.CustomControls"
-    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    xmlns:viewModels="clr-namespace:PicView.Avalonia.ViewModels"
+    xmlns:viewModels="clr-namespace:PicView.Core.ViewModels;assembly=PicView.Core"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
     <StackPanel Background="Transparent">
         <!--  Next  -->
@@ -20,10 +15,10 @@
             IconHeight="12"
             IconMargin="5,0,10,0"
             IconWidth="12"
-            IsEnabled="{CompiledBinding PicViewer.FileInfo.Value,
+            IsEnabled="{CompiledBinding WindowTabs.ActiveTab.Value.CanNavigateForwards.Value,
                                         Converter={x:Static ObjectConverters.IsNotNull}}"
             Padding="6"
-            Text="{CompiledBinding Translation.NextImage,
+            Text="{CompiledBinding Translation.NextImage.Value,
                                    Mode=OneWay}"
             x:Name="NextButton" />
 
@@ -34,10 +29,10 @@
             IconHeight="12"
             IconMargin="5,0,10,0"
             IconWidth="12"
-            IsEnabled="{CompiledBinding PicViewer.FileInfo.Value,
+            IsEnabled="{CompiledBinding WindowTabs.ActiveTab.Value.CanNavigateBackwards.Value,
                                         Converter={x:Static ObjectConverters.IsNotNull}}"
             Padding="6"
-            Text="{CompiledBinding Translation.PrevImage,
+            Text="{CompiledBinding Translation.PrevImage.Value,
                                    Mode=OneWay}"
             x:Name="PrevButton" />
 
@@ -51,10 +46,10 @@
             IconHeight="12"
             IconMargin="5,0,10,0"
             IconWidth="12"
-            IsEnabled="{CompiledBinding PicViewer.FileInfo.Value,
+            IsEnabled="{CompiledBinding WindowTabs.ActiveTab.Value.CanNavigateForwards.Value,
                                         Converter={x:Static ObjectConverters.IsNotNull}}"
             Padding="6"
-            Text="{CompiledBinding Translation.AdvanceBy10Images,
+            Text="{CompiledBinding Translation.AdvanceBy10Images.Value,
                                    Mode=OneWay}"
             x:Name="Next10Button" />
 
@@ -65,10 +60,10 @@
             IconHeight="12"
             IconMargin="5,0,10,0"
             IconWidth="12"
-            IsEnabled="{CompiledBinding PicViewer.FileInfo.Value,
+            IsEnabled="{CompiledBinding WindowTabs.ActiveTab.Value.CanNavigateForwards.Value,
                                         Converter={x:Static ObjectConverters.IsNotNull}}"
             Padding="6"
-            Text="{CompiledBinding Translation.AdvanceBy100Images,
+            Text="{CompiledBinding Translation.AdvanceBy100Images.Value,
                                    Mode=OneWay}"
             x:Name="Next100Button" />
 
@@ -79,10 +74,10 @@
             IconHeight="12"
             IconMargin="5,0,10,0"
             IconWidth="12"
-            IsEnabled="{CompiledBinding PicViewer.FileInfo.Value,
+            IsEnabled="{CompiledBinding WindowTabs.ActiveTab.Value.CanNavigateBackwards.Value,
                                         Converter={x:Static ObjectConverters.IsNotNull}}"
             Padding="6"
-            Text="{CompiledBinding Translation.GoBackBy10Images,
+            Text="{CompiledBinding Translation.GoBackBy10Images.Value,
                                    Mode=OneWay}"
             x:Name="Prev10Button" />
 
@@ -93,10 +88,10 @@
             IconHeight="12"
             IconMargin="5,0,10,0"
             IconWidth="12"
-            IsEnabled="{CompiledBinding PicViewer.FileInfo.Value,
+            IsEnabled="{CompiledBinding WindowTabs.ActiveTab.Value.CanNavigateBackwards.Value,
                                         Converter={x:Static ObjectConverters.IsNotNull}}"
             Padding="6"
-            Text="{CompiledBinding Translation.GoBackBy100Images,
+            Text="{CompiledBinding Translation.GoBackBy100Images.Value,
                                    Mode=OneWay}"
             x:Name="Prev100Button" />
 
@@ -109,10 +104,10 @@
             IconHeight="12"
             IconMargin="5,0,10,0"
             IconWidth="12"
-            IsEnabled="{CompiledBinding PicViewer.FileInfo.Value,
+            IsEnabled="{CompiledBinding WindowTabs.ActiveTab.Value.CanNavigateBackwards.Value,
                                         Converter={x:Static ObjectConverters.IsNotNull}}"
             Padding="6"
-            Text="{CompiledBinding Translation.FirstImage,
+            Text="{CompiledBinding Translation.FirstImage.Value,
                                    Mode=OneWay}"
             x:Name="FirstImageButton" />
 
@@ -123,10 +118,10 @@
             IconHeight="12"
             IconMargin="5,0,10,0"
             IconWidth="12"
-            IsEnabled="{CompiledBinding PicViewer.FileInfo.Value,
+            IsEnabled="{CompiledBinding WindowTabs.ActiveTab.Value.CanNavigateForwards.Value,
                                         Converter={x:Static ObjectConverters.IsNotNull}}"
             Padding="6"
-            Text="{CompiledBinding Translation.LastImage,
+            Text="{CompiledBinding Translation.LastImage.Value,
                                    Mode=OneWay}"
             x:Name="LastImageButton" />
 
@@ -139,10 +134,10 @@
             IconHeight="14"
             IconMargin="5,0,10,0"
             IconWidth="14"
-            IsEnabled="{CompiledBinding PicViewer.FileInfo.Value,
+            IsEnabled="{CompiledBinding WindowTabs.ActiveTab.Value.FileInfo.Value,
                                         Converter={x:Static ObjectConverters.IsNotNull}}"
             Padding="6"
-            Text="{CompiledBinding Translation.NextFolder,
+            Text="{CompiledBinding Translation.NextFolder.Value,
                                    Mode=OneWay}"
             x:Name="NextFolderButton" />
 
@@ -153,11 +148,41 @@
             IconHeight="14"
             IconMargin="5,0,10,0"
             IconWidth="14"
-            IsEnabled="{CompiledBinding PicViewer.FileInfo.Value,
+            IsEnabled="{CompiledBinding WindowTabs.ActiveTab.Value.FileInfo.Value,
                                         Converter={x:Static ObjectConverters.IsNotNull}}"
             Padding="6"
-            Text="{CompiledBinding Translation.PrevFolder,
+            Text="{CompiledBinding Translation.PrevFolder.Value,
                                    Mode=OneWay}"
             x:Name="PrevFolderButton" />
+
+        <Separator />
+
+        <!--  Next archive  -->
+        <customControls:TextIconButton
+            Classes="altHover"
+            Icon="{StaticResource ArchiveFile}"
+            IconHeight="14"
+            IconMargin="5,0,10,0"
+            IconWidth="14"
+            IsEnabled="{CompiledBinding WindowTabs.ActiveTab.Value.FileInfo.Value,
+                                        Converter={x:Static ObjectConverters.IsNotNull}}"
+            Padding="6"
+            Text="{CompiledBinding Translation.NextArchive.Value,
+                                   Mode=OneWay}"
+            x:Name="NextArchiveButton" />
+
+        <!--  Prev folder  -->
+        <customControls:TextIconButton
+            Classes="altHover"
+            Icon="{StaticResource ArchiveFile}"
+            IconHeight="14"
+            IconMargin="5,0,10,0"
+            IconWidth="14"
+            IsEnabled="{CompiledBinding WindowTabs.ActiveTab.Value.FileInfo.Value,
+                                        Converter={x:Static ObjectConverters.IsNotNull}}"
+            Padding="6"
+            Text="{CompiledBinding Translation.PrevArchive.Value,
+                                   Mode=OneWay}"
+            x:Name="PrevArchiveButton" />
     </StackPanel>
 </customControls:AnimatedPopUp>

@@ -1,6 +1,10 @@
-﻿using Avalonia.Controls;
+﻿using Avalonia;
+using Avalonia.Controls;
+using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Input;
 using PicView.Avalonia.Input;
+using PicView.Core.Config;
+using PicView.Core.Extensions;
 using PicView.Core.Localization;
 
 namespace PicView.Avalonia.UI;
@@ -16,20 +20,41 @@ public static class GenericWindowHelper
         }
         else
         {
-            GenericWindowInitialize(window,$"{TranslationManager.Translation.About}  - PicView");
+            GenericWindowInitialize(window, StringExtensions.CombineWithAppName(TranslationManager.Translation.About));
         }
     }
     
-    public static void KeybindingsWindowInitialize(Window window)
+    public static void GenericWindowInitialize(Window window, string title, bool isWidthLocked, IWindowProperties windowConfig)
     {
         window.Loaded += delegate
         {
-            if (!double.IsNaN(window.Width))
+            if (isWidthLocked)
             {
-                window.MinWidth = window.MaxWidth = window.Width;
+                if (!double.IsNaN(window.Width))
+                {
+                    window.MinWidth = window.MaxWidth = window.Width;
+                }
+            }
+
+            if (windowConfig.Maximized)
+            {
+                window.WindowState = WindowState.Maximized;
+            }
+            else
+            { 
+                window.WindowState = WindowState.Normal;
+                window.Height = windowConfig.Height ?? window.Height;
+                if (!isWidthLocked)
+                {
+                    window.Width = windowConfig.Width ?? window.Width;
+                }
+                if (windowConfig.Top is not null && windowConfig.Left is not null)
+                {
+                    window.Position = new PixelPoint(windowConfig.Left.Value, windowConfig.Top.Value);
+                }
             }
             
-            window.Title = $"{TranslationManager.Translation.ApplicationShortcuts}  - PicView";
+            window.Title = StringExtensions.CombineWithAppName(title);
         };
         window.KeyUp += (_, e) =>
         {
@@ -45,6 +70,25 @@ public static class GenericWindowHelper
             e.Handled = true;
             MainKeyboardShortcuts.IsEscKeyEnabled = false;
             window.Close();
+        };
+        window.Closing += (_, _) =>
+        {
+            windowConfig.Width = window.Width;
+            windowConfig.Height = window.Height;
+            windowConfig.Maximized = window.WindowState is WindowState.Maximized;
+            windowConfig.Top = window.Position.Y;
+            windowConfig.Left = window.Position.X;
+            MainKeyboardShortcuts.IsEscKeyEnabled = false;
+
+            if (window is IDisposable disposable)
+            {
+                disposable.Dispose();
+            }
+            
+            if (Application.Current.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
+            {
+                desktop.MainWindow.Focus();
+            }
         };
     }
     

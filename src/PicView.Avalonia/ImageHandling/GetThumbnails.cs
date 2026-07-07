@@ -13,11 +13,6 @@ public static class GetThumbnails
     {
         try
         {
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-            {
-                return await GetSkBitmapThumbAsync(fileInfo, height);
-            }
-
             using var magick = new MagickImage();
             magick.Ping(fileInfo);
             var profile = magick.GetExifProfile();
@@ -56,8 +51,17 @@ public static class GetThumbnails
         }
 
         var profile = magick.GetExifProfile();
-        var thumbnail = profile?.CreateThumbnail();
-        thumbnail?.AutoOrient();
+        // ReSharper disable once UseNullPropagation
+        if (profile is null)
+        {
+            return null;
+        }
+        var thumbnail = profile.CreateThumbnail();
+        if (thumbnail is null)
+        {
+            return null;
+        }
+        thumbnail.AutoOrient();
         return thumbnail?.ToWriteableBitmap();
     }
 

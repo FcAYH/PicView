@@ -1,29 +1,28 @@
 <ResourceDictionary
-    x:ClassModifier="internal"
     xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:sys="using:System"
-    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    x:ClassModifier="internal">
 
-    <ControlTheme TargetType="MenuItem" x:Key="SimpleTopLevelMenuItem">
+    <ControlTheme x:Key="SimpleTopLevelMenuItem" TargetType="MenuItem">
         <Setter Property="Background" Value="Transparent" />
         <Setter Property="Padding" Value="6 0" />
-        <Setter Property="BorderThickness" Value="1" />
         <Setter Property="Template">
             <ControlTemplate>
 
                 <Border
+                    Name="root"
                     Background="{TemplateBinding Background}"
                     BorderBrush="{TemplateBinding BorderBrush}"
                     BorderThickness="{TemplateBinding BorderThickness}"
-                    CornerRadius="{TemplateBinding CornerRadius}"
-                    Name="root">
+                    CornerRadius="{TemplateBinding CornerRadius}">
                     <Panel>
                         <ContentPresenter
-                            Content="{TemplateBinding Header}"
-                            ContentTemplate="{TemplateBinding HeaderTemplate}"
-                            Margin="{TemplateBinding Padding}"
                             Name="PART_HeaderPresenter"
-                            VerticalAlignment="Center">
+                            Margin="{TemplateBinding Padding}"
+                            VerticalAlignment="Center"
+                            Content="{TemplateBinding Header}"
+                            ContentTemplate="{TemplateBinding HeaderTemplate}">
                             <ContentPresenter.DataTemplates>
                                 <DataTemplate DataType="sys:String">
                                     <AccessText Text="{Binding}" />
@@ -31,21 +30,20 @@
                             </ContentPresenter.DataTemplates>
                         </ContentPresenter>
                         <Popup
+                            Name="PART_Popup"
                             IsLightDismissEnabled="True"
                             IsOpen="{TemplateBinding IsSubMenuOpen,
                                                      Mode=TwoWay}"
-                            Name="PART_Popup"
                             OverlayInputPassThroughElement="{Binding $parent[Menu]}"
                             Placement="BottomEdgeAlignedLeft">
                             <Border
-                                Background="{DynamicResource MainBackgroundColor}"
+                                Background="{DynamicResource MainBorderColor}"
                                 BorderBrush="{DynamicResource MainBorderColor}"
                                 BorderThickness="1">
                                 <ItemsPresenter
+                                    Name="PART_ItemsPresenter"
                                     Grid.IsSharedSizeScope="True"
-                                    ItemsPanel="{TemplateBinding ItemsPanel}"
-                                    Margin="2"
-                                    Name="PART_ItemsPresenter" />
+                                    ItemsPanel="{TemplateBinding ItemsPanel}" />
                             </Border>
                         </Popup>
                     </Panel>
@@ -70,21 +68,21 @@
         </Style>
     </ControlTheme>
 
-    <ControlTheme TargetType="Menu" x:Key="{x:Type Menu}">
+    <ControlTheme x:Key="{x:Type Menu}" TargetType="Menu">
         <Setter Property="ItemContainerTheme" Value="{StaticResource SimpleTopLevelMenuItem}" />
         <Setter Property="Template">
             <ControlTemplate>
 
                 <Border
+                    Padding="{TemplateBinding Padding}"
                     Background="{TemplateBinding Background}"
                     BorderBrush="{TemplateBinding BorderBrush}"
                     BorderThickness="{TemplateBinding BorderThickness}"
-                    CornerRadius="{TemplateBinding CornerRadius}"
-                    Padding="{TemplateBinding Padding}">
+                    CornerRadius="{TemplateBinding CornerRadius}">
                     <ItemsPresenter
+                        Name="PART_ItemsPresenter"
                         ItemsPanel="{TemplateBinding ItemsPanel}"
-                        KeyboardNavigation.TabNavigation="Continue"
-                        Name="PART_ItemsPresenter" />
+                        KeyboardNavigation.TabNavigation="Continue" />
                 </Border>
             </ControlTemplate>
         </Setter>

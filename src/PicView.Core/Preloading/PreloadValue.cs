@@ -21,9 +21,10 @@ public class PreLoadValue
         ImageModel = imageModel;
         if (isLoading)
         {
-            _loadingCompletionSource = new TaskCompletionSource<bool>();
+            // Vital to prevent deadlocks when SetResult is called inside a lock
+            _loadingCompletionSource = new TaskCompletionSource<bool>(
+                TaskCreationOptions.RunContinuationsAsynchronously);
         }
-
         IsLoading = isLoading;
     }
 

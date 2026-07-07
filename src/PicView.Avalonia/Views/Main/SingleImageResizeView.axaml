@@ -1,13 +1,10 @@
 ﻿<UserControl
-    d:DesignHeight="450"
-    d:DesignWidth="800"
     x:Class="PicView.Avalonia.Views.Main.SingleImageResizeView"
-    x:DataType="viewModels:MainViewModel"
+    x:DataType="viewModels:MainWindowViewModel"
     xmlns="https://github.com/avaloniaui"
     xmlns:customControls="clr-namespace:PicView.Avalonia.CustomControls"
-    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:uc="clr-namespace:PicView.Avalonia.Views.UC"
-    xmlns:viewModels="clr-namespace:PicView.Avalonia.ViewModels;assembly=PicView.Avalonia"
+    xmlns:viewModels="clr-namespace:PicView.Core.ViewModels;assembly=PicView.Core"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
     <UserControl.Resources>
         <SolidColorBrush Color="{DynamicResource MainTextColor}" x:Key="CancelBrush" />
@@ -23,13 +20,10 @@
                     <StackPanel Margin="0,5,0,30" Orientation="Horizontal">
                         <StackPanel>
                             <TextBlock
-                                Classes="txt"
-                                FontFamily="/Assets/Fonts/Roboto-Medium.ttf#Roboto"
-                                FontSize="14"
+                                Classes="txt bold"
                                 Foreground="{StaticResource SecondaryTextColor}"
                                 Margin="4,0,0,5"
-                                Text="{CompiledBinding Translation.Width.Value,
-                                                       Mode=OneWay}" />
+                                Text="{Binding Translation.Width.Value, Mode=OneWay}" />
                             <customControls:NumTextBox
                                 Background="{DynamicResource SecondaryBackgroundColor}"
                                 Classes="hover TStyle"
@@ -37,8 +31,7 @@
                                 Foreground="{DynamicResource MainTextColor}"
                                 Height="35"
                                 Margin="0"
-                                Text="{CompiledBinding PicViewer.PixelWidth.Value,
-                                                       Mode=OneWay}"
+                                Text="{Binding ResizeImageViewModel.DesiredPixelWidth.Value, Mode=TwoWay}"
                                 ToolTip.Tip="{CompiledBinding Translation.SizeTooltip.Value,
                                                               Mode=OneWay}"
                                 Width="195"
@@ -48,6 +41,7 @@
                         <customControls:IconButton
                             Background="Transparent"
                             Classes="altHover"
+                            CornerRadius="6"
                             Foreground="{StaticResource LinkBrush}"
                             Height="35"
                             Icon="{StaticResource LinkChainImage}"
@@ -60,13 +54,10 @@
 
                         <StackPanel>
                             <TextBlock
-                                Classes="txt"
-                                FontFamily="/Assets/Fonts/Roboto-Medium.ttf#Roboto"
-                                FontSize="14"
+                                Classes="txt bold"
                                 Foreground="{StaticResource SecondaryTextColor}"
                                 Margin="4,0,0,5"
-                                Text="{CompiledBinding Translation.Height.Value,
-                                                       Mode=OneWay}" />
+                                Text="{Binding Translation.Height.Value, Mode=OneWay}" />
                             <customControls:NumTextBox
                                 Background="{DynamicResource SecondaryBackgroundColor}"
                                 Classes="hover TStyle"
@@ -74,8 +65,7 @@
                                 Foreground="{DynamicResource MainTextColor}"
                                 Height="35"
                                 Margin="0"
-                                Text="{CompiledBinding PicViewer.PixelHeight.Value,
-                                                       Mode=OneWay}"
+                                Text="{Binding ResizeImageViewModel.DesiredPixelHeight.Value, Mode=TwoWay}"
                                 ToolTip.Tip="{CompiledBinding Translation.SizeTooltip,
                                                               Mode=OneWay}"
                                 Width="195"
@@ -86,20 +76,18 @@
                     <StackPanel Orientation="Horizontal">
                         <StackPanel>
                             <TextBlock
-                                Classes="txt"
-                                FontFamily="/Assets/Fonts/Roboto-Medium.ttf#Roboto"
-                                FontSize="14"
+                                Classes="txt bold"
                                 Foreground="{StaticResource SecondaryTextColor}"
                                 Margin="5,0,0,2"
-                                Text="{CompiledBinding Translation.Quality.Value,
-                                                       Mode=OneWay}" />
+                                Text="{Binding Translation.Quality.Value, Mode=OneWay}" />
                             <customControls:CustomSlider
+                                IsEnabled="{Binding ResizeImageViewModel.IsQualityEnabled.Value}"
                                 IsSnapToTickEnabled="True"
                                 Margin="5,0,0,2"
                                 Maximum="100"
                                 Minimum="1"
                                 TickFrequency="1"
-                                Value="90"
+                                Value="{Binding ResizeImageViewModel.Quality.Value, Mode=TwoWay}"
                                 Width="190"
                                 x:Name="QualitySlider" />
                             <TextBlock
@@ -115,8 +103,7 @@
                                 FontSize="14"
                                 Foreground="{StaticResource SecondaryTextColor}"
                                 Margin="5,0,0,5"
-                                Text="{CompiledBinding Translation.ConvertTo.Value,
-                                                       Mode=OneWay}" />
+                                Text="{Binding Translation.ConvertTo.Value, Mode=OneWay}" />
                             <ComboBox
                                 Background="{DynamicResource SecondaryBackgroundColor}"
                                 BorderBrush="{DynamicResource MainBorderColor}"
@@ -128,7 +115,7 @@
                                 HorizontalAlignment="Right"
                                 Margin="0"
                                 Padding="5,7,0,7"
-                                SelectedIndex="0"
+                                SelectedIndex="{Binding ResizeImageViewModel.SelectedConversionIndex.Value, Mode=TwoWay}"
                                 Width="195"
                                 x:Name="ConversionComboBox">
                                 <ComboBoxItem Content="{CompiledBinding Translation.NoConversion.Value, Mode=OneWay}" x:Name="NoConversion" />
@@ -152,28 +139,27 @@
                 <Button
                     Classes="BorderStyle altHover mainBtn"
                     CornerRadius="4"
-                    IsVisible="False"
+                    IsVisible="{Binding ResizeImageViewModel.ShowReset.Value}"
                     Margin="30,0,60,0"
                     Width="195"
                     x:Name="ResetButton">
                     <TextBlock
                         Classes="txt"
-                        Text="{CompiledBinding Translation.Reset.Value,
-                                               Mode=OneWay}"
+                        Text="{Binding Translation.Reset.Value, Mode=OneWay}"
                         TextAlignment="Center" />
                 </Button>
 
                 <Button
                     Classes="BorderStyle altHover mainBtn"
                     CornerRadius="4"
+                    IsVisible="{Binding !ResizeImageViewModel.ShowReset.Value}"
                     Margin="30,0,60,0"
                     Width="195"
                     x:Name="CancelButton">
                     <TextBlock
                         Classes="txt"
                         Foreground="{StaticResource CancelBrush}"
-                        Text="{CompiledBinding Translation.Cancel.Value,
-                                               Mode=OneWay}"
+                        Text="{Binding Translation.Cancel.Value, Mode=OneWay}"
                         TextAlignment="Center" />
                 </Button>
 
@@ -187,8 +173,7 @@
                     <TextBlock
                         Classes="txt"
                         Foreground="{StaticResource SecondaryTextColor}"
-                        Text="{CompiledBinding Translation.Save.Value,
-                                               Mode=OneWay}"
+                        Text="{Binding Translation.Save.Value, Mode=OneWay}"
                         TextAlignment="Center" />
                     <SplitButton.Flyout>
                         <MenuFlyout FlyoutPresenterClasses="noCornerRadius" Placement="Bottom">

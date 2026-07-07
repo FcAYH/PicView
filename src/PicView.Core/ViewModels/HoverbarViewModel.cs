@@ -11,5 +11,5 @@ public class HoverbarViewModel
     public bool IsHoverNavigationButtonPreviousClicked { get; set; }
 
     public double MaxWidth { get; set; } = 775;
-    public BindableReactiveProperty<bool> IsHoverbarVisible { get; } = new();
+    public BindableReactiveProperty<bool> IsHoverbarVisible { get; } = new(false);
 }

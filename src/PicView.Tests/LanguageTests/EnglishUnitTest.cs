@@ -1,4 +1,4 @@
-﻿using PicView.Core.Localization;
+using PicView.Core.Localization;
 
 namespace PicView.Tests.LanguageTests;
 public static class EnglishUnitTest
@@ -40,9 +40,9 @@ public static class EnglishUnitTest
         Assert.Equal(TranslationManager.Translation.BitDepth, "Bit depth");
         Assert.Equal(TranslationManager.Translation.BlackAndWhite, "Black & White");
         Assert.Equal(TranslationManager.Translation.Blur, "Blur");
-        Assert.Equal(TranslationManager.Translation.BottomGalleryItemSize, "Size of thumbnails in the bottom gallery");
-        Assert.Equal(TranslationManager.Translation.BottomGalleryThumbnailStretch,
-            "Thumbnail stretch in the bottom gallery");
+        Assert.Equal(TranslationManager.Translation.DockedGalleryItemSize, "Size of thumbnails in the docked gallery");
+        Assert.Equal(TranslationManager.Translation.DockedGalleryThumbnailStretch,
+            "Thumbnail stretch in the docked gallery");
         Assert.Equal(TranslationManager.Translation.Brightness, "Brightness");
         Assert.Equal(TranslationManager.Translation.CameraMaker, "Camera maker");
         Assert.Equal(TranslationManager.Translation.CameraModel, "Camera model");
@@ -169,7 +169,7 @@ public static class EnglishUnitTest
         Assert.Equal(TranslationManager.Translation.GoBackBy10Images, "Go Back by 10 Images");
         Assert.Equal(TranslationManager.Translation.Hard, "Hard");
         Assert.Equal(TranslationManager.Translation.Height, "Height");
-        Assert.Equal(TranslationManager.Translation.HideBottomGallery, "Hide bottom gallery");
+        Assert.Equal(TranslationManager.Translation.HideDockedGallery, "Hide docked gallery");
         Assert.Equal(TranslationManager.Translation.HideBottomToolbar, "Hide Bottom Toolbar");
         Assert.Equal(TranslationManager.Translation.HideUI, "Hide interface");
         Assert.Equal(TranslationManager.Translation.High, "High");
@@ -312,9 +312,9 @@ public static class EnglishUnitTest
         Assert.Equal(TranslationManager.Translation.Sharpness, "Sharpness");
         Assert.Equal(TranslationManager.Translation.Shift, "Shift");
         Assert.Equal(TranslationManager.Translation.ShowAllSettingsWindow, "Show all settings window");
-        Assert.Equal(TranslationManager.Translation.ShowBottomGallery, "Show bottom gallery");
-        Assert.Equal(TranslationManager.Translation.ShowBottomGalleryWhenUiIsHidden,
-            "Show bottom gallery when UI is hidden");
+        Assert.Equal(TranslationManager.Translation.ShowDockedGallery, "Show docked gallery");
+        Assert.Equal(TranslationManager.Translation.ShowDockedGalleryWhenUiIsHidden,
+            "Show docked gallery when UI is hidden");
         Assert.Equal(TranslationManager.Translation.ShowBottomToolbar, "Show bottom toolbar");
         Assert.Equal(TranslationManager.Translation.ShowConfirmationOnEsc,
             "Show confirmation dialog when pressing 'Esc'");
@@ -343,7 +343,7 @@ public static class EnglishUnitTest
         Assert.Equal(TranslationManager.Translation.StayCentered, "Keep window centered");
         Assert.Equal(TranslationManager.Translation.StayTopMost, "Stay on top of other windows");
         Assert.Equal(TranslationManager.Translation.Stretch, "Stretch");
-        Assert.Equal(TranslationManager.Translation.StretchImage, "Stretch image");
+        Assert.Equal(TranslationManager.Translation.ZoomToFit, "Zoom to fit");
         Assert.Equal(TranslationManager.Translation.StrobeReturnLightDetected, "Strobe return light detected");
         Assert.Equal(TranslationManager.Translation.StrobeReturnLightNotDetected, "Strobe return light not detected");
         Assert.Equal(TranslationManager.Translation.Subject, "Subject");

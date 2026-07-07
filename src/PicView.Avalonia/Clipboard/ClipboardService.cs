@@ -1,8 +1,7 @@
 using Avalonia;
+using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Input.Platform;
-using PicView.Avalonia.Animations;
-using PicView.Core.DebugTools;
 
 namespace PicView.Avalonia.Clipboard;
 
@@ -12,41 +11,28 @@ namespace PicView.Avalonia.Clipboard;
 public static class ClipboardService
 {
     /// <summary>
-    /// Gets the clipboard instance from the current application
+    /// Gets the clipboard instance from the provided visual or current application
     /// </summary>
+    /// <param name="visual">The visual to find the TopLevel/Clipboard from</param>
     /// <returns>The clipboard instance or null if not available</returns>
-    public static IClipboard? GetClipboard()
+    public static IClipboard? GetClipboard(Visual? visual = null)
     {
+        if (visual is not null)
+        {
+            var topLevel = TopLevel.GetTopLevel(visual);
+            if (topLevel?.Clipboard is { } clipboard)
+            {
+                return clipboard;
+            }
+        }
+        
+        // Fallback for when we don't have a visual, but maybe we can find one via Application (legacy style)
         if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
+             // This should be the correct window, as the desktop.MainWindow is set on Activated()
             return desktop.MainWindow?.Clipboard;
         }
+
         return null;
-    }
-    
-    /// <summary>
-    /// Executes a clipboard operation with standard error handling and animation
-    /// </summary>
-    /// <param name="operation">The clipboard operation to perform</param>
-    /// <param name="showAnimation">Whether to show the copy animation</param>
-    /// <returns>True if the operation was successful, false otherwise</returns>
-    public static async Task<bool> ExecuteClipboardOperation(Func<Task<bool>> operation, bool showAnimation = true)
-    {
-        try
-        {
-            var success = await operation();
-            
-            if (success && showAnimation)
-            {
-                await AnimationsHelper.CopyAnimation();
-            }
-            
-            return success;
-        }
-        catch (Exception ex)
-        {
-            DebugHelper.LogDebug(nameof(ClipboardService), nameof(ExecuteClipboardOperation), ex);
-            return false;
-        }
     }
 }

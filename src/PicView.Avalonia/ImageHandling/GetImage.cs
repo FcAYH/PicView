@@ -8,71 +8,6 @@ namespace PicView.Avalonia.ImageHandling;
 
 public static class GetImage
 {
-    public static async ValueTask<object?> GetImageCore(FileInfo fileInfo, MagickImage? magickImage = null)
-    {
-        if (fileInfo is null)
-        {
-            return null;
-        }
-
-        var shouldDisposeMagickImage = magickImage is null;
-
-        try
-        {
-            // Initialize MagickImage if not provided
-            magickImage ??= CreateAndPingMagickImage(fileInfo);
-            
-            if (fileInfo.Extension.Equals(".b64", StringComparison.InvariantCultureIgnoreCase))
-            {
-                return await GetBase64ImageAsync(fileInfo).ConfigureAwait(false);
-            }
-
-            // Process the image based on type
-            return magickImage.Format switch
-            {
-                MagickFormat.WebP or
-                    MagickFormat.WebM or
-                    MagickFormat.Png or
-                    MagickFormat.Png00 or
-                    MagickFormat.Png8 or
-                    MagickFormat.Png24 or
-                    MagickFormat.Png32 or
-                    MagickFormat.Png48 or
-                    MagickFormat.Png64 or
-                    MagickFormat.APng or
-                    MagickFormat.Jpe or
-                    MagickFormat.Jpeg or
-                    MagickFormat.Pjpeg or
-                    MagickFormat.Bmp or
-                    MagickFormat.Tif or
-                    MagickFormat.Tiff or
-                    MagickFormat.Ico or
-                    MagickFormat.Icon or
-                    MagickFormat.Wbmp => await GetSkBitmapAsync(fileInfo).ConfigureAwait(false),
-
-                MagickFormat.Arw or
-                    MagickFormat.Nef or
-                    MagickFormat.Dng or
-                    MagickFormat.Cr2 or
-                    MagickFormat.Rw2 => await GetRawBitmapAsync(fileInfo, magickImage).ConfigureAwait(false),
-
-                _ => await GetNonStandardBitmapAsync(fileInfo, magickImage).ConfigureAwait(false)
-            };
-        }
-        catch (Exception e)
-        {
-            DebugHelper.LogDebug(nameof(GetImage), nameof(GetImageCore), e);
-            return null;
-        }
-        finally
-        {
-            if (shouldDisposeMagickImage)
-            {
-                magickImage?.Dispose();
-            }
-        }
-    }
-    
     public static async ValueTask<Bitmap?> GetSkBitmapAsync(string file) =>
         await GetSkBitmapAsync(new FileInfo(file)).ConfigureAwait(false);
 
@@ -97,6 +32,10 @@ public static class GetImage
         }
         magickImage = await MagickPerformanceReader.ReadMagickImageWithSpanAsync(fileInfo, magickImage);
 
+        // Rotate image according to EXIF orientation
+        magickImage.AutoOrient();
+        TransformToSrgbIfNeeded(magickImage);
+
         var bitmap = magickImage.ToWriteableBitmap();
         if (shouldDisposeMagickImage)
         {
@@ -114,7 +53,12 @@ public static class GetImage
         }
         // Raw images needs to be loaded by file path, else it just loads thumbnail 
         // https://github.com/Ruben2776/PicView/issues/221
-        await magickImage.ReadAsync(fileInfo).ConfigureAwait(false); 
+        await magickImage.ReadAsync(fileInfo).ConfigureAwait(false);
+
+        // Rotate image according to EXIF orientation
+        magickImage.AutoOrient();
+        TransformToSrgbIfNeeded(magickImage);
+
         var bitmap = magickImage.ToWriteableBitmap();
         if (shouldDisposeMagickImage)
         {
@@ -140,6 +84,11 @@ public static class GetImage
         };
         
         await magickImage.ReadAsync(new MemoryStream(base64Data), readSettings).ConfigureAwait(false);
+
+        // Rotate image according to EXIF orientation
+        magickImage.AutoOrient();
+        TransformToSrgbIfNeeded(magickImage);
+
         var bitmap = magickImage.ToWriteableBitmap();
         magickImage.Dispose();
         return bitmap;
@@ -150,5 +99,22 @@ public static class GetImage
         var magickImage = new MagickImage();
         magickImage.Ping(fileInfo);
         return magickImage;
+    }
+
+    internal static void TransformToSrgbIfNeeded(MagickImage magickImage)
+    {
+        if (magickImage.GetColorProfile() is null)
+        {
+            return;
+        }
+
+        try
+        {
+            magickImage.TransformColorSpace(ColorProfiles.SRGB);
+        }
+        catch (Exception e)
+        {
+            DebugHelper.LogDebug(nameof(GetImage), nameof(TransformToSrgbIfNeeded), e);
+        }
     }
 }

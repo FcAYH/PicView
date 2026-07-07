@@ -1,4 +1,4 @@
-﻿using PicView.Core.Localization;
+using PicView.Core.Localization;
 
 namespace PicView.Tests.LanguageTests;
 
@@ -41,9 +41,9 @@ public static class DutchUnitTest
         Assert.Equal(TranslationManager.Translation.BitDepth, "Bitdiepte");
         Assert.Equal(TranslationManager.Translation.BlackAndWhite, "Zwart & Wit");
         Assert.Equal(TranslationManager.Translation.Blur, "Vervagen");
-        Assert.Equal(TranslationManager.Translation.BottomGalleryItemSize,
+        Assert.Equal(TranslationManager.Translation.DockedGalleryItemSize,
             "Grootte van thumbnail in de onderste galerij");
-        Assert.Equal(TranslationManager.Translation.BottomGalleryThumbnailStretch,
+        Assert.Equal(TranslationManager.Translation.DockedGalleryThumbnailStretch,
             "Miniatuurrekken in de onderste galerij");
         Assert.Equal(TranslationManager.Translation.Brightness, "Helderheid");
         Assert.Equal(TranslationManager.Translation.CameraMaker, "Camerafabrikant");
@@ -172,7 +172,7 @@ public static class DutchUnitTest
         Assert.Equal(TranslationManager.Translation.GoBackBy10Images, "Ga terug met 10 afbeeldingen");
         Assert.Equal(TranslationManager.Translation.Hard, "Hard");
         Assert.Equal(TranslationManager.Translation.Height, "Hoogte");
-        Assert.Equal(TranslationManager.Translation.HideBottomGallery, "Verberg onderste galerij");
+        Assert.Equal(TranslationManager.Translation.HideDockedGallery, "Verberg onderste galerij");
         Assert.Equal(TranslationManager.Translation.HideBottomToolbar, "Verberg onderste werkbalk");
         Assert.Equal(TranslationManager.Translation.HideUI, "Verberg interface");
         Assert.Equal(TranslationManager.Translation.High, "Hoog");
@@ -318,8 +318,8 @@ public static class DutchUnitTest
         Assert.Equal(TranslationManager.Translation.Sharpness, "Scherpte");
         Assert.Equal(TranslationManager.Translation.Shift, "Shift");
         Assert.Equal(TranslationManager.Translation.ShowAllSettingsWindow, "Toon alle instellingen venster");
-        Assert.Equal(TranslationManager.Translation.ShowBottomGallery, "Toon onderste galerij");
-        Assert.Equal(TranslationManager.Translation.ShowBottomGalleryWhenUiIsHidden,
+        Assert.Equal(TranslationManager.Translation.ShowDockedGallery, "Toon onderste galerij");
+        Assert.Equal(TranslationManager.Translation.ShowDockedGalleryWhenUiIsHidden,
             "Toon onderste galerij als UI verborgen is");
         Assert.Equal(TranslationManager.Translation.ShowBottomToolbar, "Toon onderste werkbalk");
         Assert.Equal(TranslationManager.Translation.ShowConfirmationOnEsc,
@@ -350,7 +350,7 @@ public static class DutchUnitTest
         Assert.Equal(TranslationManager.Translation.StayCentered, "Blijf gecentreerd");
         Assert.Equal(TranslationManager.Translation.StayTopMost, "Blijf boven andere vensters");
         Assert.Equal(TranslationManager.Translation.Stretch, "Rekken");
-        Assert.Equal(TranslationManager.Translation.StretchImage, "Afbeelding rekken");
+        Assert.Equal(TranslationManager.Translation.ZoomToFit, "Zoom om te passen");
         Assert.Equal(TranslationManager.Translation.StrobeReturnLightDetected, "Strobe teruggekeerd licht gedetecteerd");
         Assert.Equal(TranslationManager.Translation.StrobeReturnLightNotDetected,
             "Strobe teruggekeerd licht niet gedetecteerd");

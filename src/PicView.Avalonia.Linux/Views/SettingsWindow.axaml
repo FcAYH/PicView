@@ -1,0 +1,139 @@
+<Window
+    x:Class="PicView.Avalonia.Linux.Views.SettingsWindow"
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:buttons="clr-namespace:PicView.Avalonia.Views.UC.Buttons;assembly=PicView.Avalonia"
+    xmlns:customControls="clr-namespace:PicView.Avalonia.CustomControls;assembly=PicView.Avalonia"
+    xmlns:main="clr-namespace:PicView.Avalonia.Views.Main;assembly=PicView.Avalonia"
+    xmlns:viewModels="clr-namespace:PicView.Core.ViewModels;assembly=PicView.Core"
+    MinWidth="600"
+    x:DataType="viewModels:CoreViewModel"
+    SystemDecorations="BorderOnly"
+    Theme="{StaticResource SimpleWindow}"
+    WindowStartupLocation="CenterOwner">
+
+    <Border
+        x:Name="ParentBorder"
+        BorderBrush="{DynamicResource WindowBorderColor}"
+        BorderThickness="1"
+        PointerPressed="MoveWindow"
+        PointerReleased="UpdateWindowSizeAndPosition">
+        <DockPanel>
+            <Border
+                Height="{StaticResource TopBorderHeight}"
+                VerticalAlignment="Top"
+                Background="{StaticResource WindowSecondaryBackgroundColor}"
+                BorderBrush="{DynamicResource MainBorderColor}"
+                BorderThickness="0,0,0,1"
+                DockPanel.Dock="Top">
+                <DockPanel VerticalAlignment="Top" LastChildFill="True">
+                    <Border
+                        x:Name="LogoBorder"
+                        Background="{DynamicResource WindowSecondaryBackgroundColor}"
+                        DockPanel.Dock="Left">
+                        <Image
+                            Width="20"
+                            Height="25"
+                            Margin="10,1,10,1"
+                            Source="{StaticResource LogoImage}" />
+                    </Border>
+
+                    <customControls:IconButton
+                        x:Name="HomeButton"
+                        Padding="8,0"
+                        Background="{DynamicResource WindowSecondaryBackgroundColor}"
+                        BorderBrush="{DynamicResource MainBorderColor}"
+                        BorderThickness="0,0,1,0"
+                        Classes="noBorderHover"
+                        DockPanel.Dock="Left"
+                        Foreground="{DynamicResource MainTextColor}"
+                        Icon="{StaticResource HomeImage}"
+                        IconHeight="12"
+                        IconWidth="12" />
+
+                    <Border
+                        x:Name="GoBackBorder"
+                        Background="{DynamicResource WindowButtonBackgroundColor}"
+                        DockPanel.Dock="Left">
+                        <customControls:IconButton
+                            x:Name="GoBackButton"
+                            Padding="8,0"
+                            Background="{DynamicResource WindowSecondaryBackgroundColor}"
+                            Classes="noBorderHover"
+                            Data="{StaticResource ArrowLeftGeometry}"
+                            Foreground="{DynamicResource MainTextColor}"
+                            IconHeight="12"
+                            IconWidth="12" />
+                    </Border>
+
+                    <Border
+                        x:Name="GoForwardBorder"
+                        Background="{DynamicResource WindowButtonBackgroundColor}"
+                        BorderBrush="{DynamicResource MainBorderColor}"
+                        BorderThickness="0,0,1,0"
+                        DockPanel.Dock="Left">
+                        <customControls:IconButton
+                            x:Name="GoForwardButton"
+                            Padding="8,0"
+                            Background="{DynamicResource WindowSecondaryBackgroundColor}"
+                            Classes="noBorderHover"
+                            Data="{StaticResource ArrowRightGeometry}"
+                            Foreground="{DynamicResource MainTextColor}"
+                            IconHeight="12"
+                            IconWidth="12" />
+                    </Border>
+
+                    <customControls:IconButton
+                        x:Name="CloseButton"
+                        Width="30"
+                        Background="{DynamicResource WindowButtonBackgroundColor}"
+                        Classes="hover"
+                        Click="Close"
+                        ClickMode="Release"
+                        Data="{StaticResource CloseGeometry}"
+                        DockPanel.Dock="Right"
+                        Foreground="{DynamicResource MainTextColor}"
+                        IconHeight="10"
+                        IconWidth="10"
+                        IsRepeatEnabled="False"
+                        ToolTip.Tip="{CompiledBinding Translation.Close.Value,
+                                                      Mode=OneWay}" />
+
+                    <customControls:IconButton
+                        x:Name="MinimizeButton"
+                        Width="30"
+                        Background="{DynamicResource WindowButtonBackgroundColor}"
+                        BorderBrush="{DynamicResource MainBorderColor}"
+                        BorderThickness="1,0,1,0"
+                        Classes="hover"
+                        Click="Minimize"
+                        ClickMode="Release"
+                        Data="{StaticResource MinimizeGeometry}"
+                        DockPanel.Dock="Right"
+                        Foreground="{DynamicResource MainTextColor}"
+                        IconHeight="12"
+                        IconWidth="12"
+                        IsRepeatEnabled="False" />
+
+                    <buttons:SettingsMenuButton x:Name="SettingsButton" DockPanel.Dock="Right" />
+
+                    <TextBlock
+                        x:Name="TitleText"
+                        Padding="15,0"
+                        Background="Transparent"
+                        Classes="txt"
+                        Foreground="{DynamicResource MainTextColor}"
+                        LineHeight="{StaticResource TopBorderHeight}"
+                        Text="{CompiledBinding Translation.Settings.Value,
+                                               Mode=OneWay}"
+                        TextAlignment="Center" />
+
+
+                </DockPanel>
+            </Border>
+
+            <main:SettingsView x:Name="SettingsView" Background="{DynamicResource SecondaryBackgroundColor}" />
+
+        </DockPanel>
+    </Border>
+</Window>

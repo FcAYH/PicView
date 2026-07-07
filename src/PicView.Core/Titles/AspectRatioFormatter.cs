@@ -12,7 +12,7 @@ public static class AspectRatioFormatter
     /// <param name="width">The width of the image in pixels.</param>
     /// <param name="height">The height of the image in pixels.</param>
     /// <returns>A string representing the aspect ratio in the format "x:y", or an empty string if the ratio is too large.</returns>
-    public static string FormatAspectRatio(int width, int height)
+    public static string FormatAspectRatio(uint width, uint height)
     {
         if (width <= 0 || height <= 0) { return string.Empty; }
 
@@ -25,9 +25,9 @@ public static class AspectRatioFormatter
             : string.Empty;
     }
     
-    private const int MaxAspectRatioX = 48;
-    private const int MaxAspectRatioY = 18;
-    private static bool IsAspectRatioWithinLimits(int x, int y)
+    private const uint MaxAspectRatioX = 48;
+    private const uint MaxAspectRatioY = 18;
+    private static bool IsAspectRatioWithinLimits(uint x, uint y)
         => x <= MaxAspectRatioX && y <= MaxAspectRatioY;
 
     /// <summary>
@@ -37,7 +37,7 @@ public static class AspectRatioFormatter
     /// <param name="y">The second integer.</param>
     /// <returns>The GCD of the two integers.</returns>
     // ReSharper disable once InconsistentNaming
-    public static int GCD(int x, int y)
+    public static uint GCD(uint x, uint y)
     {
         while (true)
         {
@@ -62,7 +62,7 @@ public static class AspectRatioFormatter
     /// <param name="width">The width dimension of the image or element.</param>
     /// <param name="height">The height dimension of the image or element.</param>
     /// <returns>A formatted string representing the aspect ratio and orientation.</returns>
-    public static string GetFormattedAspectRatio(int gcd, int width, int height)
+    public static string GetFormattedAspectRatio(uint gcd, uint width, uint height)
     {
         var square = TranslationManager.Translation.Square;
         var landscape = TranslationManager.Translation.Landscape;

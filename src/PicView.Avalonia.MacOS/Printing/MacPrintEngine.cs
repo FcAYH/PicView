@@ -10,11 +10,9 @@ using PicView.Core.Printing;
 
 namespace PicView.Avalonia.MacOS.Printing;
 
-public static class MacPrintEngine
+public class MacPrintEngine : AbstractPrintEngine
 {
-    private const float PrintDpi = 300f; // physical print DPI
-
-    public static async ValueTask RunPrintJob(PrintSettings settings, Bitmap avaloniaBmp)
+    protected override async ValueTask RunPrintJob(PrintSettings settings, Bitmap avaloniaBmp)
     {
         ArgumentNullException.ThrowIfNull(avaloniaBmp);
 
@@ -25,15 +23,12 @@ public static class MacPrintEngine
         }
 
         // 2. Determine paper size (mm) using shared helper
-        var paper = ResolvePaper(settings.PaperSize.Value, settings.Orientation.Value);
-
-        var pageWidthMm = paper.WidthMm;
-        var pageHeightMm = paper.HeightMm;
+        var paperInfo = ResolvePaper(settings);
 
         // 3. Compute final print layout (same logic as preview)
         var layout = PrintCore.ComputeLayout(
-            pageWidthMm,
-            pageHeightMm,
+            paperInfo.WidthMm,
+            paperInfo.HeightMm,
             settings,
             avaloniaBmp.PixelSize.Width,
             avaloniaBmp.PixelSize.Height,
@@ -72,7 +67,8 @@ public static class MacPrintEngine
             {
                 case false
                     when string.Equals(printerName, saveAsPdf, StringComparison.Ordinal):
-                    await PdfExport.SavePdfWithFilePicker(null, rtb);
+                    var outputFilename = Path.GetFileNameWithoutExtension(settings.ImagePath.Value) + ".pdf";
+                    await PdfExport.SavePdfWithFilePicker(outputFilename, rtb);
                     break;
                 case false:
                 {
@@ -91,9 +87,9 @@ public static class MacPrintEngine
         }
     }
 
-    public static PaperInfo ResolvePaper(string? requestedName, int orientation)
+    public override PaperInfo ResolvePaper(PrintSettings settings)
     {
-        requestedName ??= "A4";
+        var requestedName = settings.PaperSize.Value ?? "A4";
 
         // Convert from CUPS naming patterns to PaperSizeHelper known names
         // Examples:
@@ -105,7 +101,7 @@ public static class MacPrintEngine
 
         var (w, h) = PaperSizeHelper.GetMmSize(normalized);
 
-        var landscape = orientation == (int)Orientations.Landscape;
+        var landscape = settings.Orientation.Value == (int)Orientations.Landscape;
 
         return landscape
             ? new PaperInfo(normalized, h, w)
@@ -134,6 +130,4 @@ public static class MacPrintEngine
 
     public static IEnumerable<string> GetPaperSizes(string printerName)
         => CupsPaperQuery.GetPaperSizes(printerName);
-
-    public readonly record struct PaperInfo(string Name, double WidthMm, double HeightMm);
 }

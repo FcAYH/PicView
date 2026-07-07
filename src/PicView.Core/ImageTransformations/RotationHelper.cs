@@ -9,7 +9,7 @@ public static class RotationHelper
     /// </summary>
     /// <param name="rotationAngle">A double value representing the rotation angle to be checked.</param>
     /// <returns>A bool value representing whether the provided rotation angle is valid or not.</returns>
-    public static bool IsValidRotation(double rotationAngle)
+    public static bool IsValidRotation(int rotationAngle)
     {
         rotationAngle %= 360;
         return rotationAngle is 0 or 90 or 180 or 270;
@@ -21,7 +21,7 @@ public static class RotationHelper
     /// <param name="currentDegrees">The current rotation angle in degrees.</param>
     /// <param name="clockWise">A boolean value indicating the direction of rotation. If true, the rotation is clockwise; otherwise, it is counterclockwise.</param>
     /// <returns>The next rotation angle in degrees.</returns>
-    public static int NextRotationAngle(double currentDegrees, bool clockWise)
+    public static int NextRotationAngle(int currentDegrees, bool clockWise)
     {
         if (clockWise)
         {
@@ -43,7 +43,7 @@ public static class RotationHelper
         };
     }
 
-    public static double Rotate(double currentDegrees, bool clockWise)
+    public static int Rotate(int currentDegrees, bool clockWise)
     {
         if (clockWise)
         {

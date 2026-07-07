@@ -1,13 +1,18 @@
 using Avalonia;
 using Avalonia.Controls;
-using Avalonia.Controls.ApplicationLifetimes;
+using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Layout;
 using Avalonia.Media;
+using PicView.Avalonia.Clipboard;
 using PicView.Avalonia.ColorManagement;
-using PicView.Avalonia.UI;
-using PicView.Avalonia.ViewModels;
+using PicView.Avalonia.CustomControls;
+using PicView.Avalonia.FileSystem;
+using PicView.Avalonia.Navigation;
+using PicView.Core.Extensions;
+using PicView.Core.Localization;
 using PicView.Core.Sizing;
+using PicView.Core.ViewModels;
 
 namespace PicView.Avalonia.Views.UC;
 
@@ -15,97 +20,171 @@ public partial class StartUpMenu : UserControl
 {
     public StartUpMenu()
     {
+        MinHeight = SizeDefaults.WindowMinSize;
+        MinWidth = SizeDefaults.WindowMinSize;
         InitializeComponent();
-        SizeChanged += (_, e) => ResponsiveSize(e.NewSize.Width, e.NewSize.Height);
+
+        SizeChanged += (_, e) => ResponsiveSize(e.NewSize.Width);
         Loaded += StartUpMenu_Loaded;
     }
 
     private void StartUpMenu_Loaded(object? sender, RoutedEventArgs e)
     {
-        SelectFileButton.PointerEntered += (_, _) =>
+        FilePasteLabel.Content = TranslationManager.Translation.FilePaste ?? "Paste";
+        OpenFileDialogLabel.Content = TranslationManager.Translation.OpenFileDialog ?? "Open File";
+        OpenLastFileLabel.Content = TranslationManager.Translation.OpenLastFile ?? "Open Last File";
+
+        SelectFileButton.PointerEntered += SelectFileButtonOnPointerEntered;
+        SelectFileButton.PointerExited  += SelectFileButtonOnPointerExited;
+        SelectFileButton.Click += SelectFileButtonOnClick;
+
+        OpenLastFileButton.PointerEntered += OpenLastFileLabelOnPointerEntered;
+        OpenLastFileButton.PointerExited += OpenLastFileLabelOnPointerExited;
+        OpenLastFileButton.Click += OpenLastFileButtonOnClick;
+
+        PasteButton.PointerEntered += PasteButtonOnPointerEntered;
+        PasteButton.PointerExited += PasteButtonOnPointerExited;
+        PasteButton.AddHandler(PointerPressedEvent, PasteClick, RoutingStrategies.Tunnel);
+
+        if (!Settings.Theme.Dark)
         {
-            if (!this.TryFindResource("SelectFileBrush", Application.Current.RequestedThemeVariant, out var brush))
-                return;
+            Background = new SolidColorBrush(Color.FromArgb(242, 217, 217, 217));
+        }
 
-            var selectFileBrush = brush as SolidColorBrush;
-            selectFileBrush.Color = ColorManager.PrimaryAccentColor;
-        };
-
-        SelectFileButton.PointerExited += (_, _) =>
+        if (DataContext is not TabViewModel tab)
         {
-            if (!this.TryFindResource("SelectFileBrush", Application.Current.RequestedThemeVariant, out var brush))
-                return;
-
-            if (!this.TryFindResource("SecondaryTextColor", Application.Current.RequestedThemeVariant, out var color))
-                return;
-
-            var selectFileBrush = brush as SolidColorBrush;
-            selectFileBrush.Color = color as Color? ?? default;
-        };
-
-        OpenLastFileButton.PointerEntered += (_, _) =>
-        {
-            if (!this.TryFindResource("OpenLastFileBrush", Application.Current.RequestedThemeVariant, out var brush))
-                return;
-
-            var selectFileBrush = brush as SolidColorBrush;
-            selectFileBrush.Color = ColorManager.PrimaryAccentColor;
-        };
-
-        OpenLastFileButton.PointerExited += (_, _) =>
-        {
-            if (!this.TryFindResource("OpenLastFileBrush", Application.Current.RequestedThemeVariant, out var brush))
-                return;
-
-            if (!this.TryFindResource("SecondaryTextColor", Application.Current.RequestedThemeVariant, out var color))
-                return;
-
-            var selectFileBrush = brush as SolidColorBrush;
-            selectFileBrush.Color = color as Color? ?? default;
-        };
-
-        PasteButton.PointerEntered += (_, _) =>
-        {
-            if (!this.TryFindResource("PasteBrush", Application.Current.RequestedThemeVariant, out var brush))
-                return;
-
-            var selectFileBrush = brush as SolidColorBrush;
-            selectFileBrush.Color = ColorManager.PrimaryAccentColor;
-        };
-
-        PasteButton.PointerExited += (_, _) =>
-        {
-            if (!this.TryFindResource("PasteBrush", Application.Current.RequestedThemeVariant, out var brush))
-                return;
-            
-            if (!this.TryFindResource("SecondaryTextColor", Application.Current.RequestedThemeVariant, out var color))
-                return;
-            
-            var pasteBrush = brush as SolidColorBrush;
-            pasteBrush.Color = color as Color? ?? default;
-        };
-
-        if (DataContext is not MainViewModel vm)
             return;
+        }
 
-        TitleManager.SetNoImageTitle(vm);
-        UIHelper.GetHoverBar?.IsVisible = false;
+        tab.Title.Value = TranslationManager.Translation.NoImage ?? string.Empty;
+        tab.WindowTitle.Value = StringExtensions.CombineWithAppName(TranslationManager.Translation.NoImage);
+        tab.TitleTooltip.Value = TranslationManager.Translation.NoImage ?? string.Empty;
     }
 
-    public void ResponsiveSize(double width, double height)
+    private async ValueTask PasteClick(object? sender, RoutedEventArgs e)
+    {
+        if (Application.Current.DataContext is not CoreViewModel core || DataContext is not TabViewModel tab
+            || TopLevel.GetTopLevel(this) is not MainWindow mainWindow)
+        {
+            return;
+        }
+
+        tab.CurrentView.Value = new ImageViewer();
+        var isPastedSuccessfully = await ClipboardPasteOperations.Paste(core.MainWindows.ActiveWindow.CurrentValue, mainWindow);
+        if (!isPastedSuccessfully)
+        {
+            tab.CurrentView.Value = new StartUpMenu();
+        }
+    }
+
+    private void OpenLastFileButtonOnClick(object? sender, RoutedEventArgs e)
+    {
+        if (Application.Current.DataContext is not CoreViewModel core || TopLevel.GetTopLevel(this) is not MainWindow mainWindow)
+        {
+            return;
+        }
+        _ = UINavigationHelper.OpenLastFile(mainWindow, core.MainWindows.ActiveWindow.CurrentValue).ConfigureAwait(false);
+    }
+
+    private void PasteButtonOnPointerExited(object? sender, PointerEventArgs e)
+    {
+        if (!this.TryFindResource("PasteBrush", Application.Current.RequestedThemeVariant, out var brush))
+        {
+            return;
+        }
+
+        if (!this.TryFindResource("SecondaryTextColor", Application.Current.RequestedThemeVariant, out var color))
+        {
+            return;
+        }
+
+        var pasteBrush = brush as SolidColorBrush;
+        pasteBrush.Color = color as Color? ?? default;
+    }
+
+    private void PasteButtonOnPointerEntered(object? sender, PointerEventArgs e)
+    {
+        if (!this.TryFindResource("PasteBrush", Application.Current.RequestedThemeVariant, out var brush))
+        {
+            return;
+        }
+
+        var selectFileBrush = brush as SolidColorBrush;
+        selectFileBrush.Color = ColorManager.PrimaryAccentColor;
+    }
+
+    private void OpenLastFileLabelOnPointerExited(object? sender, PointerEventArgs e)
+    {
+        if (!this.TryFindResource("OpenLastFileBrush", Application.Current.RequestedThemeVariant, out var brush))
+        {
+            return;
+        }
+
+        if (!this.TryFindResource("SecondaryTextColor", Application.Current.RequestedThemeVariant, out var color))
+        {
+            return;
+        }
+
+        var selectFileBrush = brush as SolidColorBrush;
+        selectFileBrush.Color = color as Color? ?? default;
+    }
+
+    private void OpenLastFileLabelOnPointerEntered(object? sender, PointerEventArgs e)
+    {
+        if (!this.TryFindResource("OpenLastFileBrush", Application.Current.RequestedThemeVariant, out var brush))
+        {
+            return;
+        }
+
+        var selectFileBrush = brush as SolidColorBrush;
+        selectFileBrush.Color = ColorManager.PrimaryAccentColor;
+    }
+
+    private void SelectFileButtonOnClick(object? sender, RoutedEventArgs e)
+    {
+        // There is problems with DataContext and commands, so just use event
+        if (Application.Current.DataContext is not CoreViewModel core || TopLevel.GetTopLevel(this) is not MainWindow mainWindow)
+        {
+            return;
+        }
+        FilePicker.SelectAndLoadFile(mainWindow, core.MainWindows.ActiveWindow.CurrentValue).ConfigureAwait(false);
+    }
+
+    private void SelectFileButtonOnPointerExited(object? sender, PointerEventArgs e)
+    {
+        if (!this.TryFindResource("SelectFileBrush", Application.Current.RequestedThemeVariant, out var brush))
+        {
+            return;
+        }
+
+        if (!this.TryFindResource("SecondaryTextColor", Application.Current.RequestedThemeVariant, out var color))
+        {
+            return;
+        }
+
+        var selectFileBrush = brush as SolidColorBrush;
+        selectFileBrush.Color = color as Color? ?? default;
+    }
+
+    private void SelectFileButtonOnPointerEntered(object? sender, PointerEventArgs e)
+    {
+        if (!this.TryFindResource("SelectFileBrush", Application.Current.RequestedThemeVariant, out var brush))
+        {
+            return;
+        }
+        
+        var selectFileBrush = brush as SolidColorBrush;
+        selectFileBrush.Color = ColorManager.PrimaryAccentColor;
+    }
+
+    public void ResponsiveSize(double width)
     {
         const int breakPoint = 900;
         const int bottomMargin = 16;
         const int logoWidth = 350;
-        
+
         LogoViewbox.Height = double.NaN;
-        
-        if (DataContext is not MainViewModel vm)
-            return;
-        
-        if (Application.Current?.ApplicationLifetime is not IClassicDesktopStyleApplicationLifetime desktop)
-            return;
-        
+
         if (Settings.WindowProperties.Fullscreen || Settings.WindowProperties.Maximized)
         {
             ShowFullLogo();
@@ -113,7 +192,6 @@ public partial class StartUpMenu : UserControl
         else if (Settings.WindowProperties.AutoFit)
         {
             ShowIcon();
-            vm.MainWindow.TitleMaxWidth.Value = logoWidth;
             return;
         }
 
@@ -127,20 +205,6 @@ public partial class StartUpMenu : UserControl
                 break;
         }
 
-        var titleMaxWidth = ImageSizeCalculationHelper.GetTitleMaxWidth(vm.PicViewer.RotationAngle.CurrentValue, width,
-            height,
-            desktop.MainWindow.MinWidth, desktop.MainWindow.MinHeight, vm.PlatformWindowService.CombinedTitleButtonsWidth,
-            desktop.MainWindow.Width);
-
-        if (Settings.Zoom.ScrollEnabled)
-        {
-            vm.MainWindow.TitleMaxWidth.Value = titleMaxWidth - SizeDefaults.ScrollbarSize;
-        }
-        else
-        {
-            vm.MainWindow.TitleMaxWidth.Value = titleMaxWidth;
-        }
-        
         return;
 
         void ShowIcon()
@@ -168,5 +232,19 @@ public partial class StartUpMenu : UserControl
                 Buttons.VerticalAlignment = VerticalAlignment.Center;
             }
         }
+    }
+    
+    ~StartUpMenu()
+    {
+        SelectFileButton.PointerEntered -= SelectFileButtonOnPointerEntered;
+        SelectFileButton.PointerExited -= SelectFileButtonOnPointerExited;
+        SelectFileButton.Click -= SelectFileButtonOnClick;
+        
+        OpenLastFileLabel.PointerEntered -= OpenLastFileLabelOnPointerEntered;
+        OpenLastFileLabel.PointerExited -= OpenLastFileLabelOnPointerExited;
+        
+        PasteButton.PointerEntered -= PasteButtonOnPointerEntered;
+        PasteButton.PointerExited -= PasteButtonOnPointerExited;
+        PasteButton.RemoveHandler(PointerPressedEvent, PasteClick);
     }
 }

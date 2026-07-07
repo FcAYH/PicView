@@ -1,4 +1,4 @@
-﻿using PicView.Core.Localization;
+using PicView.Core.Localization;
 
 namespace PicView.Tests.LanguageTests;
 
@@ -42,8 +42,8 @@ public static class ItalianUnitTest
         Assert.Equal(TranslationManager.Translation.BitDepth, "Profondità di bit");
         Assert.Equal(TranslationManager.Translation.BlackAndWhite, "Bianco e nero");
         Assert.Equal(TranslationManager.Translation.Blur, "Blur");
-        Assert.Equal(TranslationManager.Translation.BottomGalleryItemSize, "Elementi galleria inferiore");
-        Assert.Equal(TranslationManager.Translation.BottomGalleryThumbnailStretch,
+        Assert.Equal(TranslationManager.Translation.DockedGalleryItemSize, "Elementi galleria inferiore");
+        Assert.Equal(TranslationManager.Translation.DockedGalleryThumbnailStretch,
             "Estiramento miniature galleria inferiore");
         Assert.Equal(TranslationManager.Translation.Brightness, "Luminosità");
         Assert.Equal(TranslationManager.Translation.CameraMaker, "Produttore della fotocamera");
@@ -175,7 +175,7 @@ public static class ItalianUnitTest
         Assert.Equal(TranslationManager.Translation.GoBackBy10Images, "Torna indietro di 10 immagini");
         Assert.Equal(TranslationManager.Translation.Hard, "Duro");
         Assert.Equal(TranslationManager.Translation.Height, "Altezza");
-        Assert.Equal(TranslationManager.Translation.HideBottomGallery, "Nascondi galleria inferiore");
+        Assert.Equal(TranslationManager.Translation.HideDockedGallery, "Nascondi galleria inferiore");
         Assert.Equal(TranslationManager.Translation.HideBottomToolbar, "Masquer la barre d'outils inférieure");
         Assert.Equal(TranslationManager.Translation.HideUI, "Nascondi interfaccia");
         Assert.Equal(TranslationManager.Translation.High, "Alto");
@@ -321,8 +321,8 @@ public static class ItalianUnitTest
         Assert.Equal(TranslationManager.Translation.Shift, "Shift");
         Assert.Equal(TranslationManager.Translation.ShowAllSettingsWindow,
             "Mostra la finestra di tutte le impostazioni");
-        Assert.Equal(TranslationManager.Translation.ShowBottomGallery, "Mostra galleria inferiore");
-        Assert.Equal(TranslationManager.Translation.ShowBottomGalleryWhenUiIsHidden,
+        Assert.Equal(TranslationManager.Translation.ShowDockedGallery, "Mostra galleria inferiore");
+        Assert.Equal(TranslationManager.Translation.ShowDockedGalleryWhenUiIsHidden,
             "Mostra galleria inferiore quando l'interfaccia utente è nascosta");
         Assert.Equal(TranslationManager.Translation.ShowBottomToolbar, "Mostra la barra degli strumenti inferiore");
         Assert.Equal(TranslationManager.Translation.ShowConfirmationOnEsc,
@@ -354,7 +354,7 @@ public static class ItalianUnitTest
         Assert.Equal(TranslationManager.Translation.StayCentered, "Mantieni la finestra centrata");
         Assert.Equal(TranslationManager.Translation.StayTopMost, "Rimani in cima alle altre finestre");
         Assert.Equal(TranslationManager.Translation.Stretch, "Allungare");
-        Assert.Equal(TranslationManager.Translation.StretchImage, "Estendi immagine");
+        Assert.Equal(TranslationManager.Translation.ZoomToFit, "Zoom per adattare");
         Assert.Equal(TranslationManager.Translation.StrobeReturnLightDetected, "Luce di ritorno dello strobo rilevata");
         Assert.Equal(TranslationManager.Translation.StrobeReturnLightNotDetected,
             "Luce di ritorno dello strobo non rilevata");

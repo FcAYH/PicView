@@ -1,4 +1,4 @@
-﻿using Avalonia;
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Metadata;
 using Avalonia.Controls.Primitives;
@@ -37,12 +37,74 @@ internal enum CanScrollDirection
 /// A custom ScrollViewer that supports auto-scrolling when the middle mouse button is pressed.
 /// </summary>
 [TemplatePart("PART_AutoScrollSign", typeof(AutoScrollSign))]
+[PseudoClasses(ScrollingPseudoClass)]
 public class AutoScrollViewer : ScrollViewer
 {
+    private const string ScrollingPseudoClass = ":scrolling";
     protected override Type StyleKeyOverride => typeof(AutoScrollViewer);
 
     private readonly Subject<bool> _autoScrollingSubject = new();
     private readonly CompositeDisposable _disposables = new();
+
+    /// <summary>
+    /// Defines the <see cref="CanScrollUp"/> property.
+    /// </summary>
+    public static readonly StyledProperty<bool> CanScrollUpProperty =
+        AvaloniaProperty.Register<AutoScrollViewer, bool>(nameof(CanScrollUp));
+
+    /// <summary>
+    /// Gets or sets a value indicating whether the viewer can scroll up.
+    /// </summary>
+    public bool CanScrollUp
+    {
+        get => GetValue(CanScrollUpProperty);
+        private set => SetValue(CanScrollUpProperty, value);
+    }
+
+    /// <summary>
+    /// Defines the <see cref="CanScrollDown"/> property.
+    /// </summary>
+    public static readonly StyledProperty<bool> CanScrollDownProperty =
+        AvaloniaProperty.Register<AutoScrollViewer, bool>(nameof(CanScrollDown));
+
+    /// <summary>
+    /// Gets or sets a value indicating whether the viewer can scroll down.
+    /// </summary>
+    public bool CanScrollDown
+    {
+        get => GetValue(CanScrollDownProperty);
+        private set => SetValue(CanScrollDownProperty, value);
+    }
+    
+    /// <summary>
+    /// Defines the <see cref="CanScrollLeft"/> property.
+    /// </summary>
+    public static readonly StyledProperty<bool> CanScrollLeftProperty =
+        AvaloniaProperty.Register<AutoScrollViewer, bool>(nameof(CanScrollLeft));
+
+    /// <summary>
+    /// Gets or sets a value indicating whether the viewer can scroll left.
+    /// </summary>
+    public bool CanScrollLeft
+    {
+        get => GetValue(CanScrollLeftProperty);
+        private set => SetValue(CanScrollLeftProperty, value);
+    }
+
+    /// <summary>
+    /// Defines the <see cref="CanScrollRight"/> property.
+    /// </summary>
+    public static readonly StyledProperty<bool> CanScrollRightProperty =
+        AvaloniaProperty.Register<AutoScrollViewer, bool>(nameof(CanScrollRight));
+
+    /// <summary>
+    /// Gets or sets a value indicating whether the viewer can scroll right.
+    /// </summary>
+    public bool CanScrollRight
+    {
+        get => GetValue(CanScrollRightProperty);
+        private set => SetValue(CanScrollRightProperty, value);
+    }
 
     /// <summary>
     /// Gets or sets a value indicating whether auto-scrolling is active.
@@ -82,12 +144,60 @@ public class AutoScrollViewer : ScrollViewer
             PreviewPointerPressedEvent,
             routes: RoutingStrategies.Tunnel,
             handledEventsToo: true);
+        
+        AddHandler(
+            PointerReleasedEvent,
+            PreviewPointerReleasedEvent,
+            routes: RoutingStrategies.Tunnel,
+            handledEventsToo: true);
+        
+        AddHandler(
+            PointerCaptureLostEvent,
+            PreviewPointerLostEvent,
+            routes: RoutingStrategies.Tunnel,
+            handledEventsToo: true);
 
         AddHandler(
             PointerMovedEvent,
             PointerMovedHandler,
             routes: RoutingStrategies.Tunnel,
             handledEventsToo: true);
+    }
+    
+    /// <summary>
+    /// Scrolls the content to the horizontal end (right) while preserving the vertical offset.
+    /// </summary>
+    public void ScrollToRightEnd()
+    {
+        // using PositiveInfinity ensures we scroll to the absolute end 
+        // regardless of the current Extent/Viewport calculations.
+        SetCurrentValue(OffsetProperty, new Vector(double.PositiveInfinity, Offset.Y));
+    }
+
+    protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
+    {
+        base.OnPropertyChanged(change);
+
+        if (change.Property == OffsetProperty ||
+            change.Property == ExtentProperty ||
+            change.Property == ViewportProperty)
+        {
+            UpdateScrollButtonsState();
+        }
+    }
+
+    private void UpdateScrollButtonsState()
+    {
+        // Vertical Logic
+        CanScrollUp = Offset.Y > 0;
+        CanScrollDown = Offset.Y < Extent.Height - Viewport.Height;
+
+        // Horizontal Logic
+        // Can scroll left if we are not at the absolute start (0)
+        CanScrollLeft = Offset.X > 0; 
+        
+        // Can scroll right if the current position is less than the total width minus the visible width
+        CanScrollRight = Offset.X < Extent.Width - Viewport.Width;
     }
 
     /// <summary>
@@ -100,7 +210,6 @@ public class AutoScrollViewer : ScrollViewer
         var autoScrollSign = e.NameScope.Find<AutoScrollSign>("PART_AutoScrollSign");
 
         _autoScrollingSubject
-            .ObserveOn(UIHelper.GetFrameProvider)
             .Subscribe(isAutoScrolling =>
             {
                 var canScroll = CanScroll();
@@ -145,6 +254,8 @@ public class AutoScrollViewer : ScrollViewer
     /// <param name="e">The event data.</param>
     private void PreviewPointerPressedEvent(object? sender, PointerPressedEventArgs e)
     {
+        PseudoClasses.Set(ScrollingPseudoClass, true);
+        
         if (!e.GetCurrentPoint(this).Properties.IsMiddleButtonPressed)
         {
             IsAutoScrolling = false;
@@ -153,6 +264,16 @@ public class AutoScrollViewer : ScrollViewer
 
         e.Handled = true;
         StartAutoScroll(e);
+    }
+    
+    private void PreviewPointerReleasedEvent(object? sender, PointerReleasedEventArgs e)
+    {
+        PseudoClasses.Set(ScrollingPseudoClass, false);
+    }
+    
+    private void PreviewPointerLostEvent(object? sender, PointerCaptureLostEventArgs e)
+    {
+        PseudoClasses.Set(ScrollingPseudoClass, false);
     }
 
     /// <summary>
@@ -179,7 +300,6 @@ public class AutoScrollViewer : ScrollViewer
 
         Observable.Interval(TimeSpan.FromMilliseconds(16))
             .TakeUntil(_autoScrollingSubject.Where(isScrolling => !isScrolling))
-            .ObserveOn(UIHelper.GetFrameProvider)
             .Subscribe(_ => PerformAutoScroll())
             .AddTo(_disposables);
     }

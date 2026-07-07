@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net11.0</TargetFramework>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <Platforms>arm64;x64</Platforms>
+
+    <PublishAot>true</PublishAot>
+    <Trimming>full</Trimming>
+    <TrimmerRemoveSymbols>true</TrimmerRemoveSymbols>
+    <OptimizationPreference>Speed</OptimizationPreference>
+    <HttpActivityPropagationSupport>false</HttpActivityPropagationSupport>
+      
+  </PropertyGroup>
+    
+
+  <ItemGroup>
+    <ProjectReference Include="..\PicView.Core\PicView.Core.csproj" />
+  </ItemGroup>
+
+</Project>

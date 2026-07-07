@@ -5,8 +5,7 @@ using Avalonia.Interactivity;
 using Avalonia.LogicalTree;
 using Avalonia.Media;
 using ImageMagick;
-using PicView.Avalonia.Navigation;
-using PicView.Avalonia.ViewModels;
+using PicView.Core.BatchResize;
 using PicView.Core.Localization;
 using PicView.Core.ViewModels;
 using R3;
@@ -24,13 +23,8 @@ public partial class BatchResizeView : UserControl
 
     private void OnLoaded(object? sender, RoutedEventArgs e)
     {
-        if (DataContext is not MainViewModel vm)
-        {
-            return;
-        }
-
-        SubscribeToEvents(vm);
-        InitializeNavigationData(vm);
+        SubscribeToEvents();
+        InitializeData();
         if (!Settings.Theme.Dark || Settings.Theme.GlassTheme)
         {
             ColorThemeAdjustments();
@@ -81,24 +75,30 @@ public partial class BatchResizeView : UserControl
         AddFolderButton.Classes.Add("hover");
     }
 
-    private void SubscribeToEvents(MainViewModel vm)
+    private void SubscribeToEvents()
     {
+        if (Application.Current.DataContext is not CoreViewModel core)
+        {
+            return;
+        }
+        var batch = core.BatchResize;
+        
         CancelButton.Click += delegate { (VisualRoot as Window)?.Close(); };
         Observable.EveryValueChanged(this, x => x.ConversionComboBox.SelectedIndex)
             .Subscribe(x =>
             {
-                vm.BatchResizeViewModel.Conversion.Value = (ConversionTarget)x;
+                batch.Conversion.Value = (ConversionTarget)x;
             }).AddTo(_disposables);
         Observable.EveryValueChanged(this, x => x.ThumbnailsComboBox.SelectedIndex)
             .Subscribe(x =>
             {
-                vm.BatchResizeViewModel.ThumbnailAmount = x;
+                batch.ThumbnailAmount = x;
                 for (var i = 0; i < x; i++)
                 {
                     SetThumbValues(i);
                 }
             }).AddTo(_disposables);
-        Observable.EveryValueChanged(vm.BatchResizeViewModel.IsKeepingAspectRatio, x => x.Value)
+        Observable.EveryValueChanged(batch.IsKeepingAspectRatio, x => x.Value)
             .Subscribe(x =>
             {
                 if (x)
@@ -131,18 +131,18 @@ public partial class BatchResizeView : UserControl
 
                 if (thumbIsPercentageResized)
                 {
-                    vm.BatchResizeViewModel.Thumbs[oneBased] =
+                    batch.Thumbs[oneBased] =
                         new BatchThumb(saveDestination, new Percentage(thumbValue));
                 }
 
                 if (thumbIsWidthResized)
                 {
-                    vm.BatchResizeViewModel.Thumbs[oneBased] = new BatchThumb(saveDestination, width: thumbValue);
+                    batch.Thumbs[oneBased] = new BatchThumb(saveDestination, width: thumbValue);
                 }
 
                 if (thumbIsHeightResized)
                 {
-                    vm.BatchResizeViewModel.Thumbs[oneBased] = new BatchThumb(saveDestination, height: thumbValue);
+                    batch.Thumbs[oneBased] = new BatchThumb(saveDestination, height: thumbValue);
                 }
             };
         }
@@ -151,10 +151,11 @@ public partial class BatchResizeView : UserControl
 
     private void SetThumbValues(int i)
     {
-        if (DataContext is not MainViewModel vm)
+        if (Application.Current.DataContext is not CoreViewModel core)
         {
             return;
         }
+        var batch = core.BatchResize;
 
         var oneBased = i;
         i++;
@@ -175,17 +176,17 @@ public partial class BatchResizeView : UserControl
 
             if (thumbIsPercentageResized)
             {
-                vm.BatchResizeViewModel.Thumbs[oneBased] = new BatchThumb(saveDestination, new Percentage(thumbValue));
+                batch.Thumbs[oneBased] = new BatchThumb(saveDestination, new Percentage(thumbValue));
             }
 
             if (thumbIsWidthResized)
             {
-                vm.BatchResizeViewModel.Thumbs[oneBased] = new BatchThumb(saveDestination, width: thumbValue);
+                batch.Thumbs[oneBased] = new BatchThumb(saveDestination, width: thumbValue);
             }
 
             if (thumbIsHeightResized)
             {
-                vm.BatchResizeViewModel.Thumbs[oneBased] = new BatchThumb(saveDestination, height: thumbValue);
+                batch.Thumbs[oneBased] = new BatchThumb(saveDestination, height: thumbValue);
             }
         };
     }
@@ -233,88 +234,99 @@ public partial class BatchResizeView : UserControl
         return (thumbIsPercentageResized, thumbIsWidthResized, thumbIsHeightResized, saveDestination);
     }
 
-    private static void InitializeNavigationData(MainViewModel vm)
+    private void InitializeData()
     {
-        if (!NavigationManager.CanNavigate(vm))
+        if (Application.Current.DataContext is not CoreViewModel core)
         {
             return;
         }
 
-        vm.BatchResizeViewModel.SelectedFiles.Value =
-            new ObservableCollection<FileInfo>(NavigationManager.GetCollection);
+        var batch = core.BatchResize;
+        var tab = core.MainWindows.ActiveWindow.CurrentValue.WindowTabs.ActiveTab.CurrentValue;
+        var collection = tab.ImageIterator.Files;
+        var width = tab.Model.PixelWidth;
+        var height = tab.Model.PixelHeight;
+        batch.SelectedFiles.Value = new ObservableCollection<FileInfo>(collection);
 
-        if (!string.IsNullOrWhiteSpace(vm.PicViewer.FileInfo?.CurrentValue.DirectoryName))
+        if (!string.IsNullOrWhiteSpace(tab.FileInfo?.CurrentValue.DirectoryName))
         {
-            vm.BatchResizeViewModel.OutputFolder.Value = Path.Combine(
-                vm.PicViewer.FileInfo?.CurrentValue.DirectoryName,
+            batch.OutputFolder.Value = Path.Combine(
+                tab.FileInfo?.CurrentValue.DirectoryName,
                 TranslationManager.Translation.BatchResize);
         }
 
-        vm.BatchResizeViewModel.SingleWidthValue.Value =
-            vm.BatchResizeViewModel.WidthValue.Value = (uint)vm.PicViewer.PixelWidth.CurrentValue;
-        vm.BatchResizeViewModel.SingleHeightValue.Value =
-            vm.BatchResizeViewModel.HeightValue.Value = (uint)vm.PicViewer.PixelHeight.CurrentValue;
+        batch.SingleWidthValue.Value = batch.WidthValue.Value = width;
+        batch.SingleHeightValue.Value = batch.HeightValue.Value = height;
+
+        var config = batch.Config;
+        CompressionComboBox.SelectedIndex = config.WindowProperties.CompressionIndex;
+        IsQualityEnabledBox.IsChecked = config.WindowProperties.IsQualityEnabled;
+        ConversionComboBox.SelectedIndex = config.WindowProperties.ConvertToIndex;
+        ResizeComboBox.SelectedIndex = config.WindowProperties.ResizeIndex;
+        ThumbnailsComboBox.SelectedIndex = config.WindowProperties.GenerateThumbnailsIndex;
     }
 
     private void IsQualityEnabledBox_OnIsCheckedChanged(object? sender, RoutedEventArgs e)
     {
-        if (DataContext is not MainViewModel vm || !IsQualityEnabledBox.IsChecked.HasValue)
+        if (Application.Current.DataContext is not CoreViewModel core || !IsQualityEnabledBox.IsChecked.HasValue)
         {
             return;
         }
 
         var isEnabled = IsQualityEnabledBox.IsChecked.Value;
-        vm.Window.BatchResizeWindowConfig.WindowProperties.IsQualityEnabled = isEnabled;
-        vm.BatchResizeViewModel.IsQualityEnabled.Value = isEnabled;
+        var batch = core.BatchResize;
+        batch.Config.WindowProperties.IsQualityEnabled = isEnabled;
+        batch.IsQualityEnabled.Value = isEnabled;
     }
 
     private void ResizeComboBox_OnSelectionChanged(object? sender, SelectionChangedEventArgs e)
     {
-        if (DataContext is not MainViewModel vm)
+        if (Application.Current.DataContext is not CoreViewModel core)
         {
             return;
         }
+        var batch = core.BatchResize;
 
-        vm.BatchResizeViewModel.IsPercentageResizing.Value = false;
-        vm.BatchResizeViewModel.IsWidthAndHeightResizing.Value = false;
-        vm.BatchResizeViewModel.IsWidthResizing.Value = false;
-        vm.BatchResizeViewModel.IsHeightResizing.Value = false;
+        batch.IsPercentageResizing.Value = false;
+        batch.IsWidthAndHeightResizing.Value = false;
+        batch.IsWidthResizing.Value = false;
+        batch.IsHeightResizing.Value = false;
 
         switch (ResizeComboBox.SelectedIndex)
         {
             case (int)ResizeMode.None:
-                vm.BatchResizeViewModel.Resize.Value = ResizeMode.None;
+                batch.Resize.Value = ResizeMode.None;
                 break;
             case (int)ResizeMode.Height:
-                vm.BatchResizeViewModel.Resize.Value = ResizeMode.Height;
-                vm.BatchResizeViewModel.IsHeightResizing.Value = true;
+                batch.Resize.Value = ResizeMode.Height;
+                batch.IsHeightResizing.Value = true;
                 break;
             case (int)ResizeMode.Percentage:
-                vm.BatchResizeViewModel.Resize.Value = ResizeMode.Percentage;
-                vm.BatchResizeViewModel.IsPercentageResizing.Value = true;
+                batch.Resize.Value = ResizeMode.Percentage;
+                batch.IsPercentageResizing.Value = true;
                 break;
             case (int)ResizeMode.Width:
-                vm.BatchResizeViewModel.Resize.Value = ResizeMode.Width;
-                vm.BatchResizeViewModel.IsWidthResizing.Value = true;
+                batch.Resize.Value = ResizeMode.Width;
+                batch.IsWidthResizing.Value = true;
                 break;
             case (int)ResizeMode.WidthAndHeight:
-                vm.BatchResizeViewModel.Resize.Value = ResizeMode.WidthAndHeight;
-                vm.BatchResizeViewModel.IsWidthAndHeightResizing.Value = true;
+                batch.Resize.Value = ResizeMode.WidthAndHeight;
+                batch.IsWidthAndHeightResizing.Value = true;
                 break;
             default:
-                vm.BatchResizeViewModel.Resize.Value = vm.BatchResizeViewModel.Resize.Value;
+                batch.Resize.Value = batch.Resize.Value;
                 break;
         }
     }
 
     private void ShowInFolderButton_OnClick(object? sender, RoutedEventArgs e)
     {
-        if (DataContext is not MainViewModel vm)
+        if (Application.Current.DataContext is not CoreViewModel core)
         {
             return;
         }
 
-        vm.PlatformService.LocateOnDisk(vm.BatchResizeViewModel.OutputFolder.CurrentValue);
+        core.PlatformService.LocateOnDisk(core.BatchResize.OutputFolder.CurrentValue);
     }
 
     protected override void OnDetachedFromLogicalTree(LogicalTreeAttachmentEventArgs e)

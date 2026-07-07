@@ -3,15 +3,12 @@
     d:DesignWidth="800"
     mc:Ignorable="d"
     x:Class="PicView.Avalonia.Views.UC.Buttons.StarOutlineButtons"
-    x:DataType="viewModels:MainViewModel"
+    x:DataType="viewModels:MainWindowViewModel"
     xmlns="https://github.com/avaloniaui"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    xmlns:viewModels="clr-namespace:PicView.Avalonia.ViewModels"
+    xmlns:viewModels="clr-namespace:PicView.Core.ViewModels;assembly=PicView.Core"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
-    <Design.DataContext>
-        <viewModels:MainViewModel />
-    </Design.DataContext>
 
     <StackPanel Orientation="Horizontal">
         <Canvas
@@ -24,7 +21,7 @@
                 Canvas.Left="5"
                 Canvas.Top="3"
                 Command="{CompiledBinding Exif.SetExifRating1Command}"
-                CommandParameter="{CompiledBinding PicViewer.FileInfo.Value.FullName}"
+                CommandParameter="{CompiledBinding WindowTabs.ActiveTab.Value.Model.FileInfo.FullName}"
                 Foreground="{DynamicResource MainTextColor}"
                 ToolTip.Tip="{Binding Translation._1Star, Mode=OneWay}"
                 x:Name="Star1">
@@ -45,7 +42,7 @@
                 Canvas.Left="3"
                 Canvas.Top="3"
                 Command="{CompiledBinding Exif.SetExifRating2Command}"
-                CommandParameter="{CompiledBinding PicViewer.FileInfo.Value.FullName}"
+                CommandParameter="{CompiledBinding WindowTabs.ActiveTab.Value.Model.FileInfo.FullName}"
                 ToolTip.Tip="{Binding Translation._2Star, Mode=OneWay}"
                 x:Name="Star2">
                 <Image
@@ -65,7 +62,7 @@
                 Canvas.Left="3"
                 Canvas.Top="3"
                 Command="{CompiledBinding Exif.SetExifRating3Command}"
-                CommandParameter="{CompiledBinding PicViewer.FileInfo.Value.FullName}"
+                CommandParameter="{CompiledBinding WindowTabs.ActiveTab.Value.Model.FileInfo.FullName}"
                 ToolTip.Tip="{Binding Translation._3Star, Mode=OneWay}"
                 x:Name="Star3">
                 <Image
@@ -85,7 +82,7 @@
                 Canvas.Left="3"
                 Canvas.Top="3"
                 Command="{CompiledBinding Exif.SetExifRating4Command}"
-                CommandParameter="{CompiledBinding PicViewer.FileInfo.Value.FullName}"
+                CommandParameter="{CompiledBinding WindowTabs.ActiveTab.Value.Model.FileInfo.FullName}"
                 ToolTip.Tip="{Binding Translation._4Star, Mode=OneWay}"
                 x:Name="Star4">
                 <Image
@@ -105,7 +102,7 @@
                 Canvas.Left="3"
                 Canvas.Top="3"
                 Command="{CompiledBinding Exif.SetExifRating5Command}"
-                CommandParameter="{CompiledBinding PicViewer.FileInfo.Value.FullName}"
+                CommandParameter="{CompiledBinding WindowTabs.ActiveTab.Value.Model.FileInfo.FullName}"
                 ToolTip.Tip="{Binding Translation._5Star, Mode=OneWay}"
                 x:Name="Star5">
                 <Image

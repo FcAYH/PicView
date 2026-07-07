@@ -6,5 +6,5 @@
     <sys:TimeSpan x:Key="ButtonHoverAnimationDuration">0.25</sys:TimeSpan>
     <sys:Double x:Key="TopBorderHeight">28</sys:Double>
     <sys:Double x:Key="ThemeDisabledOpacity">0.5</sys:Double>
-    <sys:Double x:Key="ScrollBarThickness">18</sys:Double>
+    <sys:Double x:Key="ScrollBarThickness">60</sys:Double>
 </ResourceDictionary>

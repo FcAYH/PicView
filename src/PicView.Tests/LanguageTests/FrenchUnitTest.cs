@@ -1,4 +1,4 @@
-﻿using PicView.Core.Localization;
+using PicView.Core.Localization;
 
 namespace PicView.Tests.LanguageTests;
 
@@ -42,8 +42,8 @@ public static class FrenchUnitTest
         Assert.Equal(TranslationManager.Translation.BitDepth, "Profondeur");
         Assert.Equal(TranslationManager.Translation.BlackAndWhite, "Noir & blanc");
         Assert.Equal(TranslationManager.Translation.Blur, "Flouter");
-        Assert.Equal(TranslationManager.Translation.BottomGalleryItemSize, "Éléments de la galerie inférieure");
-        Assert.Equal(TranslationManager.Translation.BottomGalleryThumbnailStretch,
+        Assert.Equal(TranslationManager.Translation.DockedGalleryItemSize, "Éléments de la galerie inférieure");
+        Assert.Equal(TranslationManager.Translation.DockedGalleryThumbnailStretch,
             "Estirer les miniatures de la galerie inférieure");
         Assert.Equal(TranslationManager.Translation.Brightness, "Luminosité");
         Assert.Equal(TranslationManager.Translation.CameraMaker, "Fabricant de l'appareil photo");
@@ -177,7 +177,7 @@ public static class FrenchUnitTest
         Assert.Equal(TranslationManager.Translation.GoBackBy10Images, "Reculer de 10 images");
         Assert.Equal(TranslationManager.Translation.Hard, "Dur");
         Assert.Equal(TranslationManager.Translation.Height, "Hauteur");
-        Assert.Equal(TranslationManager.Translation.HideBottomGallery, "Masquer la galerie inférieure");
+        Assert.Equal(TranslationManager.Translation.HideDockedGallery, "Masquer la galerie inférieure");
         Assert.Equal(TranslationManager.Translation.HideBottomToolbar, "Ocultar barra de herramientas inferior");
         Assert.Equal(TranslationManager.Translation.HideUI, "Masquer l'interface");
         Assert.Equal(TranslationManager.Translation.High, "Élevé");
@@ -322,8 +322,8 @@ public static class FrenchUnitTest
         Assert.Equal(TranslationManager.Translation.Sharpness, "Netteté");
         Assert.Equal(TranslationManager.Translation.Shift, "Maj");
         Assert.Equal(TranslationManager.Translation.ShowAllSettingsWindow, "Afficher la fenêtre de tous les paramètres");
-        Assert.Equal(TranslationManager.Translation.ShowBottomGallery, "Afficher la galerie inférieure");
-        Assert.Equal(TranslationManager.Translation.ShowBottomGalleryWhenUiIsHidden,
+        Assert.Equal(TranslationManager.Translation.ShowDockedGallery, "Afficher la galerie inférieure");
+        Assert.Equal(TranslationManager.Translation.ShowDockedGalleryWhenUiIsHidden,
             "Afficher la galerie inférieure lorsque l'interface utilisateur est masquée");
         Assert.Equal(TranslationManager.Translation.ShowBottomToolbar, "Afficher la barre d'outils inférieure");
         Assert.Equal(TranslationManager.Translation.ShowConfirmationOnEsc,
@@ -356,7 +356,7 @@ public static class FrenchUnitTest
         Assert.Equal(TranslationManager.Translation.StayCentered, "Garder la fenêtre centrée");
         Assert.Equal(TranslationManager.Translation.StayTopMost, "Rester au-dessus des autres fenêtres");
         Assert.Equal(TranslationManager.Translation.Stretch, "Étirez");
-        Assert.Equal(TranslationManager.Translation.StretchImage, "Étirer l'image");
+        Assert.Equal(TranslationManager.Translation.ZoomToFit, "Zoom pour adapter");
         Assert.Equal(TranslationManager.Translation.StrobeReturnLightDetected,
             "Lumière de retour du stroboscope détectée");
         Assert.Equal(TranslationManager.Translation.StrobeReturnLightNotDetected,

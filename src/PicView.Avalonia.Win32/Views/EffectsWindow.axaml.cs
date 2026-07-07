@@ -1,16 +1,16 @@
 using Avalonia;
-using Avalonia.Controls;
-using Avalonia.Input;
-using Avalonia.Interactivity;
 using Avalonia.Media;
+using PicView.Avalonia.CustomControls;
 using PicView.Avalonia.UI;
 using PicView.Avalonia.WindowBehavior;
+using PicView.Core.DebugTools;
+using PicView.Core.Extensions;
 using PicView.Core.Localization;
 using R3;
 
 namespace PicView.Avalonia.Win32.Views;
 
-public partial class EffectsWindow : Window, IDisposable
+public partial class EffectsWindow : GenericWindow, IDisposable
 {
     private readonly CompositeDisposable _disposables = new();
     public EffectsWindow()
@@ -45,31 +45,15 @@ public partial class EffectsWindow : Window, IDisposable
             CloseButton.Foreground = new SolidColorBrush(color);
         }
         
-        GenericWindowHelper.GenericWindowInitialize(this, TranslationManager.Translation.Effects + " - PicView");
+        GenericWindowHelper.GenericWindowInitialize(this, StringExtensions.CombineWithAppName(TranslationManager.Translation.Effects));
         Loaded += delegate
         {
-            ClientSizeProperty.Changed.ToObservable()
-                .ObserveOn(UIHelper.GetFrameProvider)
-                .Subscribe(size => { WindowResizing.HandleWindowResize(this, size); })
-                .AddTo(_disposables);
             ClearEffectsItem.Click += delegate
             {
                 EffectsView?.RemoveEffects();
             };
         };
     }
-
-    private void MoveWindow(object? sender, PointerPressedEventArgs e)
-    {
-        if (VisualRoot is null) { return; }
-
-        var hostWindow = (Window)VisualRoot;
-        hostWindow?.BeginMoveDrag(e);
-    }
-
-    private void Close(object? sender, RoutedEventArgs e) => Close();
-
-    private void Minimize(object? sender, RoutedEventArgs e) => WindowState = WindowState.Minimized;
     
     public void Dispose()
     {

@@ -1,11 +1,11 @@
 ﻿using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Controls.Metadata;
 using Avalonia.Controls.Primitives;
-using Avalonia.Input;
 using Avalonia.Media;
 using PicView.Avalonia.Animations;
-using PicView.Avalonia.UI;
+using PicView.Core.ViewModels;
 
 namespace PicView.Avalonia.CustomControls;
 
@@ -20,12 +20,11 @@ public class AnimatedPopUp : ContentControl
     private Panel? _partOverlay;
 
     private const double AnimSpeed = 0.3;
+    
     protected AnimatedPopUp()
     {
         Loaded += async delegate { await AnimatedOpening(); };
     }
-
-    public event EventHandler<KeyEventArgs> KeyChanged;
 
     public bool ClickingOutsideCloses
     {
@@ -82,6 +81,12 @@ public class AnimatedPopUp : ContentControl
 
     public async Task AnimatedOpening()
     {
+        if ( TopLevel.GetTopLevel(this) is not MainWindow mainWindow)
+        {
+            return;
+        }
+        
+        mainWindow.IsDialogOpen = true;
         IsHitTestVisible = true;
         IsVisible = true;
         
@@ -89,7 +94,6 @@ public class AnimatedPopUp : ContentControl
         const int fromY = 100;
         const int toX = 0;
         const int toY = 0;
-        DialogManager.IsDialogOpen = true;
         var fadeIn = AnimationsHelper.OpacityAnimation(0, 1, AnimSpeed);
         var centering = AnimationsHelper.CenteringAnimation(fromX, fromY, toX, toY, AnimSpeed);
         await Task.WhenAll(
@@ -101,11 +105,30 @@ public class AnimatedPopUp : ContentControl
 
     public async Task AnimatedClosing(bool remove = true)
     {
+        MainWindow mainWindow;
+        if (TopLevel.GetTopLevel(this) is MainWindow TopLevelMainWindow)
+        {
+            mainWindow = TopLevelMainWindow;
+        }
+        else
+        {
+            if (Application.Current.ApplicationLifetime is not IClassicDesktopStyleApplicationLifetime desktop 
+                || desktop.MainWindow is not MainWindow desktopMainWindow)
+            {
+                return;
+            }
+            mainWindow = desktopMainWindow;
+        }
+        
+        if (mainWindow.DataContext is MainWindowViewModel vm)
+        {
+            mainWindow.IsDialogOpen = vm.TopTitlebarViewModel.DropDownMenu.IsDropDownMenuVisible.CurrentValue;
+        }
+        
         const int fromX = 0;
         const int fromY = 0;
         const int toX = 50;
         const int toY = 100;
-        DialogManager.IsDialogOpen = false;
         var fadeIn = AnimationsHelper.OpacityAnimation(1, 0, AnimSpeed);
         var centering = AnimationsHelper.CenteringAnimation(fromX, fromY, toX, toY, AnimSpeed);
         await Task.WhenAll(
@@ -115,25 +138,13 @@ public class AnimatedPopUp : ContentControl
         );
         if (remove)
         {
-            UIHelper.GetMainView.MainGrid.Children.Remove(this);
+            var removed = mainWindow.UIHelper.GetMainView.MainPanel.Children.Remove(this);
+            Console.WriteLine(removed);
         }
         else
         {
             IsHitTestVisible = false;
             IsVisible = false;
-        }
-    }
-
-    // ReSharper disable once UnusedMember.Global
-    public void KeyDownHandler(object? sender, KeyEventArgs e)
-    {
-        if (e.Key is Key.Escape)
-        {
-            _ = AnimatedClosing();
-        }
-        else
-        {
-            KeyChanged(this, e);
         }
     }
 }

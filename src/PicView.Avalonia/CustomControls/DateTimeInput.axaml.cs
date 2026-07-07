@@ -9,7 +9,7 @@ using Avalonia.Layout;
 using Avalonia.LogicalTree;
 using Avalonia.Media;
 using PicView.Avalonia.UI;
-using PicView.Avalonia.ViewModels;
+using PicView.Core.ViewModels;
 using R3;
 
 namespace PicView.Avalonia.CustomControls;
@@ -95,9 +95,9 @@ public class DateTimeInput : TemplatedControl
     /// </summary>
     private void OnSelectedDateTimeChanged(AvaloniaPropertyChangedEventArgs e)
     {
-        if (DataContext is MainViewModel vm)
+        if (DataContext is MainWindowViewModel vm)
         {
-            if (vm.PicViewer?.FileInfo.Value?.Exists == true)
+            if (vm.WindowTabs.ActiveTab.CurrentValue?.FileInfo.Value?.Exists == true)
             {
                 _controlsContainer?.IsVisible = true;
             }
@@ -197,9 +197,14 @@ public class DateTimeInput : TemplatedControl
             VerticalAlignment = VerticalAlignment.Center,
             Margin = new Thickness(2, 0, 0, 0)
         };
-        Observable.EveryValueChanged(this, x => x.IsEffectivelyEnabled, UIHelper.GetFrameProvider)
-            .Subscribe(b => _ampmToggle.IsVisible = b)
-            .AddTo(_disposables);
+        
+        if ( TopLevel.GetTopLevel(this) is MainWindow mainWindow)
+        {
+            Observable.EveryValueChanged(this, x => x.IsEffectivelyEnabled, mainWindow.FrameProvider)
+                .Subscribe(b => _ampmToggle.IsVisible = b)
+                .AddTo(_disposables);
+        }
+
         _ampmToggle.Click += OnAmPmToggleClick;
         container.Children.Add(_ampmToggle);
         _isAm = true; // Default to AM
@@ -281,9 +286,12 @@ public class DateTimeInput : TemplatedControl
 
     private void HideTextBlockWhenNotEnabledSubscription(TextBlock textBlock)
     {
-        Observable.EveryValueChanged(this, x => x.IsEffectivelyEnabled, UIHelper.GetFrameProvider)
-            .Subscribe(b => textBlock.IsVisible = b)
-            .AddTo(_disposables);
+        if ( TopLevel.GetTopLevel(this) is MainWindow mainWindow)
+        {
+            Observable.EveryValueChanged(this, x => x.IsEffectivelyEnabled, mainWindow.FrameProvider)
+                .Subscribe(b => textBlock.IsVisible = b)
+                .AddTo(_disposables);
+        }
     }
     
     /// <summary>

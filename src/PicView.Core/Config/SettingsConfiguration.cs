@@ -1,9 +1,9 @@
-﻿using PicView.Core.Config.ConfigFileManagement;
+using PicView.Core.Config.ConfigFileManagement;
 
 namespace PicView.Core.Config;
 
 public class SettingsConfiguration() : ConfigFile("UserSettings.json")
 {
-    public const double CurrentSettingsVersion = 1.7;
+    public const double CurrentSettingsVersion = 2.0;
 
 }

@@ -1,0 +1,123 @@
+<UserControl
+    x:Class="PicView.Avalonia.Views.UC.FileHistoryItem"
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:customControls="clr-namespace:PicView.Avalonia.CustomControls"
+    xmlns:vm="clr-namespace:PicView.Core.ViewModels;assembly=PicView.Core"
+    x:DataType="vm:FileHistoryEntryViewModel">
+    <UserControl.Styles>
+
+        <!--  Style for current item  -->
+        <Style Selector="Button#MainButton.isCurrent">
+            <Setter Property="Background" Value="{DynamicResource SecondaryAccentColor}" />
+        </Style>
+        <Style Selector="Button#MainButton.isCurrent TextBlock">
+            <Setter Property="Foreground" Value="{StaticResource SecondaryTextColor}" />
+        </Style>
+        <Style Selector="Button#MainButton:not(.isCurrent)">
+            <Setter Property="Background" Value="Transparent" />
+        </Style>
+
+        <!--  Style for hovering over items  -->
+        <Style Selector="Border#AppBorder">
+            <Setter Property="Background" Value="Transparent" />
+            <Style Selector="^:pointerover">
+                <Setter Property="Background" Value="{DynamicResource AccentColor}" />
+            </Style>
+        </Style>
+        <Style Selector="Border#AppBorder:pointerover TextBlock">
+            <Setter Property="Foreground" Value="{StaticResource SecondaryTextColor}" />
+        </Style>
+
+        <!--  Show buttons on hover  -->
+        <Style Selector=":pointerover &gt; Border#AppBorder">
+            <Setter Property="IsVisible" Value="True" />
+        </Style>
+
+
+    </UserControl.Styles>
+    <Border x:Name="AppBorder">
+        <DockPanel LastChildFill="True">
+
+            <StackPanel
+                x:Name="ButtonPanel"
+                HorizontalAlignment="Right"
+                Background="Transparent"
+                DockPanel.Dock="Right"
+                IsVisible="False"
+                Orientation="Horizontal">
+
+                <customControls:IconButton
+                    Padding="7,0"
+                    Background="{DynamicResource AccentColor}"
+                    Classes="accentHover"
+                    ClickMode="Release"
+                    Command="{Binding PinCommand}"
+                    Foreground="{DynamicResource MainTextColor}"
+                    Icon="{StaticResource PinImage}"
+                    IconHeight="14"
+                    IconWidth="14"
+                    IsVisible="{Binding !IsPinned.Value}"
+                    ToolTip.Tip="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).Translation.Pin.Value}" />
+
+                <customControls:IconButton
+                    Padding="7,0"
+                    HorizontalAlignment="Right"
+                    Background="{DynamicResource AccentColor}"
+                    Classes="accentHover"
+                    ClickMode="Release"
+                    Command="{Binding UnpinCommand}"
+                    Foreground="{DynamicResource MainTextColor}"
+                    Icon="{StaticResource UnPinImage}"
+                    IconHeight="14"
+                    IconWidth="14"
+                    IsVisible="{Binding IsPinned.Value}"
+                    ToolTip.Tip="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).Translation.Unpin.Value}" />
+
+                <customControls:IconButton
+                    Padding="7,0"
+                    HorizontalAlignment="Right"
+                    Background="{DynamicResource AccentColor}"
+                    Classes="errorHover"
+                    ClickMode="Release"
+                    Command="{CompiledBinding RemoveCommand}"
+                    Data="{StaticResource CloseGeometry}"
+                    Foreground="{DynamicResource MainTextColor}"
+                    IconHeight="12"
+                    IconWidth="12"
+                    ToolTip.Tip="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).Translation.Remove.Value}" />
+
+            </StackPanel>
+
+            <Button
+                x:Name="MainButton"
+                Padding="5,6"
+                Classes.isCurrent="{Binding IsCurrentItem.Value}"
+                DockPanel.Dock="Left"
+                Foreground="{DynamicResource MainTextColor}">
+                <ToolTip.Tip>
+                    <StackPanel MaxWidth="500" MaxHeight="700">
+                        <!--  TODO: Show thumbnail here  -->
+                        <Image />
+                        <TextBlock
+                            Classes="txt"
+                            Foreground="{DynamicResource ContextMenuTextColor}"
+                            Text="{Binding FilePath.Value}" />
+                    </StackPanel>
+                </ToolTip.Tip>
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock
+                        Padding="5,0,2,0"
+                        Classes="txt txtHover"
+                        IsVisible="{Binding !IsPinned.Value}"
+                        Text="{Binding Index.Value}" />
+                    <TextBlock
+                        Padding="5,0,0,0"
+                        Classes="txt txtHover"
+                        Text="{Binding FileName.Value}" />
+                </StackPanel>
+            </Button>
+
+        </DockPanel>
+    </Border>
+</UserControl>

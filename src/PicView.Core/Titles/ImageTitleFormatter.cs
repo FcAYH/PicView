@@ -1,8 +1,5 @@
-﻿using System.Runtime.CompilerServices;
 using Cysharp.Text;
-using PicView.Core.DebugTools;
 using PicView.Core.Extensions;
-using PicView.Core.ImageDecoding;
 using PicView.Core.Localization;
 
 namespace PicView.Core.Titles;
@@ -14,84 +11,45 @@ namespace PicView.Core.Titles;
 /// </summary>
 public static class ImageTitleFormatter
 {
+    private const int NormalZoomLevel = 100;
+    private const int NoZoomLevel = 0;
+    
     /// <summary>
-    /// The name of the application.
+    /// Generates window title strings based on provided image and display-related metadata.
+    /// The resulting titles include information such as the file name, image dimensions, file size,
+    /// aspect ratio, zoom percentage, and application name.
     /// </summary>
-    public const string AppName = "PicView";
-
-    private const double NormalZoomLevel = 100;
-    private const double NoZoomLevel = 0.0;
-
-
-    /// <summary>
-    /// Generates the title strings based on the specified parameters, including image properties
-    /// such as width, height, file name, zoom level, and current index in the file list.
-    /// </summary>
-    /// <param name="width">The width of the image in pixels.</param>
-    /// <param name="height">The height of the image in pixels.</param>
-    /// <param name="index">The index of the image in the list.</param>
-    /// <param name="fileInfo">The <see cref="FileInfo"/> object representing the image file.</param>
-    /// <param name="zoomValue">The current zoom level of the image.</param>
-    /// <param name="filesList">The list of image file paths.</param>
-    /// <returns>A <see cref="WindowTitles"/> struct containing the generated titles.</returns>
-    public static WindowTitles GenerateTitleStrings(int width, int height, int index, FileInfo? fileInfo, double zoomValue, IReadOnlyList<FileInfo> filesList)
-    {
-        if (!TryValidateAndGetFileInfo(index, filesList, fileInfo, out var validatedFileInfo, out var errorTitle))
-        {
-            return errorTitle;
-        }
-
-        var namePart = validatedFileInfo.Name;
-        return GenerateTitleStringsCore(width, height, validatedFileInfo, zoomValue, filesList, index, namePart);
-    }
+    public static WindowTitles GenerateTitleStrings(ImageTitleInfo info, int zoom)
+        => GenerateTitleStrings(info.FileInfo.Name, info, zoom);
 
     /// <summary>
-    /// Generates the title strings for TIFF images, including page navigation information.
+    /// Generates window title strings based on provided image and display-related metadata.
+    /// The resulting titles include information such as the file name, image dimensions, file size,
+    /// aspect ratio, zoom percentage, and application name.
     /// </summary>
-    /// <param name="width">The width of the image in pixels.</param>
-    /// <param name="height">The height of the image in pixels.</param>
-    /// <param name="index">The index of the image in the list.</param>
-    /// <param name="fileInfo">The <see cref="FileInfo"/> object representing the image file.</param>
-    /// <param name="tiffNavigationInfo">The TIFF navigation information containing page details.</param>
-    /// <param name="zoomValue">The current zoom level of the image.</param>
-    /// <param name="filesList">The list of image file paths.</param>
-    /// <returns>A <see cref="WindowTitles"/> struct containing the generated titles.</returns>
-    public static WindowTitles GenerateTiffTitleStrings(int width, int height, int index, FileInfo fileInfo, TiffManager.TiffNavigationInfo tiffNavigationInfo, double zoomValue, List<FileInfo> filesList)
-    {
-        if (tiffNavigationInfo == null)
-        {
-            return GenerateErrorTitle();
-        }
-
-        if (!TryValidateAndGetFileInfo(index, filesList, fileInfo, out var validatedFileInfo, out var errorTitle))
-        {
-            return errorTitle;
-        }
-
-        var namePart = $"{validatedFileInfo.Name} [{tiffNavigationInfo.CurrentPage + 1}/{tiffNavigationInfo.PageCount}]";
-        return GenerateTitleStringsCore(width, height, validatedFileInfo, zoomValue, filesList, index, namePart);
-    }
-
-    private static WindowTitles GenerateTitleStringsCore(int width, int height, FileInfo fileInfo, double zoomValue, IReadOnlyList<FileInfo> filesList, int index, string namePart)
+    public static WindowTitles GenerateTitleStrings(string displayName, ImageTitleInfo info, int zoom)
     {
         using var sb = ZString.CreateStringBuilder(true);
 
-        sb.Append(namePart);
+        sb.Append(displayName);
         sb.Append(' ');
-        sb.Append(index + 1);
+        sb.Append(info.Index + 1);
         sb.Append('/');
-        sb.Append(filesList.Count);
+        sb.Append(info.FileCount);
         sb.Append(' ');
-        sb.Append(filesList.Count == 1 ? TranslationManager.Translation.File : TranslationManager.Translation.Files);
+        sb.Append(info.FileCount == 1 ? TranslationManager.Translation?.File : TranslationManager.Translation?.Files);
         sb.Append(" (");
-        sb.Append(width);
+        sb.Append(info.Width);
         sb.Append(" x ");
-        sb.Append(height);
-        sb.Append(AspectRatioFormatter.FormatAspectRatio(width, height));
+        sb.Append(info.Height);
+        sb.Append(AspectRatioFormatter.FormatAspectRatio(info.Width, info.Height));
         sb.Append(") "); 
-        sb.Append(fileInfo.Length.GetReadableFileSize());
+        if (info.FileInfo is not null)
+        {
+            sb.Append(info.FileInfo.Length.GetReadableFileSize());
+        }
 
-        var zoomString = FormatZoomPercentage(zoomValue);
+        var zoomString = FormatZoomPercentage(zoom);
         if (zoomString is not null)
         {
             sb.Append(", ");
@@ -100,8 +58,82 @@ public static class ImageTitleFormatter
 
         var baseTitle = sb.ToString();
 
-        var fullTitle = $"{baseTitle} - {AppName}";
-        var filePathTitle = baseTitle.Replace(fileInfo.Name, fileInfo.FullName);
+        sb.Append(" - ");
+        sb.Append(StringExtensions.AppName);
+        var fullTitle = sb.ToString();
+        var filePathTitle = baseTitle.Replace(info.FileInfo.Name, info.FileInfo.FullName);
+
+        return new WindowTitles
+        {
+            BaseTitle = baseTitle,
+            TitleWithAppName = fullTitle,
+            FilePathTitle = filePathTitle
+        };
+    }
+    
+    /// <summary>
+    /// Generates window title strings for two images displayed side-by-side.
+    /// The resulting format is similar to: image.png (753 x 1090) 209.99 KB ⇜ || ⇝ image2.jpg (1024 x 1440) 201.8 KB [99 & 100 / 100 Files]
+    /// </summary>
+    /// <param name="first">Information about the first image.</param>
+    /// <param name="second">Information about the second image.</param>
+    /// <param name="filesList">A read-only list of all files in the current file collection.</param>
+    /// <returns>A <see cref="WindowTitles"/> struct containing the generated side-by-side titles.</returns>
+    public static WindowTitles GenerateTitleForSideBySide(ImageTitleInfo first, ImageTitleInfo second,int zoom, IReadOnlyList<FileInfo> filesList)
+    {
+        using var sb = ZString.CreateStringBuilder(true);
+
+        // First image details
+        sb.Append(first.FileInfo.Name);
+        sb.Append(" (");
+        sb.Append(first.Width);
+        sb.Append(" x ");
+        sb.Append(first.Height);
+        sb.Append(AspectRatioFormatter.FormatAspectRatio(first.Width, first.Height));
+        sb.Append(") ");
+        sb.Append(first.FileInfo.Length.GetReadableFileSize());
+
+        // Separator
+        sb.Append(" \u21dc || \u21dd ");
+
+        // Second image details
+        sb.Append(second.FileInfo.Name);
+        sb.Append(" (");
+        sb.Append(second.Width);
+        sb.Append(" x ");
+        sb.Append(second.Height);
+        sb.Append(AspectRatioFormatter.FormatAspectRatio(second.Width, second.Height));
+        sb.Append(") ");
+        if (second.FileInfo is not null)
+        {
+            sb.Append(second.FileInfo.Length.GetReadableFileSize());
+        }
+
+        // File count group
+        sb.Append(" [");
+        sb.Append(first.Index);
+        sb.Append(" & ");
+        sb.Append(second.Index);
+        sb.Append(" / ");
+        sb.Append(filesList.Count);
+        sb.Append(' ');
+        sb.Append(filesList.Count == 1 ? TranslationManager.Translation?.File : TranslationManager.Translation?.Files);
+        sb.Append(']');
+        
+        var zoomString = FormatZoomPercentage(zoom);
+        if (zoomString is not null)
+        {
+            sb.Append(", ");
+            sb.Append(zoomString);
+        }
+
+        var baseTitle = sb.ToString();
+        var fullTitle = $"{baseTitle} - {StringExtensions.AppName}";
+        
+        // Construct FilePathTitle replacing the file names with their full paths
+        var filePathTitle = baseTitle;
+        filePathTitle = filePathTitle.Replace(first.FileInfo.Name, first.FileInfo.FullName);
+        filePathTitle = filePathTitle.Replace(second.FileInfo.Name, second.FileInfo.FullName);
 
         return new WindowTitles
         {
@@ -111,71 +143,11 @@ public static class ImageTitleFormatter
         };
     }
 
-    private static bool TryValidateAndGetFileInfo(int index, IReadOnlyList<FileInfo> filesList, FileInfo? fileInfo, out FileInfo? validatedFileInfo, out WindowTitles errorTitle, [CallerMemberName] string callerName = "")
+    public static WindowTitles GenerateTiffTitleStrings(ImageTitleInfo info, int zoom, int? currentPage, int? pageCount)
     {
-        validatedFileInfo = null;
-        errorTitle = default;
-
-        if (index < 0 || index >= filesList.Count)
-        {
-            DebugHelper.LogDebug(nameof(ImageTitleFormatter), callerName, "index invalid");
-            return false;
-        }
-
-        if (fileInfo is null)
-        {
-            try
-            {
-                validatedFileInfo = filesList[index];
-            }
-            catch (Exception e)
-            {
-                DebugHelper.LogDebug(nameof(ImageTitleFormatter), callerName, e);
-                return false;
-            }
-        }
-        else
-        {
-            validatedFileInfo = fileInfo;
-        }
-        
-        if (!Settings.Navigation.IsFileWatcherEnabled)
-        {
-            // Don't check if the file exists if file watcher disabled
-            return true;
-        }
-
-        if (validatedFileInfo.Exists)
-        {
-            return true;
-        }
-
-        errorTitle = GenerateErrorTitle();
-        return false;
+        var namePart = $"{info.FileInfo.Name} [{currentPage + 1}/{pageCount}]";
+        return GenerateTitleStrings(namePart, info, zoom);
     }
-
-
-    /// <summary>
-    /// Generates a set of error titles in case of invalid parameters or exceptions during title generation.
-    /// </summary>
-    /// <returns>A <see cref="WindowTitles"/> struct containing error titles.</returns>
-    private static WindowTitles GenerateErrorTitle()
-    {
-        return new WindowTitles
-        {
-            BaseTitle = TranslationManager.Translation.UnexpectedError ?? "",
-            TitleWithAppName = TranslationManager.Translation.UnexpectedError ?? "",
-            FilePathTitle = TranslationManager.Translation.UnexpectedError ?? ""
-        };
-    }
-
-    /// <summary>
-    /// Formats the zoom percentage for display, omitting the zoom information if it's 0 or 100%.
-    /// </summary>
-    /// <param name="zoomValue">The current zoom level of the image as a double value.</param>
-    /// <returns>A formatted string representing the zoom percentage, or null if the zoom is 0 or 100%.</returns>
-    private static string? FormatZoomPercentage(double zoomValue) =>
-        zoomValue is NoZoomLevel or NormalZoomLevel ? null : $"{Math.Floor(zoomValue)}%";
 
 
     /// <summary>
@@ -184,9 +156,9 @@ public static class ImageTitleFormatter
     /// <param name="width">The width of the image in pixels.</param>
     /// <param name="height">The height of the image in pixels.</param>
     /// <param name="name">Display name of the image.</param>
-    /// <param name="zoomValue">The current zoom level of the image.</param>
+    /// <param name="zoomValue">The current zoom level of the image as a string value.</param>
     /// <returns>A <see cref="WindowTitles"/> struct containing the generated titles for the single image.</returns>
-    public static WindowTitles GenerateTitleForSingleImage(int width, int height, string name, double zoomValue)
+    public static WindowTitles GenerateTitleForSingleImage(uint width, uint height, string name, int zoomValue)
     {
         using var sb = ZString.CreateStringBuilder(true);
 
@@ -210,7 +182,7 @@ public static class ImageTitleFormatter
         var baseTitle = sb.ToString(); // Save the base title (without AppName)
 
         // Full title with AppName
-        var fullTitle = $"{baseTitle} - {AppName}";
+        var fullTitle = $"{baseTitle} - {StringExtensions.AppName}";
 
         return new WindowTitles
         {
@@ -218,6 +190,16 @@ public static class ImageTitleFormatter
             TitleWithAppName = fullTitle,
             FilePathTitle = baseTitle
         };
+    }
+    
+    /// <summary>
+    /// Formats the zoom percentage for display, omitting the zoom information if it's 0 or 100%.
+    /// </summary>
+    /// <param name="zoomValue">The current zoom level of the image as a double value.</param>
+    /// <returns>A formatted string representing the zoom percentage, or null if the zoom is 0 or 100%.</returns>
+    private static string? FormatZoomPercentage(int zoomValue)
+    {
+        return zoomValue is NoZoomLevel or NormalZoomLevel ? null : StringExtensions.CombineWithPercentage(zoomValue);
     }
 
 }

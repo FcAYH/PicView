@@ -23,7 +23,12 @@ public static class ExifOrientationHelper
         }
 
         var profile = magickImage.GetExifProfile();
-        var orientationValue = profile?.GetValue(ExifTag.Orientation);
+        // ReSharper disable once UseNullPropagation
+        if (profile is null)
+        {
+            return ExifOrientation.None;
+        }
+        var orientationValue = profile.GetValue(ExifTag.Orientation);
         if (orientationValue is null)
         {
             return ExifOrientation.None;

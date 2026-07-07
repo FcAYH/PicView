@@ -2,19 +2,11 @@
     IsHitTestVisible="False"
     Opacity="0"
     ZIndex="99"
-    d:DesignHeight="450"
-    d:DesignWidth="800"
-    mc:Ignorable="d"
     x:Class="PicView.Avalonia.Views.UC.ToolTipMessage"
-    x:DataType="viewModels:MainViewModel"
+    x:DataType="viewModels:MainWindowViewModel"
     xmlns="https://github.com/avaloniaui"
-    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    xmlns:viewModels="clr-namespace:PicView.Avalonia.ViewModels"
+    xmlns:viewModels="clr-namespace:PicView.Core.ViewModels;assembly=PicView.Core"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
-    <Design.DataContext>
-        <viewModels:MainViewModel />
-    </Design.DataContext>
     <Border
         Background="{DynamicResource SecondaryBackgroundColor}"
         BorderBrush="{DynamicResource MainBorderColor}"
@@ -22,10 +14,7 @@
         CornerRadius="6">
 
         <TextBlock
-            Classes="txt"
-            FontFamily="/Assets/Fonts/Roboto-Bold.ttf#Roboto"
-            FontSize="14"
-            MaxWidth="{CompiledBinding MainWindow.TitleMaxWidth.Value}"
+            Classes="txt bold"
             Padding="12"
             x:Name="ToolTipMessageText" />
     </Border>

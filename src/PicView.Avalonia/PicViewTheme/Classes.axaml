@@ -1,7 +1,7 @@
 <Styles
     xmlns="https://github.com/avaloniaui"
-    xmlns:customControls="clr-namespace:PicView.Avalonia.CustomControls"
-    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:customControls="clr-namespace:PicView.Avalonia.CustomControls">
 
     <Style Selector="Border.borderStyle">
         <Setter Property="BorderBrush" Value="{DynamicResource MainBorderColor}" />
@@ -21,25 +21,21 @@
         </Style>
     </Style>
 
+    <Style Selector="TextBlock.txtHover:pointerover">
+        <Setter Property="Foreground" Value="{StaticResource SecondaryTextColor}" />
+    </Style>
+
     <Style Selector="TextBlock.bold">
         <Setter Property="FontFamily" Value="/Assets/Fonts/Roboto-Bold.ttf#Roboto" />
         <Setter Property="FontSize" Value="14" />
     </Style>
 
+    <Style Selector="TextBlock.regular">
+        <Setter Property="FontFamily" Value="/Assets/Fonts/Roboto-Regular.ttf#Roboto" />
+    </Style>
+
     <Style Selector="TextBlock.txtShadow">
         <Setter Property="Effect" Value="{StaticResource TextShadow}" />
-    </Style>
-
-    <Style Selector="TextBlock.hover">
-        <Style Selector="^:pointerover">
-            <Setter Property="Foreground" Value="{DynamicResource AccentColor}" />
-        </Style>
-    </Style>
-
-    <Style Selector="TextBlock.lightHover">
-        <Style Selector="^:pointerover">
-            <Setter Property="Foreground" Value="{StaticResource SecondaryTextColor}" />
-        </Style>
     </Style>
 
     <Style Selector="Button.hover, customControls|CopyButton:hover">
@@ -55,7 +51,6 @@
         <Setter Property="BorderThickness" Value="1" />
         <Setter Property="Focusable" Value="False" />
         <Setter Property="BorderBrush" Value="{DynamicResource OuterBorderColor}" />
-        <Setter Property="Effect" Value="{StaticResource MenuShadowButtonBorder}" />
         <Setter Property="Background" Value="{DynamicResource MainButtonBackgroundColor}" />
     </Style>
 
@@ -105,6 +100,25 @@
         <Setter Property="VerticalContentAlignment" Value="Center" />
     </Style>
 
+    <Style Selector="customControls|TextToggleButton.settingsToggleButton">
+        <Setter Property="Width" Value="300" />
+        <Setter Property="TextMaxWidth" Value="240" />
+        <Setter Property="TextMargin" Value="6" />
+        <Setter Property="Margin" Value="6" />
+        <Setter Property="CornerRadius" Value="6" />
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="Foreground" Value="{DynamicResource MainTextColor}" />
+    </Style>
+
+    <Style Selector="Button.settingsTextIconButton">
+        <Setter Property="Width" Value="300" />
+        <Setter Property="Padding" Value="0,10,0,10" />
+        <Setter Property="Margin" Value="0,0,0,10" />
+        <Setter Property="CornerRadius" Value="6" />
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="Foreground" Value="{DynamicResource MainTextColor}" />
+    </Style>
+
     <Style Selector="Button.GlassBorder, ToggleButton.GlassBorder, RepeatButton.GlassBorder">
         <Setter Property="BorderBrush" Value="#48000000" />
     </Style>
@@ -117,12 +131,44 @@
         <Setter Property="Stroke" Value="#48000000" />
     </Style>
 
-    <Style Selector="Path.OpenPath">
-        <Setter Property="Data" Value="{StaticResource AltFolderGeometry}" />
-        <Setter Property="Fill" Value="{DynamicResource MainTextColor}" />
-        <Setter Property="Height" Value="12.14" />
-        <Setter Property="Width" Value="15" />
-        <Setter Property="Stretch" Value="Fill" />
+    <Style Selector="Border.searchBorder">
+        <Setter Property="Padding" Value="10, 7" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="4" />
+        <Setter Property="Margin" Value="0" />
+        <Setter Property="Transitions">
+            <Transitions>
+                <BrushTransition Property="BorderBrush" Duration="0:0:0.4" />
+            </Transitions>
+        </Setter>
+    </Style>
+
+    <Style Selector="StackPanel.searchHeader">
+        <Setter Property="Opacity" Value="1.0" />
+        <Setter Property="Orientation" Value="Horizontal" />
+        <Setter Property="Spacing" Value="12" />
+    </Style>
+
+    <Style Selector="StackPanel.searchHeaderDim">
+        <Setter Property="Opacity" Value="0.2" />
+        <Setter Property="Orientation" Value="Horizontal" />
+        <Setter Property="Spacing" Value="12" />
+    </Style>
+
+    <Style Selector="Border.searchMatch">
+        <Setter Property="Opacity" Value="1.0" />
+        <Setter Property="BorderBrush" Value="{DynamicResource AccentColor}" />
+    </Style>
+
+    <Style Selector="Border.searchDim">
+        <Setter Property="Opacity" Value="0.2" />
+        <Setter Property="BorderBrush" Value="Transparent" />
+    </Style>
+
+    <Style Selector="Image.OpenImage">
+        <Setter Property="Source" Value="{StaticResource OpenFolderImage}" />
+        <Setter Property="Height" Value="12" />
+        <Setter Property="Width" Value="12" />
     </Style>
 
     <Style Selector="Path.CopyPath">
@@ -211,28 +257,23 @@
         <Setter Property="Stretch" Value="Fill" />
     </Style>
 
-    <Style Selector="Path.SettingsPath">
-        <Setter Property="Data" Value="{StaticResource CogGeometry}" />
-        <Setter Property="Fill" Value="{DynamicResource MainTextColor}" />
+    <Style Selector="Image.CogImage">
+        <Setter Property="Source" Value="{StaticResource CogImage}" />
+        <Setter Property="Height" Value="12" />
+        <Setter Property="Width" Value="12" />
+    </Style>
+
+    <Style Selector="Image.FlipImage">
+        <Setter Property="Source" Value="{StaticResource RepeatImage}" />
         <Setter Property="Height" Value="12" />
         <Setter Property="Width" Value="12" />
         <Setter Property="Stretch" Value="Fill" />
     </Style>
 
-    <Style Selector="Path.FlipPath">
-        <Setter Property="Data" Value="{StaticResource FlipGeometry}" />
-        <Setter Property="Fill" Value="{DynamicResource MainTextColor}" />
+    <Style Selector="Image.CropImage">
+        <Setter Property="Source" Value="{StaticResource CropImage}" />
         <Setter Property="Height" Value="12" />
         <Setter Property="Width" Value="12" />
-        <Setter Property="Stretch" Value="Fill" />
-    </Style>
-
-    <Style Selector="Path.CropPath">
-        <Setter Property="Data" Value="{StaticResource CropGeometry}" />
-        <Setter Property="Fill" Value="{DynamicResource MainTextColor}" />
-        <Setter Property="Height" Value="12" />
-        <Setter Property="Width" Value="12" />
-        <Setter Property="Stretch" Value="Fill" />
     </Style>
 
     <Style Selector="Path.ImageInfoPath">

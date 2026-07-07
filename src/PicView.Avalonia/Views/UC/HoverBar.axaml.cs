@@ -1,32 +1,114 @@
-﻿using System.Diagnostics;
+using System.Diagnostics;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
-using Avalonia.LogicalTree;
 using Avalonia.Media;
 using Avalonia.Threading;
-using PicView.Avalonia.Functions;
-using PicView.Avalonia.Navigation;
+using PicView.Avalonia.CustomControls;
 using PicView.Avalonia.UI;
-using PicView.Avalonia.ViewModels;
 using PicView.Avalonia.Views.UC.PopUps;
+using PicView.Core.DebugTools;
 using PicView.Core.Sizing;
+using PicView.Core.ViewModels;
 using R3;
 
 namespace PicView.Avalonia.Views.UC;
 
-public partial class HoverBar : UserControl
+public partial class HoverBar : UserControl, IDisposable
 {
+    private DisposableBag _disposables;
     public HoverBar()
     {
         InitializeComponent();
+        
+        if (!Settings.Theme.Dark)
+        {
+            ChangeHoverClasses();
+        }
+        
         Loaded += OnLoaded;
-        if (Settings.Theme.Dark)
+
+    }
+
+    private void OnLoaded(object? sender, RoutedEventArgs e)
+    {
+        if (TopLevel.GetTopLevel(this) is not MainWindow mainWindow)
         {
             return;
         }
+        
+        AddHandler(PointerPressedEvent, ManagePointerPressed, RoutingStrategies.Tunnel);
+        mainWindow.UIHelper.GetMainView.SizeChanged += (_, args) => ApplyResponsiveResize(args.NewSize.Width);
+        ApplyResponsiveResize(Bounds.Width);
 
+        if (Settings.Theme.GlassTheme)
+        {
+            GlassThemeUpdates();
+        }
+
+        if (Application.Current.DataContext is not CoreViewModel core)
+        {
+            return;
+        }
+        
+        _disposables.Add(new HoverFadeButtonHandler(this, BottomBorder));
+
+        Observable.FromEventHandler<RoutedEventArgs>(h => NextButton.Click += h,
+                h => NextButton.Click -= h)
+            .SubscribeAwait(async (_, c) =>
+            {
+                core.MainWindows.ActiveWindow.CurrentValue.WindowTabs.ActiveTab.CurrentValue.Hoverbar.IsHoverNavigationButtonNextClicked = true;
+                await core.MainWindows.ActiveWindow.CurrentValue.WindowTabs.NextFile();
+            }, static result =>
+            {
+#if DEBUG
+                if (result is { IsFailure: true, Exception: not null })
+                {
+                    DebugHelper.LogDebug(nameof(HoverBar), nameof(OnLoaded), result.Exception);
+                }
+#endif
+            })
+            .AddTo(ref _disposables);
+        Observable.FromEventHandler<RoutedEventArgs>(h => PreviousButton.Click += h,
+                h => PreviousButton.Click -= h)
+            .SubscribeAwait(async (_, c) =>
+            {
+                core.MainWindows.ActiveWindow.CurrentValue.WindowTabs.ActiveTab.CurrentValue.Hoverbar.IsHoverNavigationButtonPreviousClicked = true;
+                await core.MainWindows.ActiveWindow.CurrentValue.WindowTabs.PrevFile();
+            }, static result =>
+            {
+#if DEBUG
+                if (result is { IsFailure: true, Exception: not null })
+                {
+                    DebugHelper.LogDebug(nameof(HoverBar), nameof(OnLoaded), result.Exception);
+                }
+#endif
+            })
+            .AddTo(ref _disposables);
+
+        Debug.Assert(Settings.Gallery is not null);
+        Observable.EveryValueChanged(Settings.Gallery, x => x.IsGalleryDocked)
+            .Skip(1)
+            .Subscribe(_ =>
+            {
+                ApplyResponsiveResize(Bounds.Width);
+            }, static result =>
+            {
+#if DEBUG
+                if (result is { IsFailure: true, Exception: not null })
+                {
+                    DebugHelper.LogDebug(nameof(HoverBar), nameof(OnLoaded), result.Exception);
+                }
+#endif
+            })
+            .AddTo(ref _disposables);
+    }
+
+    #region Theming
+
+    private void ChangeHoverClasses()
+    {
         FileMenuButton.Classes.Remove("noBorderHover");
         FileMenuButton.Classes.Add("hover");
 
@@ -52,58 +134,27 @@ public partial class HoverBar : UserControl
         SettingsMenuButton.Classes.Add("hover");
     }
 
-    private void OnLoaded(object? sender, RoutedEventArgs e)
+    private void GlassThemeUpdates()
     {
-        AddHandler(PointerPressedEvent, ManagePointerPressed, RoutingStrategies.Tunnel);
-        UIHelper.GetMainView.SizeChanged += (_, args) => ApplyResponsiveResize(args.NewSize.Width);
-        ApplyResponsiveResize(Bounds.Width);
+        var brush = new SolidColorBrush(Color.Parse("#D1333333"));
+        NextButton.Background = brush;
+        PreviousButton.Background = brush;
 
-
-        if (Settings.Theme.GlassTheme)
-        {
-            var brush = new SolidColorBrush(Color.Parse("#D1333333"));
-            NextButton.Background = brush;
-            PreviousButton.Background = brush;
-
-            var noThickness = new Thickness(0);
-            FileMenuButton.BorderThickness = noThickness;
-            ZoomOutMenuButton.BorderThickness = noThickness;
-            ZoomInMenuButton.BorderThickness = noThickness;
-            RotateLeftButton.BorderThickness = noThickness;
-            RotateRightButton.BorderThickness = noThickness;
-            FlipButton.BorderThickness = noThickness;
-            ImageMenuButton.BorderThickness = noThickness;
-            SettingsMenuButton.BorderThickness = noThickness;
-            NextButton.BorderThickness = noThickness;
-            PreviousButton.BorderThickness = noThickness;
-        }
-
-        if (DataContext is not MainViewModel vm)
-        {
-            return;
-        }
-
-        Observable.FromEventHandler<RoutedEventArgs>(h => NextButton.Click += h,
-                h => NextButton.Click -= h)
-            .SubscribeAwait(async (_, c) =>
-            {
-                vm.HoverbarViewModel.IsHoverNavigationButtonNextClicked = true;
-                await NavigationManager.Navigate(true, vm, c);
-            });
-        Observable.FromEventHandler<RoutedEventArgs>(h => PreviousButton.Click += h,
-                h => PreviousButton.Click -= h)
-            .SubscribeAwait(async (_, c) =>
-            {
-                vm.HoverbarViewModel.IsHoverNavigationButtonPreviousClicked = true;
-                await NavigationManager.Navigate(false, vm, c);
-            });
-
-        Debug.Assert(Settings.Gallery is not null);
-        Observable.EveryValueChanged(Settings.Gallery, x => x.IsBottomGalleryShown)
-            .Skip(1)
-            .Subscribe(_ => { ApplyResponsiveResize(Bounds.Width); });
+        var noThickness = new Thickness(0);
+        FileMenuButton.BorderThickness = noThickness;
+        ZoomOutMenuButton.BorderThickness = noThickness;
+        ZoomInMenuButton.BorderThickness = noThickness;
+        RotateLeftButton.BorderThickness = noThickness;
+        RotateRightButton.BorderThickness = noThickness;
+        FlipButton.BorderThickness = noThickness;
+        ImageMenuButton.BorderThickness = noThickness;
+        SettingsMenuButton.BorderThickness = noThickness;
+        NextButton.BorderThickness = noThickness;
+        PreviousButton.BorderThickness = noThickness;
     }
-
+    
+    #endregion
+    
     private void ApplyResponsiveResize(double width)
     {
         const int firstBreakpoint = 475;
@@ -156,16 +207,21 @@ public partial class HoverBar : UserControl
                     ZoomOutMenuButton.IsVisible = showAdvancedButtons;
 
         IsVisible = true;
+        
+        if ( TopLevel.GetTopLevel(this) is not MainWindow mainWindow)
+        {
+            return;
+        }
 
         // Make sure hover bar is above the bottom gallery if needed
-        var newHeight = Settings.Gallery.IsBottomGalleryShown ? 50 : 160;
-        Height = UIHelper.GetMainView.Bounds.Height > SizeDefaults.WindowMinSize ? newHeight : double.NaN;
+        var newHeight = Settings.Gallery.IsGalleryDocked ? 50 : 160;
+        Height = mainWindow.UIHelper.GetMainView.Bounds.Height > SizeDefaults.WindowMinSize ? newHeight : double.NaN;
     }
 
 
     private async Task ManagePointerPressed(object? sender, PointerPressedEventArgs e)
     {
-        if (DataContext is not MainViewModel vm)
+        if (Application.Current.DataContext is not CoreViewModel core)
         {
             return;
         }
@@ -202,7 +258,7 @@ public partial class HoverBar : UserControl
             }
             else if (props.IsLeftButtonPressed)
             {
-                await FunctionsMapper.SettingsWindow();
+                await core.MainWindows.ActiveWindow.CurrentValue.Mapper.SettingsWindow();
             }
         }
         else if (ImageMenuButton.IsPointerOver)
@@ -216,14 +272,14 @@ public partial class HoverBar : UserControl
         {
             if (props.IsLeftButtonPressed)
             {
-                vm.HoverbarViewModel.IsHoverRotateLeftClicked = true;
+                core.MainWindows.ActiveWindow.CurrentValue.WindowTabs.ActiveTab.CurrentValue.Hoverbar.IsHoverRotateLeftClicked = true;
             }
         }
         else if (RotateRightButton.IsPointerOver)
         {
             if (props.IsLeftButtonPressed)
             {
-                vm.HoverbarViewModel.IsHoverRotateRightClicked = true;
+                core.MainWindows.ActiveWindow.CurrentValue.WindowTabs.ActiveTab.CurrentValue.Hoverbar.IsHoverRotateRightClicked = true;
             }
         }
         else if (ProgressBar.IsPointerOver)
@@ -242,27 +298,55 @@ public partial class HoverBar : UserControl
         {
             if (props.IsRightButtonPressed)
             {
-                UIHelper.ShowMainContextMenu();
+                if (TopLevel.GetTopLevel(this) is not MainWindow mainWindow)
+                {
+                    return;
+                }
+                UIHelper.ShowMainContextMenu(mainWindow);
             }
         }
     }
 
-    private static void ShowNavigationDialog() =>
-        DialogManager.AddNavigationDialog();
-
-    private static void ShowQuickSettingsDialog() =>
-        UIHelper.GetMainView.MainGrid.Children.Add(new QuickSettingsDialog());
-    
-    private static void ShowQuickEditingDialog() =>
-        UIHelper.GetMainView.MainGrid.Children.Add(new QuickEditingDialog());
-
-    private static void ShowSearchDialog() =>
-        DialogManager.AddFileSearchDialog();
-
-    protected override void OnDetachedFromLogicalTree(LogicalTreeAttachmentEventArgs e)
+    private void ShowNavigationDialog()
     {
-        base.OnDetachedFromLogicalTree(e);
+        if (TopLevel.GetTopLevel(this) is not MainWindow mainWindow)
+        {
+            return;
+        }
+        mainWindow.AddNavigationDialog();
+    }
+
+    private void ShowQuickSettingsDialog()
+    {
+        if (TopLevel.GetTopLevel(this) is not MainWindow mainWindow)
+        {
+            return;
+        }
+        mainWindow.UIHelper.GetMainView.MainPanel.Children.Add(new QuickSettingsDialog());
+    }
+
+    private void ShowQuickEditingDialog()
+    {
+        if (TopLevel.GetTopLevel(this) is not MainWindow mainWindow)
+        {
+            return;
+        }
+        mainWindow.UIHelper.GetMainView.MainPanel.Children.Add(new QuickEditingDialog());
+    }
+
+    private void ShowSearchDialog()
+    {
+        if (TopLevel.GetTopLevel(this) is not MainWindow mainWindow)
+        {
+            return;
+        }
+        mainWindow.AddFileSearchDialog();
+    }
+
+    public void Dispose()
+    {
         Loaded -= OnLoaded;
         RemoveHandler(PointerPressedEvent, ManagePointerPressed);
+        _disposables.Dispose();
     }
 }

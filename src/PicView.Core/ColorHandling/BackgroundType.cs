@@ -18,8 +18,9 @@ public enum BackgroundType
     SemiTransparentDarkerGray = 8,
     NearBlack = 9,
     DarkGray = 10,
+    MainBackgroundColor = 11,
         
     // For cycling purpose
     [SuppressMessage("Design", "CA1069:Enums values should not be duplicated")] 
-    MaxValue = 9
+    MaxValue = 10
 }

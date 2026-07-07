@@ -1,166 +1,163 @@
 ﻿<UserControl
-    Background="Transparent"
-    Height="160"
-    IsVisible="{CompiledBinding HoverbarViewModel.IsHoverbarVisible.Value}"
-    Margin="{CompiledBinding Gallery.GalleryMargin.Value}"
-    Opacity="0"
-    VerticalAlignment="Bottom"
     x:Class="PicView.Avalonia.Views.UC.HoverBar"
-    x:DataType="viewModels:MainViewModel"
     xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:customControls="clr-namespace:PicView.Avalonia.CustomControls"
-    xmlns:viewModels="clr-namespace:PicView.Avalonia.ViewModels"
-    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    xmlns:vm="clr-namespace:PicView.Core.ViewModels;assembly=PicView.Core"
+    Height="160"
+    x:DataType="vm:TabViewModel"
+    Background="Transparent"
+    IsVisible="{CompiledBinding Hoverbar.IsHoverbarVisible.Value}"
+    Opacity="0">
     <Border
+        x:Name="BottomBorder"
+        Height="37"
+        MaxWidth="{CompiledBinding Hoverbar.MaxWidth}"
         Background="{DynamicResource MainBackgroundColor}"
         BorderBrush="{DynamicResource MainBorderColor}"
         BorderThickness="1"
-        CornerRadius="6"
-        Height="37"
-        MaxWidth="{CompiledBinding HoverbarViewModel.MaxWidth}"
-        x:Name="BottomBorder">
+        CornerRadius="6">
         <DockPanel LastChildFill="True">
             <customControls:IconButton
+                x:Name="FileMenuButton"
+                Width="38"
+                Height="35"
                 Background="{DynamicResource SecondaryButtonBackgroundColor}"
                 BorderBrush="{DynamicResource MainBorderColor}"
                 BorderThickness="0,0,1,0"
                 Classes="noBorderHover"
-                Command="{CompiledBinding Tools.OpenFileCommand}"
+                Command="{CompiledBinding $parent[Window].((vm:MainWindowViewModel)DataContext).OpenCommand}"
                 CornerRadius="6,0,0,6"
-                Data="{StaticResource AltFolderGeometry}"
                 Foreground="{DynamicResource MainTextColor}"
-                Height="35"
+                Icon="{StaticResource OpenFolderImage}"
                 IconHeight="17"
                 IconWidth="20"
                 IsTabStop="False"
-                ToolTip.Tip="{CompiledBinding Translation.OpenFileDialog.Value,
-                                              Mode=OneWay}"
-                Width="38"
-                x:Name="FileMenuButton" />
+                ToolTip.Tip="{CompiledBinding $parent[Window].((vm:MainWindowViewModel)DataContext).Translation.OpenFileDialog.Value,
+                                              Mode=OneWay}" />
 
             <customControls:IconButton
+                x:Name="ZoomOutMenuButton"
+                Width="38"
+                Height="35"
                 Background="{DynamicResource SecondaryButtonBackgroundColor}"
                 BorderBrush="{DynamicResource MainBorderColor}"
                 BorderThickness="0,0,1,0"
                 Classes="noBorderHover"
-                Command="{CompiledBinding Tools.ZoomOutCommand}"
+                Command="{CompiledBinding $parent[Window].((vm:MainWindowViewModel)DataContext).ZoomOutCommand}"
                 Foreground="{DynamicResource MainTextColor}"
-                Height="35"
                 Icon="{StaticResource ZoomOutImage}"
                 IconHeight="18"
                 IconWidth="21"
-                IsTabStop="False"
-                Width="38"
-                x:Name="ZoomOutMenuButton" />
+                IsTabStop="False" />
 
             <customControls:IconButton
+                x:Name="ZoomInMenuButton"
+                Width="38"
+                Height="35"
                 Background="{DynamicResource SecondaryButtonBackgroundColor}"
                 BorderBrush="{DynamicResource MainBorderColor}"
                 BorderThickness="0,0,1,0"
                 Classes="noBorderHover"
-                Command="{CompiledBinding Tools.ZoomInCommand}"
+                Command="{CompiledBinding $parent[Window].((vm:MainWindowViewModel)DataContext).ZoomInCommand}"
                 Foreground="{DynamicResource MainTextColor}"
-                Height="35"
-                Icon="{StaticResource ZoomAltImage}"
+                Icon="{StaticResource ZoomImage}"
                 IconHeight="18"
                 IconWidth="21"
-                IsTabStop="False"
-                Width="38"
-                x:Name="ZoomInMenuButton" />
+                IsTabStop="False" />
 
             <customControls:IconButton
+                x:Name="RotateLeftButton"
+                Width="38"
+                Height="35"
+                Margin="0"
                 Background="{DynamicResource SecondaryButtonBackgroundColor}"
                 BorderBrush="{DynamicResource MainBorderColor}"
                 BorderThickness="0,0,1,0"
                 Classes="noBorderHover"
-                Command="{CompiledBinding Tools.RotateLeftCommand}"
+                Command="{CompiledBinding $parent[Window].((vm:MainWindowViewModel)DataContext).RotateLeftCommand}"
                 Data="{StaticResource RotateLeftGeometry}"
                 Foreground="{DynamicResource MainTextColor}"
-                Height="35"
                 IconHeight="16"
                 IconWidth="16"
-                IsEnabled="{CompiledBinding PicViewer.ImageSource.Value,
+                IsEnabled="{CompiledBinding Image.Value,
                                             Converter={x:Static ObjectConverters.IsNotNull}}"
                 IsRepeatEnabled="False"
-                Margin="0"
-                ToolTip.Tip="{CompiledBinding Translation.RotateLeft.Value,
-                                              Mode=OneWay}"
-                Width="38"
-                x:Name="RotateLeftButton" />
+                ToolTip.Tip="{CompiledBinding $parent[Window].((vm:MainWindowViewModel)DataContext).Translation.RotateLeft.Value,
+                                              Mode=OneWay}" />
 
             <customControls:IconButton
+                x:Name="RotateRightButton"
+                Width="38"
+                Height="35"
+                Margin="0"
                 Background="{DynamicResource SecondaryButtonBackgroundColor}"
                 Classes="noBorderHover"
-                Command="{CompiledBinding Tools.RotateRightCommand}"
+                Command="{CompiledBinding $parent[Window].((vm:MainWindowViewModel)DataContext).RotateRightCommand}"
                 Data="{StaticResource RotateRightGeometry}"
                 DockPanel.Dock="Left"
                 Foreground="{DynamicResource MainTextColor}"
-                Height="35"
                 IconHeight="16"
                 IconWidth="16"
-                IsEnabled="{CompiledBinding PicViewer.ImageSource.Value,
-                                            Converter={x:Static ObjectConverters.IsNotNull}}"
                 IsRepeatEnabled="False"
-                Margin="0"
-                ToolTip.Tip="{CompiledBinding Translation.RotateRight.Value,
-                                              Mode=OneWay}"
-                Width="38"
-                x:Name="RotateRightButton" />
+                ToolTip.Tip="{CompiledBinding $parent[Window].((vm:MainWindowViewModel)DataContext).Translation.RotateRight.Value,
+                                              Mode=OneWay}" />
 
             <customControls:IconButton
+                x:Name="FlipButton"
+                Width="38"
+                Height="35"
+                Margin="0"
                 Background="{DynamicResource SecondaryButtonBackgroundColor}"
                 BorderBrush="{DynamicResource MainBorderColor}"
                 BorderThickness="1,0,1,0"
                 Classes="noBorderHover"
-                Command="{CompiledBinding Tools.FlipCommand}"
+                Command="{CompiledBinding $parent[Window].((vm:MainWindowViewModel)DataContext).FlipCommand}"
                 Data="{StaticResource FlipGeometry}"
                 DockPanel.Dock="Left"
                 Foreground="{DynamicResource MainTextColor}"
-                Height="35"
                 IconHeight="17"
                 IconWidth="17"
-                IsEnabled="{CompiledBinding PicViewer.ImageSource.Value,
-                                            Converter={x:Static ObjectConverters.IsNotNull}}"
                 IsRepeatEnabled="False"
-                Margin="0"
-                ToolTip.Tip="{CompiledBinding Translation.IsFlipped.Value,
-                                              Mode=OneWay}"
-                Width="38"
-                x:Name="FlipButton">
+                ToolTip.Tip="{CompiledBinding $parent[Window].((vm:MainWindowViewModel)DataContext).Translation.IsFlipped.Value,
+                                              Mode=OneWay}">
                 <Button.RenderTransform>
-                    <ScaleTransform ScaleX="{CompiledBinding PicViewer.ScaleX.Value}" />
+                    <ScaleTransform ScaleX="{Binding ScaleX.Value}" />
                 </Button.RenderTransform>
             </customControls:IconButton>
 
             <customControls:IconButton
+                x:Name="ImageMenuButton"
+                Width="38"
+                Height="35"
                 Background="{DynamicResource SecondaryButtonBackgroundColor}"
                 BorderBrush="{DynamicResource MainBorderColor}"
                 BorderThickness="0,0,1,0"
                 Classes="noBorderHover"
                 Foreground="{DynamicResource MainTextColor}"
-                Height="35"
                 Icon="{StaticResource UpImage}"
                 IconHeight="17"
                 IconWidth="17"
-                IsTabStop="False"
-                Width="38"
-                x:Name="ImageMenuButton" />
+                IsTabStop="False" />
 
             <customControls:IconButton
+                x:Name="SettingsMenuButton"
+                Width="38"
+                Height="35"
                 Background="{DynamicResource SecondaryButtonBackgroundColor}"
                 BorderBrush="{DynamicResource MainBorderColor}"
                 BorderThickness="0,0,1,0"
                 Classes="noBorderHover"
-                Data="{StaticResource CogGeometry}"
                 Foreground="{DynamicResource MainTextColor}"
-                Height="35"
+                Icon="{StaticResource CogImage}"
                 IconHeight="18"
                 IconWidth="18"
-                IsTabStop="False"
-                Width="38"
-                x:Name="SettingsMenuButton" />
+                IsTabStop="False" />
 
             <customControls:IconButton
+                x:Name="PreviousButton"
+                Width="80"
+                Height="35"
                 Background="{DynamicResource MainButtonBackgroundColor}"
                 BorderBrush="{DynamicResource MainBorderColor}"
                 BorderThickness="0,0,1,0"
@@ -168,16 +165,16 @@
                 Data="{StaticResource FilledArrowLeftGeometry}"
                 Focusable="False"
                 Foreground="{DynamicResource MainTextColor}"
-                Height="35"
                 IconHeight="20"
                 IconWidth="17"
-                IsEnabled="{CompiledBinding PicViewer.FileInfo.Value,
-                                            Converter={x:Static ObjectConverters.IsNotNull}}"
-                IsTabStop="False"
-                Width="80"
-                x:Name="PreviousButton" />
+                IsEnabled="{CompiledBinding CanNavigateBackwards.Value,
+                                            FallbackValue=False}"
+                IsTabStop="False" />
 
             <customControls:IconButton
+                x:Name="NextButton"
+                Width="80"
+                Height="35"
                 Background="{DynamicResource MainButtonBackgroundColor}"
                 BorderBrush="{DynamicResource MainBorderColor}"
                 BorderThickness="0,0,1,0"
@@ -185,24 +182,21 @@
                 Data="{StaticResource FilledArrowRightGeometry}"
                 Focusable="False"
                 Foreground="{DynamicResource MainTextColor}"
-                Height="35"
                 IconHeight="20"
                 IconWidth="17"
-                IsEnabled="{CompiledBinding PicViewer.FileInfo.Value,
-                                            Converter={x:Static ObjectConverters.IsNotNull}}"
-                IsTabStop="False"
-                Width="80"
-                x:Name="NextButton" />
+                IsEnabled="{CompiledBinding CanNavigateForwards.Value,
+                                            FallbackValue=False}"
+                IsTabStop="False" />
 
             <customControls:DraggableProgressBar
+                x:Name="ProgressBar"
                 CornerRadius="0,6,6,0"
-                CurrentIndex="{CompiledBinding PicViewer.Index.Value}"
+                CurrentIndex="{CompiledBinding NavigationIndex.Value}"
                 DragSensitivity="1"
-                IsEnabled="{CompiledBinding PicViewer.FileInfo.Value,
+                IsEnabled="{CompiledBinding FileInfo.Value,
                                             Converter={x:Static ObjectConverters.IsNotNull}}"
-                Maximum="{CompiledBinding PicViewer.Maximum.Value}"
-                ThumbFill="{DynamicResource SecondaryBorderColor}"
-                x:Name="ProgressBar" />
+                Maximum="{CompiledBinding MaxIndex.Value}"
+                ThumbFill="{DynamicResource SecondaryBorderColor}" />
         </DockPanel>
     </Border>
 </UserControl>

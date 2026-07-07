@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-	<TargetFramework>net10.0</TargetFramework>
+	<TargetFramework>net11.0</TargetFramework>
     <Platforms>x64;arm64</Platforms>
     <Nullable>enable</Nullable>
     <LangVersion>preview</LangVersion>
@@ -10,11 +10,19 @@
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <UseAppHost>true</UseAppHost>
     <ImplicitUsings>enable</ImplicitUsings>
-    
+
+    <!-- AOT -->
     <PublishAot>true</PublishAot>
-    <OptimizationPreference>Speed</OptimizationPreference>
     <Trimming>full</Trimming>
     <TrimmerRemoveSymbols>true</TrimmerRemoveSymbols>
+    <OptimizationPreference>Speed</OptimizationPreference>
+    <HttpActivityPropagationSupport>false</HttpActivityPropagationSupport>
+    <IsAotCompatible>True</IsAotCompatible>
+    <IsTrimmable>True</IsTrimmable>
+    <EventSourceSupport>false</EventSourceSupport>
+    <StackTraceSupport>true</StackTraceSupport>
+    <EventSourceSupport>false</EventSourceSupport>
+    <IlcTrimMetadata>true</IlcTrimMetadata>
     
     <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
     <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
@@ -44,6 +52,10 @@
   <PropertyGroup Condition="'$(Platform)' == 'arm64'">
     <PlatformTarget>ARM64</PlatformTarget>
   </PropertyGroup>
+
+    <PropertyGroup>
+        <EnablePreviewFeatures>true</EnablePreviewFeatures>
+    </PropertyGroup>
 
 
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|arm64' ">
@@ -88,6 +100,10 @@
     </Compile>
     <Compile Update="Views\EffectsWindow.axaml.cs">
       <DependentUpon>EffectsWindow.axaml</DependentUpon>
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="Views\MacMainWindow2.axaml.cs">
+      <DependentUpon>MacMainWindow2.axaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
   </ItemGroup>

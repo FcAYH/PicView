@@ -1,22 +1,18 @@
 <Window
     BorderThickness="1"
     CanResize="False"
-    CornerRadius="8"
     SizeToContent="WidthAndHeight"
-    Title="Loading..."
     x:Class="PicView.Avalonia.Win32.Views.EffectsWindow"
-    x:DataType="viewModels:MainViewModel"
+    x:DataType="viewModels:CoreViewModel"
     xmlns="https://github.com/avaloniaui"
     xmlns:customControls="clr-namespace:PicView.Avalonia.CustomControls;assembly=PicView.Avalonia"
     xmlns:main="clr-namespace:PicView.Avalonia.Views.Main;assembly=PicView.Avalonia"
-    xmlns:viewModels="clr-namespace:PicView.Avalonia.ViewModels;assembly=PicView.Avalonia"
-    xmlns:views="clr-namespace:PicView.Avalonia.Views;assembly=PicView.Avalonia"
+    xmlns:viewModels="clr-namespace:PicView.Core.ViewModels;assembly=PicView.Core"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
     <Border
         BorderBrush="{DynamicResource WindowBorderColor}"
         BorderThickness="1"
-        PointerPressed="MoveWindow"
         x:Name="ParentBorder">
         <StackPanel>
 
@@ -24,6 +20,7 @@
                 Background="{DynamicResource WindowSecondaryBackgroundColor}"
                 Height="28"
                 LastChildFill="True"
+                PointerPressed="MoveWindow"
                 x:Name="TitleBarPanel">
 
                 <Border
@@ -74,15 +71,15 @@
                     BorderThickness="1,0,0,0"
                     Classes="noBorderHover"
                     ClickMode="Press"
-                    Data="{StaticResource CogGeometry}"
                     DockPanel.Dock="Right"
                     Foreground="{DynamicResource MainTextColor}"
-                    IconHeight="12"
-                    IconWidth="12"
+                    Icon="{StaticResource GeneralSettingsImage}"
+                    IconHeight="16"
+                    IconWidth="16"
                     Width="30">
                     <customControls:IconButton.Flyout>
                         <MenuFlyout FlyoutPresenterClasses="noCornerRadius" Placement="Bottom">
-                            <MenuItem Command="{CompiledBinding Tools.SaveFileCommand}" Header="{CompiledBinding Translation.Save.Value, Mode=OneWay}">
+                            <MenuItem Command="{Binding MainWindows.ActiveWindow.Value.SaveCommand}" Header="{Binding Translation.Save.Value, Mode=OneWay}">
                                 <MenuItem.Icon>
                                     <Path
                                         Data="{StaticResource SaveGeometry}"
@@ -92,7 +89,7 @@
                                         Width="12" />
                                 </MenuItem.Icon>
                             </MenuItem>
-                            <MenuItem Command="{CompiledBinding Tools.SaveFileAsCommand}" Header="{CompiledBinding Translation.SaveAs.Value, Mode=OneWay}">
+                            <MenuItem Command="{Binding MainWindows.ActiveWindow.Value.SaveAsCommand}" Header="{Binding Translation.SaveAs.Value, Mode=OneWay}">
                                 <MenuItem.Icon>
                                     <Path
                                         Data="{StaticResource SaveGeometry}"
@@ -102,7 +99,7 @@
                                         Width="12" />
                                 </MenuItem.Icon>
                             </MenuItem>
-                            <MenuItem Command="{CompiledBinding Tools.CopyImageCommand}" Header="{CompiledBinding Translation.CopyImage.Value, Mode=OneWay}">
+                            <MenuItem Command="{Binding MainWindows.ActiveWindow.Value.CopyImageCommand}" Header="{Binding Translation.CopyImage.Value, Mode=OneWay}">
                                 <MenuItem.Icon>
                                     <Path
                                         Data="{StaticResource CopyGeometry}"
@@ -114,12 +111,9 @@
                             </MenuItem>
                             <Separator />
                             <MenuItem
-                                Command="{CompiledBinding Tools.SetAsWallpaperFilledCommand}"
-                                CommandParameter="{CompiledBinding PicViewer.FileInfo.Value.FullName,
-                                                                   FallbackValue=''}"
-                                Header="{CompiledBinding Translation.SetAsWallpaper.Value,
-                                                         Mode=OneWay}"
-                                IsVisible="{CompiledBinding GlobalSettings.ShowSetAsWallpaper.Value}">
+                                Command="{Binding MainWindows.ActiveWindow.Value.SetAsWallpaperFilledCommand}"
+                                Header="{Binding Translation.SetAsWallpaper.Value, Mode=OneWay}"
+                                IsVisible="{Binding GlobalSettings.ShowSetAsWallpaper.Value}">
                                 <MenuItem.Icon>
                                     <Path
                                         Data="{StaticResource PanoramaGeometry}"
@@ -129,8 +123,8 @@
                                         Width="13" />
                                 </MenuItem.Icon>
                             </MenuItem>
-                            <Separator IsVisible="{CompiledBinding GlobalSettings.ShowSetAsWallpaper.Value}" />
-                            <MenuItem Header="{CompiledBinding Translation.ClearEffects.Value, Mode=OneWay}" x:Name="ClearEffectsItem">
+                            <Separator IsVisible="{Binding GlobalSettings.ShowSetAsWallpaper.Value}" />
+                            <MenuItem Header="{Binding Translation.ClearEffects.Value, Mode=OneWay}" x:Name="ClearEffectsItem">
                                 <MenuItem.Icon>
                                     <Image
                                         Height="12"
@@ -148,8 +142,7 @@
                     Height="28"
                     LineHeight="28"
                     Padding="30,0,0,0"
-                    Text="{CompiledBinding Translation.Effects.Value,
-                                           Mode=OneWay}"
+                    Text="{Binding Translation.Effects.Value, Mode=OneWay}"
                     TextAlignment="Center"
                     x:Name="TitleText" />
             </DockPanel>

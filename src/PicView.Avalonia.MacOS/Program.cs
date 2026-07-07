@@ -26,6 +26,7 @@ internal class Program
             {
                 MaxGpuResourceSizeBytes = 256_000_000,
                 UseOpacitySaveLayer = true
-            });
+            })
+            .UseHarfBuzz();
     }
 }

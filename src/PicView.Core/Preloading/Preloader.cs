@@ -41,7 +41,7 @@ public class PreLoader(Func<FileInfo, ValueTask<ImageModel>> imageModelLoader) :
     /// <returns>
     /// A <see cref="ValueTask{TResult}"/> that returns <c>true</c> if the image was added and loaded successfully; otherwise, <c>false</c>.
     /// </returns>
-    public async ValueTask<bool> AddAsync(int index, List<FileInfo> list, bool isReverse = false, CancellationToken ct = default)
+    public async ValueTask<bool> AddAsync(int index, IReadOnlyList<FileInfo> list, bool isReverse = false, CancellationToken ct = default)
     {
         if (list == null || index < 0 || index >= list.Count)
         {
@@ -103,7 +103,7 @@ public class PreLoader(Func<FileInfo, ValueTask<ImageModel>> imageModelLoader) :
     /// <returns>
     /// <c>true</c> if the image model was successfully added; otherwise, <c>false</c>.
     /// </returns>
-    public bool Add(int index, List<FileInfo> list, ImageModel imageModel, bool isReverse)
+    public bool Add(int index, IReadOnlyList<FileInfo> list, ImageModel imageModel, bool isReverse)
     {
         if (list == null || index < 0 || index >= list.Count)
         {
@@ -260,7 +260,7 @@ public class PreLoader(Func<FileInfo, ValueTask<ImageModel>> imageModelLoader) :
     /// <returns>
     /// <c>true</c> if the index is valid and the item is in the cache; otherwise, <c>false</c>.
     /// </returns>
-    public bool Contains(int key, List<FileInfo> list) =>
+    public bool Contains(int key, IReadOnlyList<FileInfo> list) =>
         list != null && key >= 0 && key < list.Count && _preLoadList.ContainsKey(key);
 
 
@@ -270,7 +270,7 @@ public class PreLoader(Func<FileInfo, ValueTask<ImageModel>> imageModelLoader) :
     /// <param name="key">The index of the item to retrieve.</param>
     /// <param name="list">The complete list of image file paths.</param>
     /// <returns>The <see cref="PreLoadValue"/> if found in the cache; otherwise, <c>null</c>.</returns>
-    public PreLoadValue? Get(int key, List<FileInfo> list)
+    public PreLoadValue? Get(int key, IReadOnlyList<FileInfo> list)
     {
         if (list is null || key < 0 || key > list.Count)
         {

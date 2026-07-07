@@ -80,6 +80,12 @@ public static class ConfigFileManager
         }
 
         var path = GetConfigPath(file);
+        
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+        {
+            return path.Replace("\\", "/");
+        }
+        
         return path.Replace("/", "\\");
     }
 

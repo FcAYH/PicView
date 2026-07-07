@@ -3,7 +3,7 @@
 /// <summary>
 /// Struct that holds different representations of a window title.
 /// </summary>
-public readonly struct WindowTitles
+public readonly record struct WindowTitles
 {
     /// <summary>
     /// The base title containing the image name, index, file count, resolution, and other details.

@@ -1,4 +1,4 @@
-﻿using PicView.Core.Localization;
+using PicView.Core.Localization;
 
 namespace PicView.Tests.LanguageTests;
 
@@ -43,8 +43,8 @@ public static class PolishUnitTest
         Assert.Equal(TranslationManager.Translation.BitDepth, "Bitów głębkości koloru");
         Assert.Equal(TranslationManager.Translation.BlackAndWhite, "Czarny i Biały");
         Assert.Equal(TranslationManager.Translation.Blur, "Rozmycie");
-        Assert.Equal(TranslationManager.Translation.BottomGalleryItemSize, "Liczba elementów na dole galerii");
-        Assert.Equal(TranslationManager.Translation.BottomGalleryThumbnailStretch,
+        Assert.Equal(TranslationManager.Translation.DockedGalleryItemSize, "Liczba elementów na dole galerii");
+        Assert.Equal(TranslationManager.Translation.DockedGalleryThumbnailStretch,
             "Prześrodkuj miniatury na dole galerii");
         Assert.Equal(TranslationManager.Translation.Brightness, "Jasność");
         Assert.Equal(TranslationManager.Translation.CameraMaker, "Producent aparatu");
@@ -173,7 +173,7 @@ public static class PolishUnitTest
         Assert.Equal(TranslationManager.Translation.GoBackBy10Images, "Przejdź o 10 obrazów do tyłu");
         Assert.Equal(TranslationManager.Translation.Hard, "Twardy");
         Assert.Equal(TranslationManager.Translation.Height, "Wysokość");
-        Assert.Equal(TranslationManager.Translation.HideBottomGallery, "Ukryj dolną galerię");
+        Assert.Equal(TranslationManager.Translation.HideDockedGallery, "Ukryj dolną galerię");
         Assert.Equal(TranslationManager.Translation.HideBottomToolbar, "Ukryj dolny pasek narzędzi");
         Assert.Equal(TranslationManager.Translation.HideUI, "Ukryj interfejs");
         Assert.Equal(TranslationManager.Translation.High, "Wysoki");
@@ -316,8 +316,8 @@ public static class PolishUnitTest
         Assert.Equal(TranslationManager.Translation.Sharpness, "Ostrość");
         Assert.Equal(TranslationManager.Translation.Shift, "Shift");
         Assert.Equal(TranslationManager.Translation.ShowAllSettingsWindow, "Pokaż okno ze wszystkimi ustawieniami");
-        Assert.Equal(TranslationManager.Translation.ShowBottomGallery, "Pokaż dolną galerię");
-        Assert.Equal(TranslationManager.Translation.ShowBottomGalleryWhenUiIsHidden,
+        Assert.Equal(TranslationManager.Translation.ShowDockedGallery, "Pokaż dolną galerię");
+        Assert.Equal(TranslationManager.Translation.ShowDockedGalleryWhenUiIsHidden,
             "Pokaż dolną galerię: gdy UI jest ukryte");
         Assert.Equal(TranslationManager.Translation.ShowBottomToolbar, "Pokaż dolny pasek narzędzi");
         Assert.Equal(TranslationManager.Translation.ShowConfirmationOnEsc,
@@ -347,7 +347,7 @@ public static class PolishUnitTest
         Assert.Equal(TranslationManager.Translation.StayCentered, "Pozostaw okno wyśrodkowane");
         Assert.Equal(TranslationManager.Translation.StayTopMost, "Pozostań ponad innymi oknami");
         Assert.Equal(TranslationManager.Translation.Stretch, "Rozciągnij");
-        Assert.Equal(TranslationManager.Translation.StretchImage, "Rozciągnij obraz");
+        Assert.Equal(TranslationManager.Translation.ZoomToFit, "Powiększ do rozmiaru");
         Assert.Equal(TranslationManager.Translation.StrobeReturnLightDetected, "Wykryto światło powrotne");
         Assert.Equal(TranslationManager.Translation.StrobeReturnLightNotDetected, "Nie wykryto światła powrotnego");
         Assert.Equal(TranslationManager.Translation.Subject, "Temat");

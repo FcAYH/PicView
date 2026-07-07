@@ -4,8 +4,7 @@ using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.LogicalTree;
 using Avalonia.Media;
-using PicView.Avalonia.UI;
-using PicView.Avalonia.ViewModels;
+using PicView.Core.ViewModels;
 using R3;
 
 namespace PicView.Avalonia.Views.UC.Buttons;
@@ -16,7 +15,7 @@ public partial class StarOutlineButtons : UserControl
     private DrawingImage? _outlinedStar;
     private Image[]? _starIcons;
     
-    private readonly CompositeDisposable _disposables = new();
+    private IDisposable? _disposable;
 
     public StarOutlineButtons()
     {
@@ -27,7 +26,7 @@ public partial class StarOutlineButtons : UserControl
     protected override void OnDetachedFromLogicalTree(LogicalTreeAttachmentEventArgs e)
     {
         base.OnDetachedFromLogicalTree(e);
-        Disposable.Dispose(_disposables);
+        _disposable?.Dispose();
     }
 
     private void OnLoaded(object? sender, RoutedEventArgs e)
@@ -42,15 +41,14 @@ public partial class StarOutlineButtons : UserControl
             _outlinedStar = outlined as DrawingImage;
         }
 
-        if (DataContext is not MainViewModel vm || vm.Exif is null)
+        if (DataContext is not MainWindowViewModel vm || vm.Exif is null)
         {
             SetStars(0); // Ensure stars are outlined if no data context
             return;
         }
 
-        Observable.EveryValueChanged(vm.Exif, x => x.ExifRating.Value, UIHelper.GetFrameProvider)
-            .Subscribe(SetStars)
-            .AddTo(_disposables);
+        _disposable = Observable.EveryValueChanged(vm.Exif, x => x.ExifRating.Value)
+            .Subscribe(SetStars);
     }
 
     private void SetStars(uint rating)
@@ -68,7 +66,7 @@ public partial class StarOutlineButtons : UserControl
 
     private void UpdateRating(uint newRating)
     {
-        if (DataContext is MainViewModel { Exif: not null } vm)
+        if (DataContext is MainWindowViewModel { Exif: not null } vm)
         {
             vm.Exif.ExifRating.Value = newRating;
         }
@@ -76,7 +74,7 @@ public partial class StarOutlineButtons : UserControl
 
     private void Stars_OnPointerExited(object? sender, PointerEventArgs e)
     {
-        if (DataContext is MainViewModel { Exif: not null } vm)
+        if (DataContext is MainWindowViewModel { Exif: not null } vm)
         {
             SetStars(vm.Exif.ExifRating.CurrentValue);
         }

@@ -1,10 +1,10 @@
 ﻿<UserControl
     Focusable="False"
     x:Class="PicView.Avalonia.Views.UC.ZoomPreviewer"
-    x:DataType="vm:MainViewModel"
+    x:DataType="vm:TabViewModel"
     xmlns="https://github.com/avaloniaui"
     xmlns:customControls="clr-namespace:PicView.Avalonia.CustomControls"
-    xmlns:vm="clr-namespace:PicView.Avalonia.ViewModels"
+    xmlns:vm="clr-namespace:PicView.Core.ViewModels;assembly=PicView.Core"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
     <Border
         Background="{DynamicResource MainBackgroundColor}"
@@ -13,6 +13,7 @@
         CornerRadius="6,6,1,1"
         x:Name="MainBorder">
         <StackPanel>
+
             <Border
                 Background="{DynamicResource MainBackgroundColor}"
                 BorderBrush="{DynamicResource MainBorderColor}"
@@ -21,16 +22,16 @@
                 <Grid ColumnDefinitions="*,*">
                     <customControls:IconButton
                         Classes="altHover mainBtn"
-                        Command="{CompiledBinding Tools.ResetZoomCommand}"
+                        Command="{CompiledBinding $parent[Window].((vm:MainWindowViewModel)DataContext).ResetZoomCommand}"
                         CornerRadius="6,0,0,0"
-                        Data="{StaticResource ReloadGeometry}"
                         Foreground="{DynamicResource MainTextColor}"
                         Grid.Column="0"
-                        Height="22"
-                        IconHeight="11"
-                        IconWidth="11"
+                        Height="25"
+                        Icon="{StaticResource RefreshCcwOff}"
+                        IconHeight="15"
+                        IconWidth="15"
                         Padding="1"
-                        ToolTip.Tip="{CompiledBinding Translation.ResetZoom.Value}"
+                        ToolTip.Tip="{CompiledBinding $parent[Window].((vm:MainWindowViewModel)DataContext).Translation.ResetZoom.Value}"
                         x:Name="ResetZoomButton" />
 
                     <customControls:IconButton
@@ -39,39 +40,35 @@
                         Data="{StaticResource CloseGeometry}"
                         Foreground="{DynamicResource MainTextColor}"
                         Grid.Column="1"
-                        Height="22"
-                        IconHeight="10"
-                        IconWidth="10"
+                        Height="25"
+                        IconHeight="12"
+                        IconWidth="12"
                         Padding="1"
-                        ToolTip.Tip="{CompiledBinding Translation.Close.Value}"
+                        ToolTip.Tip="{CompiledBinding $parent[Window].((vm:MainWindowViewModel)DataContext).Translation.Close.Value}"
                         x:Name="CloseButton" />
                 </Grid>
             </Border>
+
             <LayoutTransformControl>
                 <LayoutTransformControl.LayoutTransform>
-                    <RotateTransform Angle="{CompiledBinding PicViewer.RotationAngle.Value}" />
+                    <RotateTransform Angle="{CompiledBinding RotationAngle.Value}" />
                 </LayoutTransformControl.LayoutTransform>
+                <LayoutTransformControl.RenderTransform>
+                    <ScaleTransform ScaleX="{Binding ScaleX.Value}" />
+                </LayoutTransformControl.RenderTransform>
                 <Panel>
                     <customControls:PicBox
-                        ImageType="{CompiledBinding PicViewer.ImageType.Value,
-                                                    Mode=OneWay}"
-                        SecondarySource="{CompiledBinding PicViewer.SecondaryImageSource.Value,
-                                                          Mode=OneWay}"
-                        Source="{CompiledBinding PicViewer.ImageSource.Value}"
-                        x:Name="OverlayImage">
-                        <customControls:PicBox.RenderTransform>
-                            <ScaleTransform ScaleX="{CompiledBinding PicViewer.ScaleX.Value}" />
-                        </customControls:PicBox.RenderTransform>
-                    </customControls:PicBox>
+                        ImageType="{CompiledBinding Model.ImageType,
+                                                    Mode=OneWay,
+                                                    FallbackValue=0}"
+                        Source="{CompiledBinding Image.Value}"
+                        x:Name="OverlayImage" />
                     <Canvas x:Name="OverlayCanvas">
                         <Rectangle
                             Fill="Transparent"
                             Stroke="{DynamicResource AccentColor}"
                             StrokeThickness="2"
                             x:Name="ViewportBorder" />
-                        <Canvas.RenderTransform>
-                            <ScaleTransform ScaleX="{CompiledBinding PicViewer.ScaleX.Value}" />
-                        </Canvas.RenderTransform>
                     </Canvas>
                 </Panel>
             </LayoutTransformControl>

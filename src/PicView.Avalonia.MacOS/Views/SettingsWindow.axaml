@@ -1,41 +1,32 @@
 <Window
     BorderThickness="1"
-    CanMaximize="False"
-    CanResize="False"
-    ExtendClientAreaChromeHints="SystemChrome"
+    CanResize="True"
     ExtendClientAreaTitleBarHeightHint="-1"
-    SizeToContent="WidthAndHeight"
+    ExtendClientAreaToDecorationsHint="True"
+    MinWidth="600"
     Title="SettingsWindow"
-    WindowStartupLocation="Manual"
-    d:DesignHeight="450"
-    d:DesignWidth="800"
-    mc:Ignorable="d"
     x:Class="PicView.Avalonia.MacOS.Views.SettingsWindow"
-    x:DataType="viewModels:MainViewModel"
+    x:DataType="viewModels:CoreViewModel"
     xmlns="https://github.com/avaloniaui"
     xmlns:buttons="clr-namespace:PicView.Avalonia.Views.UC.Buttons;assembly=PicView.Avalonia"
     xmlns:customControls="clr-namespace:PicView.Avalonia.CustomControls;assembly=PicView.Avalonia"
-    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:main="clr-namespace:PicView.Avalonia.Views.Main;assembly=PicView.Avalonia"
-    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    xmlns:viewModels="clr-namespace:PicView.Avalonia.ViewModels;assembly=PicView.Avalonia"
+    xmlns:viewModels="clr-namespace:PicView.Core.ViewModels;assembly=PicView.Core"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
-    <Design.DataContext>
-        <viewModels:MainViewModel />
-    </Design.DataContext>
     <Border
         BorderBrush="{DynamicResource MainBorderColor}"
         BorderThickness="1"
         CornerRadius="8"
-        PointerPressed="MoveWindow">
-        <StackPanel>
-            <Panel>
+        PointerPressed="MoveWindow"
+        x:Name="MainBorder">
+        <DockPanel>
+            <Panel DockPanel.Dock="Top">
                 <customControls:IconButton
                     Background="Transparent"
                     Classes="noBorderHover"
                     Command="{CompiledBinding SettingsViewModel.GoBackCommand}"
                     Data="{StaticResource ArrowLeftGeometry}"
-                    Foreground="{StaticResource SecondaryTextColor}"
+                    Foreground="{DynamicResource MainTextColor}"
                     Height="28"
                     HorizontalAlignment="Left"
                     IconHeight="12"
@@ -50,7 +41,7 @@
                     Classes="noBorderHover"
                     Command="{CompiledBinding SettingsViewModel.GoForwardCommand}"
                     Data="{StaticResource ArrowRightGeometry}"
-                    Foreground="{StaticResource SecondaryTextColor}"
+                    Foreground="{DynamicResource MainTextColor}"
                     HorizontalAlignment="Left"
                     IconHeight="12"
                     IconWidth="12"
@@ -59,10 +50,25 @@
                     ZIndex="1"
                     x:Name="GoForwardButton" />
 
+                <customControls:IconButton
+                    Background="Transparent"
+                    Classes="noBorderHover"
+                    Command="{CompiledBinding SettingsViewModel.GoHomeCommand}"
+                    CornerRadius="4"
+                    Foreground="{StaticResource SecondaryTextColor}"
+                    HorizontalAlignment="Left"
+                    Icon="{StaticResource HomeImage}"
+                    IconHeight="12"
+                    IconWidth="12"
+                    Margin="145,0,0,0"
+                    Width="35"
+                    ZIndex="1"
+                    x:Name="HomeButton" />
+
                 <TextBlock
                     Background="{DynamicResource WindowBackgroundColor}"
                     Classes="txt"
-                    Foreground="{StaticResource SecondaryTextColor}"
+                    Foreground="{DynamicResource MainTextColor}"
                     Height="28"
                     LineHeight="28"
                     Text="{CompiledBinding Translation.Settings.Value,
@@ -77,6 +83,6 @@
             </Panel>
 
             <main:SettingsView Background="{DynamicResource WindowBackgroundColor}" x:Name="SettingsView" />
-        </StackPanel>
+        </DockPanel>
     </Border>
 </Window>

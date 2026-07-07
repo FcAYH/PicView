@@ -18,7 +18,6 @@ public static class TiffManager
 
     public static MagickImageCollection? LoadTiffPages(string path)
     {
-        using var image = new MagickImage(path);
         var settings = new MagickReadSettings
         {
             // Specify that we want to read a TIFF format image

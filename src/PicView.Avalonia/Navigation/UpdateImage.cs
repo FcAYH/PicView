@@ -1,350 +1,199 @@
-﻿using Avalonia;
+using Avalonia;
+using Avalonia.Controls;
 using Avalonia.Media.Imaging;
+using Avalonia.Svg.Skia;
 using Avalonia.Threading;
 using ImageMagick;
-using PicView.Avalonia.Gallery;
-using PicView.Avalonia.ImageHandling;
-using PicView.Avalonia.UI;
-using PicView.Avalonia.ViewModels;
+using PicView.Avalonia.CustomControls;
+using PicView.Avalonia.Views.UC;
 using PicView.Avalonia.WindowBehavior;
-using PicView.Core.Exif;
+using PicView.Core.DebugTools;
 using PicView.Core.Gallery;
 using PicView.Core.ImageDecoding;
+using PicView.Core.Localization;
 using PicView.Core.Models;
-using PicView.Core.Preloading;
 using PicView.Core.Titles;
-
-// ReSharper disable RedundantAlwaysMatchSubpattern
+using PicView.Core.ViewModels;
 
 namespace PicView.Avalonia.Navigation;
 
 public static class UpdateImage
 {
-    #region Update source
-
-    /// <summary>
-    ///     Updates the image source in the main view model based on the specified index and preloaded values.
-    /// </summary>
-    /// <param name="vm">The main view model instance.</param>
-    /// <param name="index">The index of the image to update.</param>
-    /// <param name="imagePaths">The list of image paths to navigate through.</param>
-    /// <param name="preLoadValue">The preloaded value of the current image.</param>
-    /// <param name="nextPreloadValue">Optional: The preloaded value of the next image, used for side-by-side display.</param>
-    /// <returns>A task representing the asynchronous operation.</returns>
-    public static async ValueTask UpdateSource(MainViewModel vm, int index, IReadOnlyList<FileInfo> imagePaths,
-        PreLoadValue? preLoadValue,
-        PreLoadValue? nextPreloadValue = null)
+    public static void UpdateFileInfo(TabViewModel tabViewModel,  FileInfo? file)
     {
-        preLoadValue ??= await NavigationManager.GetPreLoadValueAsync(index).ConfigureAwait(false);
-        if (preLoadValue is null)
+        if (tabViewModel.Model?.Image is null || tabViewModel.Model.PixelHeight is 0 ||
+            tabViewModel.Model.PixelWidth is 0)
         {
-            await ErrorHandling.ReloadAsync(vm).ConfigureAwait(false);
             return;
-        }
-        if (preLoadValue.ImageModel?.Image is null && index == NavigationManager.GetCurrentIndex)
-        {
-            var fileInfo = preLoadValue.ImageModel?.FileInfo ?? imagePaths[index];
-            preLoadValue.ImageModel = await GetImageModel.GetImageModelAsync(fileInfo).ConfigureAwait(false);
         }
         
-        if (preLoadValue.ImageModel?.FileInfo is null)
+        if (file is null || file.Length is 0)
         {
-            preLoadValue.ImageModel.FileInfo = new FileInfo(NavigationManager.GetCurrentFileName);
-        }
-
-        if (Settings.ImageScaling.ShowImageSideBySide)
-        {
-            nextPreloadValue ??= await NavigationManager.GetNextPreLoadValueAsync().ConfigureAwait(false);
-            if (nextPreloadValue.ImageModel?.Image is null && index == NavigationManager.GetCurrentIndex)
-            {
-                var nextFileInfo = nextPreloadValue.ImageModel?.FileInfo ?? new FileInfo(NavigationManager.GetNextFileName);
-                nextPreloadValue.ImageModel = await GetImageModel.GetImageModelAsync(nextFileInfo).ConfigureAwait(false);
-            }
-
-            if (nextPreloadValue.ImageModel?.FileInfo is null)
-            {
-                // Sometimes the FileInfo is null, don't know why. This fixes it. Probably a race condition?
-                nextPreloadValue.ImageModel.FileInfo = new FileInfo(NavigationManager.GetNextFileName);
-            }
-        }
-
-        if (index != NavigationManager.GetCurrentIndex)
-        {
-            return;
-        }
-
-        await Dispatcher.UIThread.InvokeAsync(() =>
-        {
-            if (index != NavigationManager.GetCurrentIndex)
+            var noImage = TranslationManager.Translation?.NoImage;
+            if (string.IsNullOrEmpty(noImage))
             {
                 return;
             }
 
-            vm.ImageViewer.SetTransform(preLoadValue.ImageModel.Orientation, preLoadValue.ImageModel.Format);
-            vm.ImageViewer.ZoomPanControl.ResetZoomSlim();
-
-            if (Settings.ImageScaling.ShowImageSideBySide && nextPreloadValue is { ImageModel: not null })
-            {
-                vm.PicViewer.SecondaryImageSource.Value = nextPreloadValue.ImageModel.Image;
-                if (preLoadValue is { ImageModel: not null})
-                {
-                    vm.PicViewer.ImageSource.Value = preLoadValue.ImageModel.Image;
-                    vm.PicViewer.ImageType.Value = preLoadValue.ImageModel.ImageType;
-                    vm.PicViewer.Format.Value = preLoadValue.ImageModel.Format;
-                }
-            }
-            else if (preLoadValue is { ImageModel: not null})
-            {
-                if (preLoadValue.ImageModel.ImageType is ImageType.AnimatedGif or ImageType.AnimatedWebp)
-                {
-                    vm.ImageViewer.MainImage.InitialAnimatedSource = preLoadValue.ImageModel.FileInfo.FullName;
-                }
-                
-                vm.PicViewer.ImageSource.Value = preLoadValue.ImageModel.Image;
-                vm.PicViewer.SecondaryImageSource.Value = null;
-                vm.PicViewer.ImageType.Value = preLoadValue.ImageModel.ImageType;
-                vm.PicViewer.Format.Value = preLoadValue.ImageModel.Format;
-            }
-            else
-            {
-                return;
-            }
-
-            if (!Settings.Zoom.ScrollEnabled)
-            {
-                SetSize();
-            }
-
-            UIHelper.GetToolTipMessage.IsVisible = false;
-        }, DispatcherPriority.Send);
-
-        vm.MainWindow.IsLoadingIndicatorShown.Value = false;
-
-        if (Settings.ImageScaling.ShowImageSideBySide)
-        {
-            TitleManager.SetSideBySideTitle(vm, preLoadValue.ImageModel, nextPreloadValue?.ImageModel);
+            tabViewModel.TabTitle.Value = noImage;
+            tabViewModel.TabTooltip.Value = noImage;
+            return;
         }
-        else
-        {
-            if (TiffManager.IsTiff(preLoadValue.ImageModel?.FileInfo?.FullName))
-            {
-                if (TiffManager.IsTiff(preLoadValue.ImageModel?.FileInfo?.FullName))
-                {
-                    TitleManager.TrySetTiffTitle(preLoadValue?.ImageModel, vm);
-                }
-                else
-                {
-                    TitleManager.SetTitle(vm, preLoadValue?.ImageModel);
-                }
-            }
-            else
-            {
-                TitleManager.SetTitle(vm, preLoadValue?.ImageModel);
-            }
-        }
-        
-        if (Settings.Zoom.ScrollEnabled)
-        {
-            // Bad fix for scrolling
-            // TODO: Implement proper scrolling fix
-            Settings.Zoom.ScrollEnabled = false;
-            await Dispatcher.UIThread.InvokeAsync(SetSize);
-            Settings.Zoom.ScrollEnabled = true;
-            await Dispatcher.UIThread.InvokeAsync(SetSize, DispatcherPriority.Send);
-        }
+        tabViewModel.FileInfo.Value = file;
 
-        if (Settings.WindowProperties.KeepCentered)
-        {
-            await Dispatcher.UIThread.InvokeAsync(() => { WindowFunctions.CenterWindowOnScreen(); });
-        }
-
-        vm.PicViewer.Index.Value = index;
-        if (Settings.Gallery.IsBottomGalleryShown)
-        {
-            GalleryNavigation.CenterScrollToItem(index);
-        }
-        
-        SetStats(vm, preLoadValue.ImageModel);
-        
-        return;
-
-        void SetSize()
-        {
-            WindowResizing.SetSize(preLoadValue.ImageModel.PixelWidth, preLoadValue.ImageModel.PixelHeight,
-                    nextPreloadValue?.ImageModel?.PixelWidth ?? 0, nextPreloadValue?.ImageModel?.PixelHeight ?? 0,
-                    vm.PicViewer.RotationAngle.CurrentValue, vm);
-        }
-
-    }
-
-    public static async ValueTask UpdateSourceSlim(MainViewModel vm,
-        int index,
-        object? imageSource,
-        int width,
-        int height,
-        IReadOnlyList<FileInfo> imagePaths,
-        CancellationToken token)
-    {
-        if (index != NavigationManager.GetCurrentIndex)
+        if (Application.Current.DataContext is not CoreViewModel core)
         {
             return;
         }
         
-        await Dispatcher.UIThread.InvokeAsync(() =>
+        if (Settings.UIProperties.IsTaskbarProgressEnabled)
         {
-            vm.PicViewer.ImageSource.Value = imageSource;
-            vm.PicViewer.SecondaryImageSource.Value = null;
-        }, DispatcherPriority.Send, token);
-        
-        TitleManager.SetTitleSlim(vm, width, height, index, imagePaths);
+            core.PlatformService.SetTaskbarProgress((ulong)tabViewModel.ImageIterator.CurrentIndex, (ulong)tabViewModel.ImageIterator.Files.Count);
+        }
+
+        core.Effects?.ProcessedImage = new MagickImage(file);
     }
-
-    #endregion
-
-    #region TIFF
     
-    /// <summary>
-    ///     Sets the image displayed in the view to the given TIFF image based on the given navigation info.
-    /// </summary>
-    /// <param name="tiffNavigationInfo">The navigation info for the TIFF image.</param>
-    /// <param name="index">The index of the image to display.</param>
-    /// <param name="fileInfo">The FileInfo object representing the file containing the image.</param>
-    /// <param name="vm">The main view model instance.</param>
-    public static async Task SetTiffImageAsync(TiffManager.TiffNavigationInfo tiffNavigationInfo, int index, FileInfo fileInfo,
-        MainViewModel vm)
+    public static void UpdateTabSideBySideTitles(TabViewModel tabViewModel,
+        int index,
+        int secondaryIndex,
+        FileInfo firstFile,
+        FileInfo secondFile,
+        List<FileInfo> files)
     {
-        var source = await Task.Run( () => tiffNavigationInfo.Pages[tiffNavigationInfo.CurrentPage].ToWriteableBitmap()).ConfigureAwait(false);
-        vm.PicViewer.ImageSource.Value = source;
-        vm.PicViewer.SecondaryImageSource.Value = null;
-        vm.PicViewer.ImageType.Value = ImageType.Bitmap;
-        var width = source?.PixelSize.Width ?? 0;
-        var height = source?.PixelSize.Height ?? 0;
-        
-        await Dispatcher.UIThread.InvokeAsync(() =>
-        {
-            if (vm.MainWindow.CurrentView.CurrentValue != vm.ImageViewer)
-            {
-                vm.MainWindow.CurrentView.Value = vm.ImageViewer;
-            }
-            
-            WindowResizing.SetSize(width, height, 0, 0, 0, vm);
-
-            if (vm.PicViewer.RotationAngle.CurrentValue != 0)
-            {
-                vm.ImageViewer.Rotate(vm.PicViewer.RotationAngle.CurrentValue);
-            }
-        }, DispatcherPriority.Render);
-        
-        TitleManager.SetTiffTitle(tiffNavigationInfo, width, height, index, fileInfo, vm);
-
-        var imageModel = new ImageModel
-        {
-            Orientation = ExifOrientationHelper.GetImageOrientation(fileInfo),
-            ImageType = ImageType.Bitmap,
-            FileInfo = fileInfo,
-            Image = source,
-            PixelWidth = width,
-            PixelHeight = height
-        };
-        SetStats(vm, imageModel);
+        tabViewModel.FileInfo.Value = firstFile;
+        tabViewModel.SecondaryFileInfo.Value = secondFile;
+        var count = tabViewModel.ImageIterator.Files.Count;
+        var zoom = tabViewModel.ZoomLevel.CurrentValue;
+        var firstInfo = new ImageTitleInfo(firstFile,
+            tabViewModel.Model.PixelWidth,
+            tabViewModel.Model.PixelHeight,
+            index,
+            count);
+        var secondInfo = new ImageTitleInfo(secondFile,
+            tabViewModel.SecondaryModel.PixelWidth,
+            tabViewModel.SecondaryModel.PixelHeight,
+            secondaryIndex,
+            count);
+        var titles = ImageTitleFormatter.GenerateTitleForSideBySide(firstInfo, secondInfo,
+            zoom,
+            files);
+        tabViewModel.WindowTitle.Value = titles.TitleWithAppName;
+        tabViewModel.Title.Value = titles.BaseTitle;
+        tabViewModel.TitleTooltip.Value = titles.FilePathTitle;
     }
 
-    #endregion
-
-    #region Single Image
-
-    /// <summary>
-    /// Updates the main view model to display a single image, based on the provided parameters, by setting image properties,
-    /// updating window titles, and managing the gallery view and taskbar progress.
-    /// </summary>
-    /// <param name="source">The image source object to be displayed.</param>
-    /// <param name="imageType">The type of the image (e.g., Bitmap, Svg, etc.) being handled.</param>
-    /// <param name="name">The name or file name of the image used for display purposes.</param>
-    /// <param name="vm">The main view model instance to update with the image information.</param>
-    public static async ValueTask SetSingleImageAsync(
-        object source,
-        ImageType imageType,
-        string name,
-        MainViewModel vm)
+    public static void ChangeImage(MainWindow mainWindow, TabViewModel tabViewModel, MainWindowViewModel vm)
     {
-        
-        int width, height;
-        if (imageType is ImageType.Svg)
+        if (vm.WindowTabs.ActiveTab.CurrentValue.CurrentView.CurrentValue is not ImageViewer imageViewer)
         {
-            var path = source as string;
-            using var magickImage = new MagickImage();
-            magickImage.Ping(path);
-            vm.PicViewer.ImageSource.Value = source;
-            vm.PicViewer.ImageType.Value = ImageType.Svg;
-            width = (int)magickImage.Width;
-            height = (int)magickImage.Height;
+            return;
+        }
+        
+        if (Settings.Zoom.ResetZoomOnChange)
+        {
+            imageViewer.ResetZoomSlim();
+            tabViewModel.RotationAngle.Value = 0;
+        }
+        
+        if (tabViewModel.Model.ImageType is ImageType.Svg)
+        {
+            Dispatcher.UIThread.Invoke(() =>
+            {
+                tabViewModel.Image.Value = new SvgImage { Source = tabViewModel.Model.Image as SvgSource };
+            }, DispatcherPriority.Send);
         }
         else
         {
-            var bitmap = source as Bitmap;
-            vm.PicViewer.ImageSource.Value = source;
-            vm.PicViewer.ImageType.Value = imageType == ImageType.Invalid ? ImageType.Bitmap : imageType;
-            width = bitmap?.PixelSize.Width ?? 0;
-            height = bitmap?.PixelSize.Height ?? 0;
+            tabViewModel.Image.Value = tabViewModel.Model.Image;
         }
+        tabViewModel.ImageType.Value = tabViewModel.Model.ImageType;
+        
+        SetWindowAndImageSize(mainWindow, tabViewModel, vm);
 
-        vm.PicViewer.FileInfo.Value = null;
-
-        await Dispatcher.UIThread.InvokeAsync(() =>
+        if (tabViewModel.Gallery.IsDockedGalleryVisible.CurrentValue)
         {
-            if (vm.MainWindow.CurrentView.CurrentValue != vm.ImageViewer)
-            {
-                vm.MainWindow.CurrentView.Value = vm.ImageViewer;
-            }
-            WindowResizing.SetSize(width, height, 0, 0, 0, vm);
-            vm.ImageViewer.ZoomPanControl.ResetZoomSlim();
-        }, DispatcherPriority.Send);
-
-        var singeImageWindowTitles = ImageTitleFormatter.GenerateTitleForSingleImage(width, height, name, 100);
-        vm.PicViewer.WindowTitle.Value = singeImageWindowTitles.TitleWithAppName;
-        vm.PicViewer.Title.Value = singeImageWindowTitles.BaseTitle;
-        vm.PicViewer.TitleTooltip.Value = singeImageWindowTitles.BaseTitle;
-
-        vm.PlatformService.StopTaskbarProgress();
-
-        vm.PicViewer.PixelWidth.Value = width;
-        vm.PicViewer.PixelHeight.Value = height;
-
-        if (Settings.Gallery.IsBottomGalleryShown)
-        {
-            vm.Gallery.GalleryMode.Value = GalleryMode.Closed;
-            vm.Gallery.GalleryMargin.Value = new Thickness(0);
+            imageViewer.GalleryView.GalleryItemsControl.ScrollToCenterOfCurrentItem();
         }
-
-        vm.PicViewer.IsSingleImage.Value = true;
-        await Dispatcher.UIThread.InvokeAsync(() => { UIHelper.GetGalleryView.IsVisible = false; }, DispatcherPriority.Render);
-        await NavigationManager.DisposeImageIteratorAsync();
+        tabViewModel.ZoomLevel.Value = Convert.ToInt32(tabViewModel.InitialZoom.CurrentValue * 100);;
+        tabViewModel.UpdateTabTitle();
     }
 
-    #endregion
-
-    #region Set stats
-
-    public static void SetStats(MainViewModel vm, ImageModel imageModel)
+    public static void SetWindowAndImageSize(MainWindow mainWindow, TabViewModel tabViewModel, MainWindowViewModel vm)
     {
-        vm.PicViewer.IsSingleImage.Value = false;
-        vm.PicViewer.PixelWidth.Value = imageModel.PixelWidth;
-        vm.PicViewer.PixelHeight.Value = imageModel.PixelHeight;
-        vm.PicViewer.GetIndex.Value = NavigationManager.GetNonZeroIndex;
-        vm.PicViewer.ExifOrientation.Value = imageModel.Orientation;
-        vm.PicViewer.FileInfo.Value = imageModel.FileInfo;
-        vm.PicViewer.ZoomValue.Value = 100;
-
+        double secondaryWidth, secondaryHeight;
         if (Settings.ImageScaling.ShowImageSideBySide)
         {
-            // Fixes incorrect rendering in the side by side view
-            // TODO: Improve and fix side by side and remove this hack 
-            Dispatcher.UIThread.Post(() => { vm.ImageViewer?.MainImage?.InvalidateVisual(); });
+            if (tabViewModel.SecondaryModel is null)
+            {
+#if DEBUG
+                DebugHelper.LogDebug(nameof(UpdateImage),
+                    nameof(ChangeImage),
+                    "SecondaryModel.CurrentValue is null");
+#endif
+                secondaryWidth = 0;
+                secondaryHeight = 0;
+                tabViewModel.SecondaryImage.Value = null;
+                tabViewModel.SecondaryFileInfo.Value = null;
+                tabViewModel.SecondaryImageType.Value = null;
+            }
+            else
+            {
+                secondaryWidth = tabViewModel.SecondaryModel.PixelWidth;
+                secondaryHeight = tabViewModel.SecondaryModel.PixelHeight;                
+                tabViewModel.SecondaryImage.Value = tabViewModel.SecondaryModel.Image;
+                tabViewModel.SecondaryImageType.Value = tabViewModel.SecondaryModel.ImageType;
+                tabViewModel.SecondaryFileInfo.Value = tabViewModel.SecondaryModel.FileInfo;
+            }
         }
-
-        // Reset effects
-        vm.PicViewer.EffectConfig.Value = null;
+        else
+        {
+            secondaryWidth = secondaryHeight = 0;
+        }
+        
+        WindowResizing.SetSize(tabViewModel.Model.PixelWidth,
+            tabViewModel.Model.PixelHeight, 
+            secondaryWidth, secondaryHeight,
+            WindowResizeReason.Application,
+            mainWindow, vm);
     }
 
-    #endregion
+    public static void SetSingleImage(MainWindowViewModel vm, MainWindow mainWindow, Bitmap image, SingleImageType type, string name)
+    {
+        var tabViewModel = vm.WindowTabs.ActiveTab.CurrentValue;
+        if (tabViewModel?.CurrentView?.CurrentValue is not ImageViewer imageViewer)
+        {
+            return;
+        }
+        
+        tabViewModel.Image.Value = image;
+        tabViewModel.ImageType.Value = ImageType.Bitmap;
+        
+        imageViewer.ResetZoomSlim();
+        imageViewer.Rotate(0);
+
+        tabViewModel.Gallery.GalleryMode.Value = GalleryMode2.Closed;
+
+        var width = (uint)image.PixelSize.Width;
+        var height = (uint)image.PixelSize.Height;
+        
+        if (Settings.WindowProperties.AutoFit)
+        {
+            WindowResizing.SetSize(width, height, 0,0,
+                WindowResizeReason.Application,
+                mainWindow, vm);
+        }
+        var zoom = tabViewModel.ZoomLevel.CurrentValue;
+        var windowTitles = ImageTitleFormatter.GenerateTitleForSingleImage(width, height, name, zoom);
+        tabViewModel.WindowTitle.Value = windowTitles.TitleWithAppName;
+        tabViewModel.Title.Value = windowTitles.BaseTitle;
+        tabViewModel.TitleTooltip.Value = windowTitles.FilePathTitle;
+
+        tabViewModel.Model.PixelWidth = width;
+        tabViewModel.Model.PixelHeight = height;
+
+        tabViewModel.SingleImageType = type;
+        
+        tabViewModel.DisposeImageIterator();
+    }
 }

@@ -1,0 +1,334 @@
+using System.Diagnostics;
+using PicView.Core.Config;
+using PicView.Core.DebugTools;
+using PicView.Core.Gallery;
+using R3;
+
+namespace PicView.Core.ViewModels;
+
+public class GallerySharedSettingsViewModel
+{
+    private bool _isInitialized;
+
+    public BindableReactiveProperty<double> ItemHeight { get; } = new(0);
+    public BindableReactiveProperty<double> ItemWidth { get; } = new(0);
+
+    public BindableReactiveProperty<object> GalleryStretch { get; } = new();
+    public ReactiveCommand<GalleryStretchMode> SetDockedStretchModeCommand { get; } = new();
+    public ReactiveCommand<GalleryStretchMode> SetExpandedStretchModeCommand { get; } = new();
+    
+    public BindableReactiveProperty<bool> IsDockedStretchUniform { get; } =
+        new(Settings.Gallery.DockedGalleryStretchMode == GalleryStretchMode.Uniform);
+    public BindableReactiveProperty<bool> IsDockedStretchUniformToFill { get; } =
+        new(Settings.Gallery.DockedGalleryStretchMode == GalleryStretchMode.UniformToFill);
+    public BindableReactiveProperty<bool> IsDockedStretchToFill { get; } =
+        new(Settings.Gallery.DockedGalleryStretchMode == GalleryStretchMode.Fill);
+    public BindableReactiveProperty<bool> IsDockedStretchNone { get; } =
+        new(Settings.Gallery.DockedGalleryStretchMode == GalleryStretchMode.None);
+    public BindableReactiveProperty<bool> IsDockedStretchSquare { get; } =
+        new(Settings.Gallery.DockedGalleryStretchMode == GalleryStretchMode.Square);
+    public BindableReactiveProperty<bool> IsDockedStretchSquareFill { get; } =
+        new(Settings.Gallery.DockedGalleryStretchMode == GalleryStretchMode.FillSquare);
+    
+    public BindableReactiveProperty<bool> IsExpandedStretchUniform { get; } =
+        new(Settings.Gallery.ExpandedGalleryStretchMode == GalleryStretchMode.Uniform);
+    public BindableReactiveProperty<bool> IsExpandedStretchUniformToFill { get; } =
+        new(Settings.Gallery.ExpandedGalleryStretchMode == GalleryStretchMode.UniformToFill);
+    public BindableReactiveProperty<bool> IsExpandedStretchToFill { get; } =
+        new(Settings.Gallery.ExpandedGalleryStretchMode == GalleryStretchMode.Fill);
+    public BindableReactiveProperty<bool> IsExpandedStretchNone { get; } =
+        new(Settings.Gallery.ExpandedGalleryStretchMode == GalleryStretchMode.None);
+    public BindableReactiveProperty<bool> IsExpandedStretchSquare { get; } =
+        new(Settings.Gallery.ExpandedGalleryStretchMode == GalleryStretchMode.Square);
+    public BindableReactiveProperty<bool> IsExpandedStretchSquareFill { get; } =
+        new(Settings.Gallery.ExpandedGalleryStretchMode == GalleryStretchMode.FillSquare);
+
+    public BindableReactiveProperty<bool> IsDockedGalleryShownInHiddenUI { get; } =
+        new(Settings.Gallery.ShowDockedGalleryInHiddenUI);
+
+    public BindableReactiveProperty<double> DockedGalleryItemSize { get; } =
+        new(Settings.Gallery.DockedGalleryItemSize);
+
+    public BindableReactiveProperty<double> DockedGalleryMaxItemSize { get; } =
+        new(GalleryDefaults.MaxBottomGalleryItemHeight);
+
+    public BindableReactiveProperty<double> DockedGalleryMinItemSize { get; } =
+        new(GalleryDefaults.MinBottomGalleryItemHeight);
+
+    public BindableReactiveProperty<double> ExpandedGalleryItemSize { get; } =
+        new(Settings.Gallery.ExpandedGalleryItemSize);
+
+    public BindableReactiveProperty<double> ExpandedGalleryMaxItemSize { get; } =
+        new(GalleryDefaults.MaxFullGalleryItemHeight);
+
+    public BindableReactiveProperty<double> ExpandedGalleryMinItemSize { get; } =
+        new(GalleryDefaults.MinFullGalleryItemHeight);
+
+    public BindableReactiveProperty<double> GalleryItemSpacing { get; } = new(Settings.Gallery.ItemSpacing);
+    public BindableReactiveProperty<double> GalleryLineSpacing { get; } = new(Settings.Gallery.LineSpacing);
+
+    public BindableReactiveProperty<int> DockedGalleryStretchMode { get; } =
+        new((int)Settings.Gallery.DockedGalleryStretchMode);
+
+    public BindableReactiveProperty<int> ExpandedGalleryStretchMode { get; } =
+        new((int)Settings.Gallery.ExpandedGalleryStretchMode);
+
+    public void Initialize()
+    {
+        if (_isInitialized)
+        {
+            return;
+        }
+
+        _isInitialized = true;
+#if DEBUG
+        Debug.Assert(Settings?.Gallery is not null);
+#endif
+        SetDockedStretchModeCommand.Subscribe(mode =>
+        {
+            GallerySettingsConverter.UpdateDockedGalleryStretchMode(this, mode);
+        }, DebugHelper.LogError(nameof(GallerySharedSettingsViewModel), nameof(Initialize)));
+        
+        SetExpandedStretchModeCommand.Subscribe(mode =>
+        {
+            GallerySettingsConverter.UpdateExpandedGalleryStretchMode(this, mode);
+        }, DebugHelper.LogError(nameof(GallerySharedSettingsViewModel), nameof(Initialize)));
+        
+        ToggleGalleryVisibilitySubscription();
+
+        Observable.EveryValueChanged(Settings.Gallery, x => x.DockedGalleryItemSize)
+            .Subscribe(x => { DockedGalleryItemSize.Value = x; }, result =>
+            {
+#if DEBUG
+                if (result is { IsFailure: true, Exception: not null })
+                {
+                    DebugHelper.LogDebug(nameof(GallerySharedSettingsViewModel), nameof(Initialize),
+                        result.Exception);
+                }
+#endif
+            });
+
+        Observable.EveryValueChanged(Settings.Gallery, x => x.ExpandedGalleryItemSize)
+            .Subscribe(x =>
+            {
+                ExpandedGalleryItemSize.Value = x;
+            }, result =>
+            {
+#if DEBUG
+                if (result is { IsFailure: true, Exception: not null })
+                {
+                    DebugHelper.LogDebug(nameof(GallerySharedSettingsViewModel), nameof(Initialize),
+                        result.Exception);
+                }
+#endif
+            });
+
+        Observable.EveryValueChanged(Settings.Gallery, x => x.ItemSpacing)
+            .Subscribe(x => { GalleryItemSpacing.Value = x; }, result =>
+            {
+#if DEBUG
+                if (result is { IsFailure: true, Exception: not null })
+                {
+                    DebugHelper.LogDebug(nameof(GallerySharedSettingsViewModel), nameof(Initialize),
+                        result.Exception);
+                }
+#endif
+            });
+
+        Observable.EveryValueChanged(Settings.Gallery, x => x.LineSpacing)
+            .Subscribe(x => { GalleryLineSpacing.Value = x; }, result =>
+            {
+#if DEBUG
+                if (result is { IsFailure: true, Exception: not null })
+                {
+                    DebugHelper.LogDebug(nameof(GallerySharedSettingsViewModel), nameof(Initialize),
+                        result.Exception);
+                }
+#endif
+            });
+
+        Observable.EveryValueChanged(Settings.Gallery, x => x.DockedGalleryStretchMode)
+            .Subscribe(x => { DockedGalleryStretchMode.Value = (int)x; }, result =>
+            {
+#if DEBUG
+                if (result is { IsFailure: true, Exception: not null })
+                {
+                    DebugHelper.LogDebug(nameof(GallerySharedSettingsViewModel), nameof(Initialize),
+                        result.Exception);
+                }
+#endif
+            });
+
+        Observable.EveryValueChanged(Settings.Gallery, x => x.ExpandedGalleryStretchMode)
+            .Subscribe(x => { ExpandedGalleryStretchMode.Value = (int)x; }, result =>
+            {
+#if DEBUG
+                if (result is { IsFailure: true, Exception: not null })
+                {
+                    DebugHelper.LogDebug(nameof(GallerySharedSettingsViewModel), nameof(Initialize),
+                        result.Exception);
+                }
+#endif
+            });
+
+
+        DockedGalleryItemSize
+            .Skip(1)
+            .SubscribeAwait(async (x, _) =>
+            {
+                if (Math.Abs(Settings.Gallery.DockedGalleryItemSize - x) > 0.001)
+                {   
+                    Settings.Gallery.DockedGalleryItemSize = x;
+                    await SaveSettingsAsync();
+                }
+            }, result =>
+            {
+#if DEBUG
+                if (result is { IsFailure: true, Exception: not null })
+                {
+                    DebugHelper.LogDebug(nameof(GallerySharedSettingsViewModel), nameof(Initialize),
+                        result.Exception);
+                }
+#endif
+            });
+
+        ExpandedGalleryItemSize
+            .Skip(1)
+            .SubscribeAwait(async (x, _) =>
+            {
+                if (Math.Abs(Settings.Gallery.ExpandedGalleryItemSize - x) > 0.001)
+                {
+                    Settings.Gallery.ExpandedGalleryItemSize = x;
+                    await SaveSettingsAsync();
+                }
+            }, result =>
+            {
+#if DEBUG
+                if (result is { IsFailure: true, Exception: not null })
+                {
+                    DebugHelper.LogDebug(nameof(GallerySharedSettingsViewModel), nameof(Initialize),
+                        result.Exception);
+                }
+#endif
+            });
+
+        GalleryItemSpacing
+            .Skip(1)
+            .SubscribeAwait(async (x, _) =>
+            {
+                if (Math.Abs(Settings.Gallery.ItemSpacing - x) > 0.001)
+                {
+                    Settings.Gallery.ItemSpacing = x;
+                    await SaveSettingsAsync();
+                }
+            }, result =>
+            {
+#if DEBUG
+                if (result is { IsFailure: true, Exception: not null })
+                {
+                    DebugHelper.LogDebug(nameof(GallerySharedSettingsViewModel), nameof(Initialize),
+                        result.Exception);
+                }
+#endif
+            });
+
+        GalleryLineSpacing
+            .Skip(1)
+            .SubscribeAwait(async (x, _) =>
+            {
+                if (Math.Abs(Settings.Gallery.LineSpacing - x) > 0.001)
+                {
+                    Settings.Gallery.LineSpacing = x;
+                    await SaveSettingsAsync();
+                }
+            }, result =>
+            {
+#if DEBUG
+                if (result is { IsFailure: true, Exception: not null })
+                {
+                    DebugHelper.LogDebug(nameof(GallerySharedSettingsViewModel), nameof(Initialize),
+                        result.Exception);
+                }
+#endif
+            });
+
+        DockedGalleryStretchMode
+            .Skip(1)
+            .SubscribeAwait(async (x, _) =>
+            {
+                if (Settings.Gallery.DockedGalleryStretchMode != (GalleryStretchMode)x)
+                {
+                    Settings.Gallery.DockedGalleryStretchMode = (GalleryStretchMode)x;
+                    await SaveSettingsAsync();
+                }
+            }, result =>
+            {
+#if DEBUG
+                if (result is { IsFailure: true, Exception: not null })
+                {
+                    DebugHelper.LogDebug(nameof(GallerySharedSettingsViewModel), nameof(Initialize),
+                        result.Exception);
+                }
+#endif
+            });
+
+        ExpandedGalleryStretchMode
+            .Skip(1)
+            .SubscribeAwait(async (x, _) =>
+            {
+                if (Settings.Gallery.ExpandedGalleryStretchMode != (GalleryStretchMode)x)
+                {
+                    Settings.Gallery.ExpandedGalleryStretchMode = (GalleryStretchMode)x;
+                    await SaveSettingsAsync();
+                }
+            }, result =>
+            {
+#if DEBUG
+                if (result is { IsFailure: true, Exception: not null })
+                {
+                    DebugHelper.LogDebug(nameof(GallerySharedSettingsViewModel), nameof(Initialize),
+                        result.Exception);
+                }
+#endif
+            });
+    }
+
+    private void ToggleGalleryVisibilitySubscription()
+    {
+#if DEBUG
+        Debug.Assert(Settings?.Gallery is not null);
+#endif
+
+        IsDockedGalleryShownInHiddenUI
+            .Skip(1)
+            .SubscribeAwait(async (x, _) =>
+            {
+                if (Settings.Gallery.ShowDockedGalleryInHiddenUI != x)
+                {
+                    Settings.Gallery.ShowDockedGalleryInHiddenUI = x;
+                    await SaveSettingsAsync();
+                }
+            }, result =>
+            {
+#if DEBUG
+                if (result is { IsFailure: true, Exception: not null })
+                {
+                    DebugHelper.LogDebug(nameof(GallerySharedSettingsViewModel), nameof(Initialize),
+                        result.Exception);
+                }
+#endif
+            });
+
+        Observable.EveryValueChanged(Settings.Gallery, x => x.ShowDockedGalleryInHiddenUI)
+            .Subscribe(x => { IsDockedGalleryShownInHiddenUI.Value = x; }, result =>
+            {
+#if DEBUG
+                if (result is { IsFailure: true, Exception: not null })
+                {
+                    DebugHelper.LogDebug(nameof(GallerySharedSettingsViewModel), nameof(Initialize),
+                        result.Exception);
+                }
+#endif
+            });
+    }
+}

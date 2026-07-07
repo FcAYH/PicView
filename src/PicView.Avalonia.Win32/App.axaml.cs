@@ -2,33 +2,29 @@
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
-using Avalonia.Media.Imaging;
-using Clowd.Clipboard;
 using PicView.Avalonia.ColorManagement;
-using PicView.Avalonia.Interfaces;
+using PicView.Avalonia.ImageHandling;
 using PicView.Avalonia.StartUp;
-using PicView.Avalonia.ViewModels;
 using PicView.Avalonia.Win32.Views;
-using PicView.Avalonia.Win32.WindowImpl;
 using PicView.Core.FileAssociations;
 using PicView.Core.FileSorting;
-using PicView.Core.Localization;
+using PicView.Core.IPlatform;
 using PicView.Core.ProcessHandling;
+using PicView.Core.ViewModels;
 using PicView.Core.WindowsNT;
 using PicView.Core.WindowsNT.FileAssociation;
 using PicView.Core.WindowsNT.FileHandling;
 using PicView.Core.WindowsNT.Taskbar;
 using PicView.Core.WindowsNT.Wallpaper;
-using Win32Clipboard = PicView.Core.WindowsNT.Copy.Win32Clipboard;
 
 namespace PicView.Avalonia.Win32;
 
-public class App : Application, IPlatformSpecificService, IPlatformWindowService
+public class App : Application, IPlatformSpecificService
 {
     private static WinMainWindow? _mainWindow;
-    private static WindowInitializer? _windowInitializer;
+    private static CoreViewModel? _coreViewModel;
+    private static MainWindowViewModel? _mainWindowViewModel;
     private TaskbarProgress? _taskbarProgress;
-    private MainViewModel? _vm;
      
     public override void Initialize()
     {
@@ -50,34 +46,20 @@ public class App : Application, IPlatformSpecificService, IPlatformWindowService
         {
             return;
         }
-
         var settingsExists = LoadSettings();
-
-        TranslationManager.Init();
-        _vm = new MainViewModel(this, this)
-        {
-            MainWindow =
-            {
-                TopTitlebarViewModel = new TopTitlebarViewModel()
-            }
-        };
+        _coreViewModel = new CoreViewModel(this, GetImageModel.GetImageModelAsync);
+        DataContext = _coreViewModel;
 
         ThemeManager.DetermineTheme(Current, settingsExists);
 
         _mainWindow = new WinMainWindow();
-        desktop.MainWindow = _mainWindow;
-        _mainWindow.DataContext = _vm;
-        StartUpHelper.StartWithArguments(_vm, settingsExists, desktop, _mainWindow);
-        _windowInitializer = new WindowInitializer();
-    }
+        _mainWindowViewModel = _mainWindow.DataContext as MainWindowViewModel;
+        _coreViewModel.MainWindows.MainWindows.Add(_mainWindowViewModel);
+        _coreViewModel.MainWindows.ActiveWindow.Value = _mainWindowViewModel;
+        StartUpHelper.StartWithArguments(_coreViewModel, settingsExists, desktop, _mainWindow);
 
-    public int CombinedTitleButtonsWidth
-    {
-        get => (int)(Settings.WindowProperties.Maximized && !Settings.WindowProperties.Fullscreen
-            ? _mainWindow?.OffScreenMargin.Left + _mainWindow?.OffScreenMargin.Right + field ?? field
-            : field);
-        set;
-    } = 185;
+        desktop.MainWindow = _mainWindow;
+    }
 
     #region Interface Implementations
     
@@ -148,11 +130,11 @@ public class App : Application, IPlatformSpecificService, IPlatformWindowService
         FileExplorer.ShowFileProperties(path);
     }
 
-    public void Print(string path)
+    public async ValueTask Print(string path)
     {
         if (Settings.UIProperties.ShowPrintPreview)
         {
-            _windowInitializer?.ShowPrintPreviewWindow(_vm, path);
+            await _mainWindow.ShowPrintWindow(path);
         }
         else
         {
@@ -173,26 +155,6 @@ public class App : Application, IPlatformSpecificService, IPlatformWindowService
     {
         return false;
         // return LockscreenHelper.SetLockScreenImage(path);
-    }
-
-    public bool CopyFile(string path)
-    {
-        return Win32Clipboard.CopyFileToClipboard(false, path);
-    }
-
-    public bool CutFile(string path)
-    {
-        return Win32Clipboard.CopyFileToClipboard(true, path);
-    }
-
-    public async Task CopyImageToClipboard(Bitmap bitmap)
-    {
-        await ClipboardAvalonia.SetImageAsync(bitmap).ConfigureAwait(false);
-    }
-
-    public async Task<Bitmap?> GetImageFromClipboard()
-    {
-        return await ClipboardAvalonia.GetImageAsync().ConfigureAwait(false);
     }
 
     public async Task<bool> ExtractWithLocalSoftwareAsync(string path, string tempDirectory)
@@ -220,54 +182,6 @@ public class App : Application, IPlatformSpecificService, IPlatformWindowService
     {
         NativeMethods.EnableScreensaver();
     }
-
-    #endregion
-
-    #region Window interface implementations
-    
-    public void ShowAboutWindow() =>
-        _windowInitializer?.ShowAboutWindow(_vm);
-
-    public async Task ShowImageInfoWindow() =>
-        await _windowInitializer?.ShowImageInfoWindow(_vm);
-
-    public async Task ShowKeybindingsWindow() =>
-        await _windowInitializer?.ShowKeybindingsWindow(_vm);
-
-    public async Task ShowSettingsWindow() =>
-        await _windowInitializer?.ShowSettingsWindow(_vm);
-
-    public void ShowSingleImageResizeWindow() =>
-        _windowInitializer?.ShowSingleImageResizeWindow(_vm);
-
-    public async Task ShowBatchResizeWindow() =>
-       await _windowInitializer?.ShowBatchResizeWindow(_vm);
-
-    public void ShowEffectsWindow() =>
-        _windowInitializer?.ShowEffectsWindow(_vm);
-
-    public void ShowConvertWindow() =>
-        _windowInitializer?.ShowConvertWindow(_vm);
-
-    /// <inheritdoc />
-    public async Task Maximize(bool saveSetting = true) =>
-        await Win32Window.Maximize(_mainWindow, _vm, saveSetting);
-    
-    /// <inheritdoc />
-    public async Task MaximizeRestore(bool saveSetting = true) =>
-        await Win32Window.ToggleMaximize(_mainWindow, _vm, saveSetting);
-
-    /// <inheritdoc />
-    public async Task Fullscreen(bool saveSetting = true) =>
-        await Win32Window.Fullscreen(_mainWindow, _vm, saveSetting);
-    
-    /// <inheritdoc />
-    public async Task ToggleFullscreen(bool saveSetting = true) =>
-        await Win32Window.ToggleFullscreen(_mainWindow, _vm, saveSetting);
-    
-    /// <inheritdoc />
-    public async Task Restore() =>
-        await Win32Window.Restore(_mainWindow, _vm);
 
     #endregion
 

@@ -5,13 +5,13 @@ using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Media;
 using PicView.Avalonia.Crop;
+using PicView.Core.ViewModels;
 
 namespace PicView.Avalonia.Views.UC;
 
 public partial class CropControl : UserControl
 {
     private readonly CropDragHandler? _dragHandler;
-    private readonly CropKeyboardManager? _keyboardManager;
     private readonly CropLayoutManager? _layoutManager;
     private readonly CropResizeHandler? _resizeHandler;
 
@@ -24,15 +24,14 @@ public partial class CropControl : UserControl
             BottomMiddleButton.Cursor = Cursor.Parse("BottomSide");
             LeftMiddleButton.Cursor = Cursor.Parse("LeftSide");
             RightMiddleButton.Cursor = Cursor.Parse("RightSide");
-
+        
             MainRectangle.Cursor = Cursor.Parse("DragMove");
         }
-
-        _keyboardManager = new CropKeyboardManager(this);
+        
         _dragHandler = new CropDragHandler(this);
         _resizeHandler = new CropResizeHandler(this);
         _layoutManager = new CropLayoutManager(this);
-
+        
         Loaded += OnControlLoaded;
     }
 
@@ -64,23 +63,27 @@ public partial class CropControl : UserControl
             {
                 return;
             }
-
+        
             if (textColor is not Color color)
             {
                 return;
             }
-
+        
             SizeBorder.Background = new SolidColorBrush(color);
         }
-
+        
         InitializeResizeHandlers();
-        _layoutManager.InitializeLayout();
+        if (Application.Current.DataContext is CoreViewModel core)
+        {
+            _layoutManager.InitializeLayout(core.MainWindows.ActiveWindow.CurrentValue);
+        }
 
+        
         MainRectangle.PointerPressed += _dragHandler.OnDragStart;
         MainRectangle.PointerReleased += _dragHandler.OnDragEnd;
         MainRectangle.PointerMoved += _dragHandler.OnDragMove;
         MainRectangle.PointerMoved += (_, _) => _layoutManager.UpdateLayout();
-
+        
         TopLeftButton.PointerPressed += (_, e) => _resizeHandler.OnResizeStart(e);
         TopRightButton.PointerPressed += (_, e) => _resizeHandler.OnResizeStart(e);
         BottomLeftButton.PointerPressed += (_, e) => _resizeHandler.OnResizeStart(e);
@@ -89,7 +92,7 @@ public partial class CropControl : UserControl
         RightMiddleButton.PointerPressed += (_, e) => _resizeHandler.OnResizeStart(e);
         TopMiddleButton.PointerPressed += (_, e) => _resizeHandler.OnResizeStart(e);
         BottomMiddleButton.PointerPressed += (_, e) => _resizeHandler.OnResizeStart(e);
-
+        
         TopLeftButton.PointerReleased += _resizeHandler.OnResizeEnd;
         TopRightButton.PointerReleased += _resizeHandler.OnResizeEnd;
         BottomLeftButton.PointerReleased += _resizeHandler.OnResizeEnd;
@@ -98,7 +101,7 @@ public partial class CropControl : UserControl
         RightMiddleButton.PointerReleased += _resizeHandler.OnResizeEnd;
         TopMiddleButton.PointerReleased += _resizeHandler.OnResizeEnd;
         BottomMiddleButton.PointerReleased += _resizeHandler.OnResizeEnd;
-
+        
         LostFocus += OnControlLostFocus;
     }
 
@@ -121,7 +124,7 @@ public partial class CropControl : UserControl
             { TopMiddleButton, CropResizeMode.Top },
             { BottomMiddleButton, CropResizeMode.Bottom }
         };
-
+        
         foreach (var control in resizeControls)
         {
             control.Key.PointerPressed += (_, e) => _resizeHandler.OnResizeStart(e);
@@ -129,10 +132,5 @@ public partial class CropControl : UserControl
             control.Key.PointerMoved += (s, e) => _layoutManager.UpdateLayout();
             control.Key.PointerReleased += _resizeHandler.OnResizeEnd;
         }
-    }
-
-    public async Task KeyDownHandler(object? sender, KeyEventArgs e)
-    {
-        await _keyboardManager.KeyDownHandler(e).ConfigureAwait(false);
     }
 }

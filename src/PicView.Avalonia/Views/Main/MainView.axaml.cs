@@ -1,36 +1,32 @@
-﻿using System.Runtime.InteropServices;
+﻿using System.ComponentModel;
+using System.Runtime.InteropServices;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Layout;
 using Avalonia.Media;
-using Avalonia.Threading;
 using PicView.Avalonia.Crop;
+using PicView.Avalonia.CustomControls;
 using PicView.Avalonia.DragAndDrop;
-using PicView.Avalonia.Functions;
 using PicView.Avalonia.Input;
 using PicView.Avalonia.UI;
-using PicView.Avalonia.UI.FileHistory;
-using PicView.Avalonia.ViewModels;
+using PicView.Avalonia.Views.UC;
 using PicView.Avalonia.WindowBehavior;
 using PicView.Core.Conversion;
-using PicView.Core.FileHistory;
+using PicView.Core.Sizing;
+using PicView.Core.ViewModels;
+using MainWindowViewModel = PicView.Core.ViewModels.MainWindowViewModel;
 
 namespace PicView.Avalonia.Views.Main;
 
 public partial class MainView : UserControl
 {
-    public FileHistoryMenuController? FileHistoryMenuController;
-    
     public MainView()
     {
         InitializeComponent();
 
         if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
         {
-            // TODO: Add macOS support
-            CopyFileMenuItem.IsVisible = false;
-            
             // Move alt hover to left side on macOS and switch button order
             AltButtonsPanel.HorizontalAlignment = HorizontalAlignment.Left; 
             AltButtonsPanel.Children.Move(AltButtonsPanel.Children.IndexOf(AltClose),0);
@@ -38,41 +34,6 @@ public partial class MainView : UserControl
             AltMinimize.RenderTransform = new ScaleTransform{ScaleX = -1};
         }
 
-        if (!Settings.Theme.Dark && !Settings.Theme.GlassTheme)
-        {
-            if (!Application.Current.TryGetResource("MainTextColor",
-                    Application.Current.RequestedThemeVariant, out var mainTextColor) ||
-                !Application.Current.TryGetResource("SecondaryTextColor", Application.Current.RequestedThemeVariant, out var secondaryTextColor))
-            {
-                return;
-            }
-
-            if (mainTextColor is not Color color || secondaryTextColor is not Color secondaryColor)
-            {
-                return;
-            }
-
-            var brush = new SolidColorBrush(color);
-            var secondaryBrush = new SolidColorBrush(secondaryColor);
-            HistoryClearButton.PointerEntered += delegate       
-            {
-                HistoryClearTextBlock.Foreground = secondaryBrush;
-                HistoryClearPath.Fill = secondaryBrush;
-            };
-            HistoryClearButton.PointerExited += delegate       
-            {
-                HistoryClearTextBlock.Foreground = brush;
-                HistoryClearPath.Fill = brush;
-            };
-            HistoryFileButton.PointerEntered += delegate       
-            {
-                HistoryFileNameTextBlock.Foreground = secondaryBrush;
-            };
-            HistoryFileButton.PointerExited += delegate       
-            {
-                HistoryFileNameTextBlock.Foreground = brush;
-            };
-        }
 
         Loaded += delegate
         {
@@ -80,7 +41,6 @@ public partial class MainView : UserControl
             AddHandler(DragDrop.DragLeaveEvent, DragLeave);
             AddHandler(DragDrop.DropEvent, Drop);
 
-            GotFocus += CloseTitlebarIfOpen;
             LostFocus += HandleLostFocus;
             PointerPressed += PointerPressedBehavior;
 
@@ -88,131 +48,143 @@ public partial class MainView : UserControl
             {
                 if (value is ContextMenu mainContextMenu)
                 {
-                    mainContextMenu.Opened += async (sender, args) =>  await OnMainContextMenuOpened(sender, args);
+                    mainContextMenu.Opening += OnMainContextMenuOpening;
                 }
             }
             
-            if (!FileHistoryManager.IsSortingDescending)
-            {
-                if (Application.Current.TryGetResource("SortAscImage",
-                        Application.Current.RequestedThemeVariant, out var sortAscImage))
-                {
-                    HistorySortButton.Icon = sortAscImage as DrawingImage;
-                }
-            }
-            
-            if (DataContext is not MainViewModel vm)
+            //MainTabControl.TabDetached += MainTabControlOnTabDetached;
+            MainTabControl.TabCreated += MainTabControlOnTabCreated;
+            MainTabControl.SelectionChanged += MainTabControlOnSelectionChanged;
+
+            if (TopLevel.GetTopLevel(this) is not MainWindow mainWindow)
             {
                 return;
             }
-            // Initialize the history menu controller
-            // TODO: rewrite FileHistory to MVVM
-            FileHistoryMenuController = new FileHistoryMenuController(RecentFilesCM, HistorySortButton, HistoryClearButton, HistoryFileButton, vm);
-            HistoryFileButton.Click += async delegate
-            {
-                await FunctionsMapper.ShowRecentHistoryFile();
-            };
-
-            // Setup hover fade buttons
-            _ = new HoverFadeButtonHandler(ClickArrowRight, vm, ClickArrowRight.PolyButton);
-            _ = new HoverFadeButtonHandler(ClickArrowLeft, vm, ClickArrowLeft.PolyButton);
-            _ = new HoverFadeButtonHandler(AltButtonsPanel, vm);
-
-            PointerWheelChanged += async (_, e) =>
-                await MouseShortcuts.HandlePointerWheelChanged(e).ConfigureAwait(false);
+            mainWindow.Disposables.Add(new HoverFadeButtonHandler(AltButtonsPanel));
         };
+    }
+
+    private void OnMainContextMenuOpening(object? sender, CancelEventArgs e)
+    {
+        if (DataContext is not MainWindowViewModel vm)
+        {
+            return;
+        }
+        var tab = vm.WindowTabs.ActiveTab.CurrentValue;
+        if (tab.CurrentView.CurrentValue is ImageViewer imageViewer)
+        {
+            // Cancel the context menu if the hover bar is visible, because custom pop-up dialogs are shown instead.
+            if (imageViewer.HoverBar.Opacity > 0)
+            {
+                e.Cancel = true;
+            }
+        }
+        
+        CropManager.SetIfCropEnabled(TopLevel.GetTopLevel(this) as MainWindow);
+        tab.ShouldOptimizeImageBeEnabled.Value = ConversionHelper.DetermineIfOptimizeImageShouldBeEnabled(tab.FileInfo.CurrentValue);
+        
+        // Set source for ChangeCtrlZoomImage
+        if (!Application.Current.TryGetResource("ScanEyeImage", Application.Current.RequestedThemeVariant, out var scanEyeImage))
+        {
+            return;
+        }
+        if (!Application.Current.TryGetResource("LeftRightArrowsImage", Application.Current.RequestedThemeVariant, out var leftRightArrowsImage))
+        {
+            return;
+        }
+        var isNavigatingWithCtrl = Settings.Zoom.CtrlZoom;
+        vm.ChangeCtrlZoomImage.Value = isNavigatingWithCtrl ? leftRightArrowsImage as DrawingImage : scanEyeImage as DrawingImage;
+    }
+
+    private void MainTabControlOnTabCreated(object? sender, TabCreatedEventArgs e)
+    {
+        // Only set the StartUpMenu if the View is currently null.
+        // This prevents overwriting the view (e.g. an image) when reordering tabs,
+        // as reordering triggers the TabCreated event again by recreating containers.
+        if (e.CreatedItem is not TabViewModel { CurrentView.Value: null } tabViewModel)
+        {
+            return;
+        }
+
+        if (tabViewModel.Model?.FileInfo is not null)
+        {
+            tabViewModel.CurrentView.Value = new ImageViewer();
+        }
+        else
+        {
+            var startUpMenu = new StartUpMenu();
+            
+            if (Settings.WindowProperties.AutoFit)
+            {
+                // Keep the StartUpMenu the same size when creating a new tab
+                startUpMenu.Width = Bounds.Width;
+                startUpMenu.Height = Bounds.Height - SizeDefaults.TabHeight;
+            }
+
+            tabViewModel.CurrentView.Value = startUpMenu;
+        }
+    }
+    private void MainTabControlOnSelectionChanged(object? sender, SelectionChangedEventArgs e)
+    {
+        if (DataContext is not MainWindowViewModel vm)
+        {
+            return;
+        }
+
+        if (e.AddedItems[0] is not TabViewModel tab)
+        {
+            return;
+        }
+
+        vm.WindowTabs.SelectTab(tab);
+        if (tab.Model?.FileInfo?.Exists == true)
+        {
+            tab.UpdateTabTitle();
+        }
+        else
+        {
+            tab.SetNewTabTitle();
+        }
+
+        tab.ImageIterator.UpdateNavigationProperties();
     }
 
     private void PointerPressedBehavior(object? sender, PointerPressedEventArgs e)
     {
-        if (e.ClickCount is 2 && Settings.UIProperties.DoubleClickBehavior is 2)
+        if (TopLevel.GetTopLevel(this) is not MainWindow mainWindow)
         {
-            if (DataContext is MainViewModel vm)
-            {
-                vm.PlatformWindowService.ToggleFullscreen();
-            }
+            return;
         }
-        CloseTitlebarIfOpen(sender, e);
-        if (MainKeyboardShortcuts.ShiftDown && !CropFunctions.IsCropping)
+        if (MainKeyboardShortcuts.ShiftDown && !CropManager.IsCropping(mainWindow))
         {
-            var hostWindow = (Window)VisualRoot!;
-            WindowFunctions.WindowDragBehavior(hostWindow, e);
+            WindowFunctions.WindowDragBehavior(mainWindow, e);
         }
         
-        DragAndDropHelper.RemoveDragDropView();
+        DragAndDropManager.RemoveDragDropView(TopLevel.GetTopLevel(this) as MainWindow);
     }
     
-    private void CloseTitlebarIfOpen(object? sender, EventArgs e)
+    private void HandleLostFocus(object? sender, EventArgs e)
     {
-        if (DataContext is not MainViewModel vm)
-        {
-            return;
-        }
-
-        if (!vm.MainWindow.IsEditableTitlebarOpen.Value)
-        {
-            return;
-        }
-
-        vm.MainWindow.IsEditableTitlebarOpen.Value = false;
-        MainKeyboardShortcuts.IsKeysEnabled = true;
-        Focus();
-    }
-    
-    private static void HandleLostFocus(object? sender, EventArgs e)
-    {
-        DragAndDropHelper.RemoveDragDropView();
+        DragAndDropManager.RemoveDragDropView(TopLevel.GetTopLevel(this) as MainWindow);
     }
 
-    private async Task OnMainContextMenuOpened(object? sender, EventArgs e)
+    private async ValueTask Drop(object? sender, DragEventArgs e)
     {
-        if (DataContext is not MainViewModel vm)
+        if (DataContext is not MainWindowViewModel vm)
         {
             return;
         }
         
-        await Dispatcher.UIThread.InvokeAsync(() =>
-        {
-            CropMenuItem.IsEnabled = CropFunctions.DetermineIfShouldBeEnabled(vm);
-            vm.PicViewer.ShouldOptimizeImageBeEnabled.Value = ConversionHelper.DetermineIfOptimizeImageShouldBeEnabled(vm.PicViewer.FileInfo?.CurrentValue);
-
-            // Set source for ChangeCtrlZoomImage
-            if (!Application.Current.TryGetResource("ScanEyeImage", Application.Current.RequestedThemeVariant, out var scanEyeImage))
-            {
-                return;
-            }
-            if (!Application.Current.TryGetResource("LeftRightArrowsImage", Application.Current.RequestedThemeVariant, out var leftRightArrowsImage))
-            {
-                return;
-            }
-            var isNavigatingWithCtrl = Settings.Zoom.CtrlZoom;
-            vm.MainWindow.ChangeCtrlZoomImage.Value = isNavigatingWithCtrl ? leftRightArrowsImage as DrawingImage : scanEyeImage as DrawingImage;
-        });
-        
-        // Update file history menu items in Dispatcher with low priority to avoid slowdown
-        await Dispatcher.UIThread.InvokeAsync(() => FileHistoryMenuController?.UpdateFileHistoryMenu(),
-            DispatcherPriority.Background);
-    }
-
-    private async Task Drop(object? sender, DragEventArgs e)
-    {
-        if (DataContext is not MainViewModel vm)
-        {
-            return;
-        }
-        await DragAndDropHelper.Drop(e, vm);
+        await DragAndDropManager.Drop(e, vm.WindowTabs, TopLevel.GetTopLevel(this) as MainWindow);
     }
     
-    private async Task DragEnter(object? sender, DragEventArgs e)
+    private async ValueTask DragEnter(object? sender, DragEventArgs e)
     {
-        if (DataContext is not MainViewModel vm)
-            return;
-
-        await DragAndDropHelper.DragEnter(e, vm, this);
+        await DragAndDropManager.DragEnter(e, TopLevel.GetTopLevel(this) as MainWindow);
     }
     
     private void DragLeave(object? sender, DragEventArgs e)
     {
-        DragAndDropHelper.DragLeave(e, this);
+        DragAndDropManager.DragLeave(TopLevel.GetTopLevel(this) as MainWindow);
     }
 }

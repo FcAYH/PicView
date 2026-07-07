@@ -95,6 +95,15 @@ public class FileSizeBenchmark
             GetReadableFileSize_Optimized(_fileInfos[i].Length);
         }
     }
+    
+    [Benchmark]
+    public void GetReadableFileSize_Optimized_Pre_Calculation()
+    {
+        for (var i = 0; i < MaxSize; i++)
+        {
+            Resources.FileExtensionsTestResource.GetReadableFileSize(_fileInfos[i].Length);
+        }
+    }
 
     public static string GetReadableFileSize_BitShift(long fileSize)
     {
@@ -268,11 +277,12 @@ AMD Ryzen 7 9800X3D 4.70GHz, 1 CPU, 16 logical and 8 physical cores
   DefaultJob : .NET 10.0.0 (10.0.0-rc.1.25451.107, 10.0.25.45207), X64 RyuJIT x86-64-v4
 
 
-| Method                         | Mean       | Error   | StdDev  | Gen0   | Allocated |
-|------------------------------- |-----------:|--------:|--------:|-------:|----------:|
-| GetReadableFileSize            | 1,434.0 ns | 2.84 ns | 2.52 ns | 0.0191 |     960 B |                                                                                                                                                                    
-| GetReadableFileSize_BitShift   | 1,364.1 ns | 2.96 ns | 2.62 ns | 0.0191 |     960 B |
-| GetReadableFileSize_StackAlloc |   213.1 ns | 0.65 ns | 0.61 ns | 0.0095 |     480 B |
-| GetReadableFileSize_Optimized  |   175.0 ns | 0.42 ns | 0.39 ns | 0.0095 |     480 B |
+| Method                                        | Mean       | Error    | StdDev   | Gen0   | Allocated |
+|---------------------------------------------- |-----------:|---------:|---------:|-------:|----------:|
+| GetReadableFileSize                           | 1,318.1 ns |  1.59 ns |  1.41 ns | 0.0191 |     960 B |                                                                                                                                              
+| GetReadableFileSize_BitShift                  | 1,216.0 ns | 19.99 ns | 17.72 ns | 0.0191 |     960 B |
+| GetReadableFileSize_StackAlloc                |   210.0 ns |  0.70 ns |  0.59 ns | 0.0095 |     480 B |
+| GetReadableFileSize_Optimized                 |   164.9 ns |  2.54 ns |  2.12 ns | 0.0095 |     480 B |
+| GetReadableFileSize_Optimized_Pre_Calculation |   135.0 ns |  0.34 ns |  0.32 ns | 0.0095 |     480 B |
 
 */
